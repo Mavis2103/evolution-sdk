@@ -2,9 +2,13 @@
   "title": "Addresses",
   "pages": [
     "index",
+    "base",
+    "enterprise",
+    "reward",
+    "pointer",
+    "franken",
     "construction",
     "conversion",
-    "types",
     "validation"
   ]
 }

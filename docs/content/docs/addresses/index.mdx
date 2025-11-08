@@ -1,8 +1,227 @@
 ---
 title: Addresses
-description: Working with Cardano addresses in Evolution SDK
+description: Working with Cardano addresses using the Core AddressStructure module
 ---
 
 # Addresses
 
-Content coming soon.
+Cardano addresses identify where funds can be sent and who controls them. The Evolution SDK Core `AddressStructure` module handles all parsing, encoding, validation, and manipulation of addresses.
+
+## Address Types Overview
+
+Cardano has several address types, each optimized for different use cases:
+
+| Type | Payment | Stake | Use Case | Recommended |
+|------|---------|-------|----------|-------------|
+| **[Base](/docs/addresses/base)** | ✅ Yes | ✅ Yes | Standard user wallets | ✅ Default choice |
+| **[Enterprise](/docs/addresses/enterprise)** | ✅ Yes | ❌ No | Exchanges, scripts | For specific needs |
+| **[Reward](/docs/addresses/reward)** | ❌ No | ✅ Yes | Stake rewards | Auto-generated |
+| **[Pointer](/docs/addresses/pointer)** | ✅ Yes | 🔗 Reference | Legacy optimization | ❌ Avoid |
+| **[Franken](/docs/addresses/franken)** | ✅ Yes (A) | ✅ Yes (B) | Custody, enterprise | Advanced use |
+
+## Quick Start
+
+### Parse Existing Address
+
+Use the Core module to parse and inspect addresses:
+
+```typescript twoslash
+import { Address, BaseAddress } from "@evolution-sdk/evolution";
+
+const bech32Address = "addr1qx2kd28nq8ac5prwg32hhvudlwggpgfp8utlyqxu6wqgz62f79qsdmm5dsknt9ecr5w468r9ey0fxwkdrwh08ly3tu9sy0f4qd";
+
+// Parse Bech32 string to address
+const address = Address.fromBech32(bech32Address) as BaseAddress.BaseAddress;
+
+console.log("Network:", address.networkId === 1 ? "mainnet" : "testnet");
+console.log("Payment credential:", address.paymentCredential);
+console.log("Staking credential:", address.stakeCredential);
+```
+
+## Core AddressStructure Module
+
+The Core module provides the actual functionality for working with addresses:
+
+```typescript twoslash
+import { BaseAddress, KeyHash, Address } from "@evolution-sdk/evolution";
+
+// Create an address structure
+const address = new BaseAddress.BaseAddress({
+  networkId: 1, // mainnet
+  paymentCredential: new KeyHash.KeyHash({
+    hash: new Uint8Array(28) // 28-byte key hash
+  }),
+  stakeCredential: new KeyHash.KeyHash({
+    hash: new Uint8Array(28) // 28-byte key hash
+  })
+});
+
+// Encode to Bech32
+const bech32 = Address.toBech32(address);
+
+// Parse from Bech32
+const parsed = Address.fromBech32(bech32);
+
+// Convert to/from hex
+const hex = Address.toHex(address);
+const fromHex = Address.fromHex(hex);
+
+// Convert to/from bytes
+const bytes = Address.toBytes(address);
+const fromBytes = Address.fromBytes(bytes);
+```
+
+## Choosing the Right Type
+
+### Use Base Addresses When
+
+- ✅ Standard addresses for most use cases
+- ✅ You want staking rewards
+- ✅ General purpose applications
+- ✅ Maximum compatibility needed
+
+[Learn more about Base Addresses →](/docs/addresses/base)
+
+### Use Enterprise Addresses When
+
+- ✅ Running an exchange (custodial platform)
+- ✅ Smart contract addresses (scripts)
+- ✅ Don't need staking capability
+- ✅ Want smaller address size
+
+[Learn more about Enterprise Addresses →](/docs/addresses/enterprise)
+
+### Use Franken Addresses When
+
+- ✅ DAO treasury with community-controlled staking
+
+[Learn more about Franken Addresses →](/docs/addresses/franken)
+
+### Don't Use Pointer Addresses
+
+Pointer addresses are deprecated in practice. Use base addresses instead.
+
+[Why pointer addresses exist →](/docs/addresses/pointer)
+
+## Address Anatomy
+
+### Base Address Structure
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   Base Address                       │
+├────────────────────────┬────────────────────────────┤
+│  Payment Credential    │  Staking Credential        │
+│  (28 bytes)            │  (28 bytes)                │
+│  Controls spending     │  Controls delegation       │
+└────────────────────────┴────────────────────────────┘
+         ↓                         ↓
+    Spend UTXOs            Delegate & earn rewards
+```
+
+### Enterprise Address Structure
+
+```
+┌──────────────────────────┐
+│   Enterprise Address     │
+├──────────────────────────┤
+│  Payment Credential Only │
+│  (28 bytes)              │
+│  Controls spending       │
+└──────────────────────────┘
+         ↓
+    Spend UTXOs
+    (no staking)
+```
+
+## Network Prefixes
+
+Addresses use different Bech32 prefixes based on network:
+
+| Address Type | Mainnet | Testnet (Preprod/Preview) |
+|--------------|---------|---------------------------|
+| Base | `addr1` | `addr_test1` |
+| Enterprise | `addr1` | `addr_test1` |
+| Reward | `stake1` | `stake_test1` |
+| Pointer | `addr1` | `addr_test1` |
+
+## Key Concepts
+
+### Payment Credential
+
+Controls **spending** of funds:
+- Required to sign spending transactions
+- Can be key hash (28 bytes) or script hash (28 bytes)
+- Loss of payment key = loss of funds
+
+### Staking Credential
+
+Controls **delegation** and rewards:
+- Required to delegate stake
+- Required to withdraw rewards
+- Can be key hash (28 bytes) or script hash (28 bytes)
+- Independent from payment credential
+
+### Credential Types
+
+Both payment and staking credentials can be:
+
+**Key Hash**: Derived from a cryptographic key (user-controlled)  
+**Script Hash**: Derived from a Plutus script (smart contract-controlled)
+
+## Common Operations
+
+### Construction
+
+Build addresses from scratch:
+
+[Address Construction Guide →](/docs/addresses/construction)
+
+### Conversion
+
+Convert between formats (Bech32, hex, bytes):
+
+[Address Conversion Guide →](/docs/addresses/conversion)
+
+### Validation
+
+Verify address format and network:
+
+[Address Validation Guide →](/docs/addresses/validation)
+
+## Best Practices
+
+**Default to Base**: Use base addresses unless you have a specific reason not to. They enable staking with no extra effort.
+
+**Validate User Input**: Always validate addresses before using them in transactions. Wrong network or format can lead to lost funds.
+
+**Network Awareness**: Testnet and mainnet addresses are incompatible. Check network ID before processing.
+
+**Key Management**: Secure both payment and stake keys appropriately based on their risk level.
+
+## Security Considerations
+
+**Address Reuse**: Cardano supports address reuse safely. However, generating new addresses improves privacy.
+
+**Network Mismatch**: Sending mainnet funds to testnet address (or vice versa) results in permanent loss. Always verify network.
+
+**Credential Independence**: In base addresses, payment and stake credentials are separate. They can be rotated independently.
+
+**Script Addresses**: Addresses with script credentials (smart contracts) have complex spending conditions. Ensure you understand the script before sending funds.
+
+## Next Steps
+
+**By Use Case:**
+- [Standard Addresses](/docs/addresses/base) - Base addresses with payment and staking
+- [Exchange Integration](/docs/addresses/enterprise) - Payment-only addresses
+- [Staking Rewards](/docs/addresses/reward) - Understanding reward addresses
+- [Advanced Custody](/docs/addresses/franken) - Hybrid ownership models
+
+**By Operation:**
+- [Construction](/docs/addresses/construction) - Building addresses manually
+- [Conversion](/docs/addresses/conversion) - Format transformations
+- [Validation](/docs/addresses/validation) - Verification and checks
+
+**Related Topics:**
+- [Transactions](/docs/transactions) - Sending funds to addresses
+- [Staking](/docs/staking) - Delegation and rewards

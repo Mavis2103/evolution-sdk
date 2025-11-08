@@ -1,0 +1,254 @@
+---
+title: Franken Addresses
+description: Hybrid addresses combining payment and stake credentials from different sources
+---
+
+# Franken Addresses (Hybrid Addresses)
+
+
+Franken addresses (also called Frankenstein or chimera addresses) are base addresses where the payment credential and stake credential come from **different sources**. They're "assembled" from independent keys, like Frankenstein's monster.
+
+## Structure
+
+```
+Franken Address = Payment Credential (Source A) + Stake Credential (Source B)
+```
+
+**Payment Credential**: From one source - key hash or script hash (controls spending)  
+**Stake Credential**: From different source - key hash or script hash (controls delegation)
+
+The key insight: these credentials are cryptographically independent. Controlling one doesn't give you control over the other. Each credential can be either a key hash or a script hash.
+
+## Key Properties
+
+**Independence**: Payment and stake keys are from completely different sources  
+**No Trust Required**: Each party only controls their respective credential  
+**Standard Format**: Still a valid base address - wallets see it as normal  
+**Separate Security**: Compromise of one key doesn't affect the other
+
+## Script Hash Compatibility
+
+Franken addresses support **both key hashes and script hashes** for payment and stake credentials, enabling many powerful combinations:
+
+| Payment Credential | Stake Credential | Use Case |
+|-------------------|------------------|----------|
+| **Key Hash** | **Key Hash** | Traditional Franken: two different wallets |
+| **Script Hash** | **Key Hash** | Smart contract funds + individual staking control |
+| **Key Hash** | **Script Hash** | Individual payment + DAO-controlled delegation |
+| **Script Hash** | **Script Hash** | Full smart contract control with separation |
+
+**Examples:**
+- **Payment: Script, Stake: Key** - Multi-sig treasury where funds require multiple signatures, but delegation is controlled by a single administrator
+- **Payment: Key, Stake: Script** - Individual controls funds, but staking/delegation follows governance decisions (e.g., DAO votes on pool selection)
+- **Payment: Script A, Stake: Script B** - Different smart contracts control spending vs staking logic (e.g., timelock for payments, voting contract for delegation)
+
+This flexibility makes Franken addresses ideal for complex custody arrangements, DeFi protocols, and governance systems.
+
+## Construction
+
+### Building Franken Addresses with Core Module
+
+Build directly from two independent key hashes using Core `AddressStructure`:
+
+```typescript
+import { BaseAddress, KeyHash, Address } from "@evolution-sdk/evolution";
+
+// Create Franken address with payment from Wallet A, stake from Wallet B
+const frankenAddress = new BaseAddress.BaseAddress({
+  networkId: 1, // mainnet
+  paymentCredential: new KeyHash.KeyHash({
+    hash: new Uint8Array(28) // Wallet A's payment key hash
+  }),
+  stakeCredential: new KeyHash.KeyHash({
+    hash: new Uint8Array(28) // Wallet B's stake key hash (different!)
+  })
+});
+
+// Convert to Bech32
+const bech32 = Address.toBech32(frankenAddress);
+console.log("Franken address:", bech32);
+```
+
+### Method 2: From Independent Wallets
+
+Create from two separate wallet key hashes:
+
+```typescript
+import { BaseAddress } from "@evolution-sdk/evolution";
+
+// Payment key hash from Wallet A (e.g., from hardware wallet)
+const walletAPaymentHash = "a".repeat(56);
+
+// Stake key hash from Wallet B (e.g., from hot wallet)
+const walletBStakeHash = "b".repeat(56);
+
+// Create Franken address combining both
+const frankenAddress = BaseAddress.make({
+  _tag: "BaseAddress" as const,
+  networkId: 1,
+  paymentCredential: {
+    _tag: "KeyHash" as const,
+    hash: walletAPaymentHash
+  },
+  stakeCredential: {
+    _tag: "KeyHash" as const,
+    hash: walletBStakeHash
+  }
+});
+
+console.log("Franken address:", frankenAddress);
+// addr1... (combines credentials from both wallets)
+```
+
+## Use Cases
+
+### Custodial Platform
+
+Platform controls funds, users control delegation:
+
+```typescript
+import { BaseAddress } from "@evolution-sdk/evolution";
+
+function createCustodialAddress(
+  platformPaymentKeyHash: string,
+  userStakeKeyHash: string
+) {
+  // Platform controls spending (payment key)
+  // User controls delegation (stake key)
+  return BaseAddress.make({
+    _tag: "BaseAddress" as const,
+    networkId: 1,
+    paymentCredential: {
+      _tag: "KeyHash" as const,
+      hash: platformPaymentKeyHash
+    },
+    stakeCredential: {
+      _tag: "KeyHash" as const,
+      hash: userStakeKeyHash
+    }
+  });
+}
+```
+
+### Multi-Signature Treasury
+
+Script for payments, key for delegation:
+
+```typescript
+import { BaseAddress, ScriptHash, KeyHash } from "@evolution-sdk/evolution";
+
+// Multi-sig script for payments, individual stake key for delegation
+const frankenAddr = new BaseAddress.BaseAddress({
+  networkId: 1,
+  paymentCredential: new ScriptHash.ScriptHash({
+    hash: new Uint8Array(28) // Multi-sig script hash
+  }),
+  stakeCredential: new KeyHash.KeyHash({
+    hash: new Uint8Array(28) // Administrator's stake key
+  })
+});
+```
+
+### DAO with Governance Staking
+
+Payment controlled by governance, staking follows community votes:
+
+```typescript
+import { BaseAddress, ScriptHash } from "@evolution-sdk/evolution";
+
+// DAO governance script for both payment and staking
+const daoAddress = new BaseAddress.BaseAddress({
+  networkId: 1,
+  paymentCredential: new ScriptHash.ScriptHash({
+    hash: new Uint8Array(28) // DAO treasury script
+  }),
+  stakeCredential: new ScriptHash.ScriptHash({
+    hash: new Uint8Array(28) // Delegation voting script
+  })
+});
+```
+
+## Security Model
+
+### Threat Analysis
+
+| Scenario | Impact |
+|----------|--------|
+| Payment key compromised | ❌ Attacker can spend funds |
+| Stake key compromised | ⚠️ Attacker can change delegation, withdraw rewards |
+| Both keys compromised | ❌ Full control lost |
+| One party malicious | ✅ Other party's rights preserved |
+
+### Best Practices
+
+**Clear Ownership**: Document who controls which credential. Avoid confusion about spending vs delegation authority.
+
+**Key Backup**: Each party must backup their respective key independently. Loss of either key has different consequences.
+
+**Reward Handling**: Clarify who can withdraw rewards (stake key holder). This is separate from spending funds.
+
+**Communication**: Parties should coordinate on delegation strategy if rewards are shared.
+
+## Reward Distribution
+
+Rewards accumulate at the stake credential's reward address:
+
+```typescript
+import { RewardAccount } from "@evolution-sdk/evolution";
+
+// The stake credential holder controls rewards
+const rewardAddress = RewardAccount.make({
+  _tag: "RewardAccount" as const,
+  networkId: 1,
+  stakeCredential: {
+    _tag: "KeyHash" as const,
+    hash: "1".repeat(56) // Stake key from Franken address
+  }
+});
+
+// Stake key holder can withdraw rewards to any address
+// Payment key holder cannot access rewards directly
+```
+
+## Verification
+
+Check if an address is a Franken address:
+
+```typescript
+import { Address } from "@evolution-sdk/evolution";
+
+function isFrankenAddress(addressBech32: string): boolean {
+  const parsed = Address.fromBech32(addressBech32);
+  
+  if (parsed._tag !== "BaseAddress") {
+    return false; // Not even a base address
+  }
+  
+  // A Franken address has independent payment and stake credentials
+  // In practice, you'd check if they come from different derivation paths
+  // or different master keys based on your application logic
+  
+  console.log("Payment credential:", parsed.paymentCredential);
+  console.log("Stake credential:", parsed.stakeCredential);
+  
+  // Your application logic to verify independence goes here
+  // For example: check if credentials come from different derivation paths
+  return true; // Simplified example
+}
+```
+
+## Limitations
+
+**Complexity**: More mental overhead. Need to understand which credential controls what operation.
+
+**Coordination**: Multiple parties may need to coordinate, especially for reward distribution.
+
+**Backup**: Each party must backup their credentials independently. No single recovery mechanism.
+
+**Tooling**: Not all tools recognize the split credential ownership, though addresses function normally.
+
+## Next Steps
+
+- **[Base Addresses](/docs/addresses/base)** - Understanding the standard format
+- **[Address Construction](/docs/addresses/construction)** - Manual building techniques
+- **[Validation](/docs/addresses/validation)** - Verifying address structure

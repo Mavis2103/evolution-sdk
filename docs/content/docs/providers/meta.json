@@ -1,0 +1,11 @@
+{
+  "title": "Providers",
+  "pages": [
+    "index",
+    "provider-types",
+    "provider-only-client",
+    "querying",
+    "submission",
+    "use-cases"
+  ]
+}

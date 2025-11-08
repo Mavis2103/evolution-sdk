@@ -7,6 +7,7 @@ dist
 .direnv
 docs/out
 docs/.next
+docs/.twoslash
 # TypeScript incremental compilation cache
 *.tsbuildinfo
 .tsbuildinfo/

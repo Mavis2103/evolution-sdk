@@ -1,0 +1,622 @@
+---
+title: Use Cases
+description: Real-world provider patterns and complete examples
+---
+
+# Use Cases
+
+Practical patterns and complete examples showing how to use providers in real applications.
+
+## Blockchain Explorer
+
+Query and display address information:
+
+```typescript twoslash
+import { createClient } from "@evolution-sdk/evolution";
+
+const client = createClient({
+  network: "mainnet",
+  provider: {
+    type: "blockfrost",
+    baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_PROJECT_ID!
+  }
+});
+
+interface AddressInfo {
+  address: string;
+  lovelace: bigint;
+  ada: number;
+  assets: Record<string, bigint>;
+  utxoCount: number;
+}
+
+export async function exploreAddress(
+  address: string
+): Promise<AddressInfo> {
+  const utxos = await client.getUtxos(address);
+  
+  let lovelace = 0n;
+  const assets: Record<string, bigint> = {};
+  
+  utxos.forEach((utxo) => {
+    Object.entries(utxo.assets).forEach(([unit, amount]) => {
+      if (unit === "lovelace") {
+        lovelace += amount;
+      } else {
+        assets[unit] = (assets[unit] || 0n) + amount;
+      }
+    });
+  });
+  
+  return {
+    address,
+    lovelace,
+    ada: Number(lovelace) / 1_000_000,
+    assets,
+    utxoCount: utxos.length
+  };
+}
+```
+
+## Portfolio Tracker
+
+Track balances across multiple addresses:
+
+```typescript twoslash
+import { createClient } from "@evolution-sdk/evolution";
+
+const client = createClient({
+  network: "mainnet",
+  provider: {
+    type: "blockfrost",
+    baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_PROJECT_ID!
+  }
+});
+
+interface WalletBalance {
+  address: string;
+  lovelace: bigint;
+  ada: number;
+  tokens: Array<{ unit: string; amount: bigint }>;
+}
+
+interface Portfolio {
+  wallets: WalletBalance[];
+  total: {
+    lovelace: bigint;
+    ada: number;
+  };
+}
+
+export async function trackPortfolio(
+  addresses: string[]
+): Promise<Portfolio> {
+  const wallets = await Promise.all(
+    addresses.map(async (address) => {
+      const utxos = await client.getUtxos(address);
+      
+      let lovelace = 0n;
+      const tokenMap = new Map<string, bigint>();
+      
+      utxos.forEach((utxo) => {
+        Object.entries(utxo.assets).forEach(([unit, amount]) => {
+          if (unit === "lovelace") {
+            lovelace += amount;
+          } else {
+            tokenMap.set(unit, (tokenMap.get(unit) || 0n) + amount);
+          }
+        });
+      });
+      
+      const tokens = Array.from(tokenMap.entries()).map(
+        ([unit, amount]) => ({ unit, amount })
+      );
+      
+      return {
+        address,
+        lovelace,
+        ada: Number(lovelace) / 1_000_000,
+        tokens
+      };
+    })
+  );
+  
+  const totalLovelace = wallets.reduce(
+    (sum, wallet) => sum + wallet.lovelace,
+    0n
+  );
+  
+  return {
+    wallets,
+    total: {
+      lovelace: totalLovelace,
+      ada: Number(totalLovelace) / 1_000_000
+    }
+  };
+}
+```
+
+## Transaction Submission API
+
+Backend API endpoint for transaction submission:
+
+```typescript twoslash
+import { createClient } from "@evolution-sdk/evolution";
+
+const client = createClient({
+  network: "mainnet",
+  provider: {
+    type: "blockfrost",
+    baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_PROJECT_ID!
+  }
+});
+
+interface SubmissionResponse {
+  success: boolean;
+  txHash?: string;
+  confirmed?: boolean;
+  error?: string;
+}
+
+export async function handleSubmission(
+  signedTxCbor: string
+): Promise<SubmissionResponse> {
+  try {
+    // Submit transaction
+    const txHash = await client.submitTx(signedTxCbor);
+    
+    console.log("Transaction submitted:", txHash);
+    
+    // Wait for confirmation
+    const confirmed = await client.awaitTx(txHash, 5000);
+    
+    return {
+      success: true,
+      txHash,
+      confirmed
+    };
+  } catch (error: any) {
+    console.error("Submission failed:", error);
+    
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+```
+
+Express.js integration example:
+
+```typescript
+// Express.js example
+import express from "express";
+const app = express();
+app.use(express.json());
+
+app.post("/api/submit", async (req, res) => {
+  const { txCbor } = req.body;
+  
+  if (!txCbor) {
+    return res.status(400).json({
+      error: "Missing txCbor in request body"
+    });
+  }
+  
+  const result = await handleSubmission(txCbor);
+  
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(500).json(result);
+  }
+});
+```
+
+## Token Distribution Tracker
+
+Track token distribution across holders:
+
+```typescript twoslash
+import { createClient } from "@evolution-sdk/evolution";
+
+const client = createClient({
+  network: "mainnet",
+  provider: {
+    type: "blockfrost",
+    baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_PROJECT_ID!
+  }
+});
+
+interface TokenHolder {
+  address: string;
+  amount: bigint;
+  percentage: number;
+}
+
+interface Distribution {
+  totalSupply: bigint;
+  holders: TokenHolder[];
+  uniqueHolders: number;
+}
+
+export async function trackDistribution(
+  addresses: string[],
+  tokenUnit: string
+): Promise<Distribution> {
+  const holders: TokenHolder[] = [];
+  let totalSupply = 0n;
+  
+  for (const address of addresses) {
+    const utxos = await client.getUtxosWithUnit(address, tokenUnit);
+    
+    if (utxos.length > 0) {
+      const amount = utxos.reduce((sum, utxo) => {
+        return sum + (utxo.assets[tokenUnit] || 0n);
+      }, 0n);
+      
+      totalSupply += amount;
+      holders.push({ address, amount, percentage: 0 });
+    }
+  }
+  
+  // Calculate percentages
+  holders.forEach((holder) => {
+    holder.percentage = totalSupply > 0n
+      ? Number((holder.amount * 10000n) / totalSupply) / 100
+      : 0;
+  });
+  
+  // Sort by amount descending
+  holders.sort((a, b) => Number(b.amount - a.amount));
+  
+  return {
+    totalSupply,
+    holders,
+    uniqueHolders: holders.length
+  };
+}
+```
+
+## NFT Collection Tracker
+
+Track NFT ownership and rarity:
+
+```typescript twoslash
+import { createClient } from "@evolution-sdk/evolution";
+
+const client = createClient({
+  network: "mainnet",
+  provider: {
+    type: "blockfrost",
+    baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_PROJECT_ID!
+  }
+});
+
+interface NFTOwnership {
+  tokenId: string;
+  unit: string;
+  owner: string | null;
+  txHash?: string;
+  outputIndex?: number;
+}
+
+export async function trackNFTCollection(
+  policyId: string,
+  tokenNames: string[]
+): Promise<NFTOwnership[]> {
+  const ownership = await Promise.all(
+    tokenNames.map(async (tokenName) => {
+      const unit = policyId + tokenName;
+      
+      try {
+        const utxo = await client.getUtxoByUnit(unit);
+        
+        return {
+          tokenId: tokenName,
+          unit,
+          owner: utxo.address,
+          txHash: utxo.txHash,
+          outputIndex: utxo.outputIndex
+        };
+      } catch (error) {
+        return {
+          tokenId: tokenName,
+          unit,
+          owner: null
+        };
+      }
+    })
+  );
+  
+  return ownership;
+}
+
+// Get collection statistics
+export async function getCollectionStats(
+  policyId: string,
+  tokenNames: string[]
+) {
+  const ownership = await trackNFTCollection(policyId, tokenNames);
+  
+  const owned = ownership.filter((nft) => nft.owner !== null);
+  const burned = ownership.filter((nft) => nft.owner === null);
+  
+  // Count unique owners
+  const uniqueOwners = new Set(
+    owned.map((nft) => nft.owner).filter(Boolean)
+  );
+  
+  return {
+    totalSupply: tokenNames.length,
+    owned: owned.length,
+    burned: burned.length,
+    uniqueOwners: uniqueOwners.size,
+    ownership
+  };
+}
+```
+
+## Staking Pool Delegator Tracker
+
+Track delegators to a specific stake pool:
+
+```typescript twoslash
+import { createClient } from "@evolution-sdk/evolution";
+
+const client = createClient({
+  network: "mainnet",
+  provider: {
+    type: "blockfrost",
+    baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_PROJECT_ID!
+  }
+});
+
+interface Delegator {
+  rewardAddress: string;
+  poolId: string | undefined;
+  rewards: bigint;
+}
+
+export async function trackPoolDelegators(
+  rewardAddresses: string[],
+  targetPoolId: string
+): Promise<Delegator[]> {
+  const delegators = await Promise.all(
+    rewardAddresses.map(async (rewardAddress) => {
+      try {
+        const delegation = await client.getDelegation(rewardAddress);
+        
+        return {
+          rewardAddress,
+          poolId: delegation.poolId,
+          rewards: delegation.rewards
+        };
+      } catch (error) {
+        return null;
+      }
+    })
+  );
+  
+  // Filter to only target pool delegators
+  return delegators.filter(
+    (d) => d !== null && d.poolId === targetPoolId
+  ) as Delegator[];
+}
+
+// Get pool statistics
+export async function getPoolStats(
+  rewardAddresses: string[],
+  targetPoolId: string
+) {
+  const delegators = await trackPoolDelegators(
+    rewardAddresses,
+    targetPoolId
+  );
+  
+  const totalRewards = delegators.reduce(
+    (sum, d) => sum + d.rewards,
+    0n
+  );
+  
+  return {
+    totalDelegators: delegators.length,
+    totalRewards,
+    totalRewardsAda: Number(totalRewards) / 1_000_000
+  };
+}
+```
+
+## Protocol Parameter Monitor
+
+Monitor network parameters for changes:
+
+```typescript twoslash
+import { createClient } from "@evolution-sdk/evolution";
+
+const client = createClient({
+  network: "mainnet",
+  provider: {
+    type: "blockfrost",
+    baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_PROJECT_ID!
+  }
+});
+
+interface ParameterSnapshot {
+  timestamp: Date;
+  minFeeA: number;
+  minFeeB: number;
+  maxTxSize: number;
+  keyDeposit: bigint;
+  poolDeposit: bigint;
+}
+
+export async function captureParameters(): Promise<ParameterSnapshot> {
+  const params = await client.getProtocolParameters();
+  
+  return {
+    timestamp: new Date(),
+    minFeeA: params.minFeeA,
+    minFeeB: params.minFeeB,
+    maxTxSize: params.maxTxSize,
+    keyDeposit: params.keyDeposit,
+    poolDeposit: params.poolDeposit
+  };
+}
+
+// Monitor with periodic snapshots
+export class ParameterMonitor {
+  private snapshots: ParameterSnapshot[] = [];
+  private intervalId: NodeJS.Timeout | null = null;
+  
+  start(intervalMs: number = 3600000) {
+    this.intervalId = setInterval(async () => {
+      const snapshot = await captureParameters();
+      this.snapshots.push(snapshot);
+      
+      console.log("Parameter snapshot:", snapshot);
+      
+      // Check for changes
+      if (this.snapshots.length > 1) {
+        const previous = this.snapshots[this.snapshots.length - 2];
+        this.detectChanges(previous, snapshot);
+      }
+    }, intervalMs);
+  }
+  
+  stop() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
+  
+  private detectChanges(
+    prev: ParameterSnapshot,
+    curr: ParameterSnapshot
+  ) {
+    if (prev.minFeeA !== curr.minFeeA) {
+      console.log("Fee A changed:", {
+        from: prev.minFeeA,
+        to: curr.minFeeA
+      });
+    }
+    
+    if (prev.poolDeposit !== curr.poolDeposit) {
+      console.log("Pool deposit changed:", {
+        from: prev.poolDeposit,
+        to: curr.poolDeposit
+      });
+    }
+  }
+}
+```
+
+## Multi-Provider Fallback
+
+Implement provider failover for reliability:
+
+```typescript twoslash
+import { createClient } from "@evolution-sdk/evolution";
+
+// Type for clients with common provider methods
+interface ProviderClient {
+  getUtxos: (address: string) => Promise<any>;
+  submitTx: (txCbor: string) => Promise<string>;
+  getProtocolParameters: () => Promise<any>;
+}
+
+class ProviderWithFallback {
+  private clients: ProviderClient[];
+  private currentIndex = 0;
+  
+  constructor(
+    configs: Array<{
+      network: "mainnet" | "preprod" | "preview";
+      provider:
+        | { type: "blockfrost"; baseUrl: string; projectId: string }
+        | { type: "maestro"; baseUrl: string; apiKey: string }
+        | { type: "kupmios"; ogmiosUrl: string; kupoUrl: string }
+        | { type: "koios"; baseUrl: string };
+    }>
+  ) {
+    this.clients = configs.map(({ network, provider }) =>
+      createClient({ network, provider })
+    );
+  }
+  
+  private async withFallback<T>(
+    operation: (client: ProviderClient) => Promise<T>
+  ): Promise<T> {
+    let lastError: Error | undefined;
+    
+    for (let i = 0; i < this.clients.length; i++) {
+      const client = this.clients[this.currentIndex];
+      
+      try {
+        const result = await operation(client);
+        return result;
+      } catch (error) {
+        console.error(`Provider ${this.currentIndex} failed:`, error);
+        lastError = error as Error;
+        
+        // Try next provider
+        this.currentIndex = (this.currentIndex + 1) % this.clients.length;
+      }
+    }
+    
+    throw lastError;
+  }
+  
+  async getUtxos(address: string) {
+    return this.withFallback((client) => client.getUtxos(address));
+  }
+  
+  async submitTx(txCbor: string) {
+    return this.withFallback((client) => client.submitTx(txCbor));
+  }
+  
+  async getProtocolParameters() {
+    return this.withFallback((client) =>
+      client.getProtocolParameters()
+    );
+  }
+}
+
+// Usage
+const resilientProvider = new ProviderWithFallback([
+  {
+    network: "mainnet",
+    provider: {
+      type: "blockfrost",
+      baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+      projectId: process.env.BLOCKFROST_PROJECT_ID!
+    }
+  },
+  {
+    network: "mainnet",
+    provider: {
+      type: "maestro",
+      baseUrl: "https://mainnet.gomaestro-api.org/v1",
+      apiKey: process.env.MAESTRO_API_KEY!
+    }
+  }
+]);
+
+const utxos = await resilientProvider.getUtxos("addr1...");
+```
+
+## Next Steps
+
+Now that you understand provider use cases:
+
+- [Provider Types](/docs/providers/provider-types) - Choose the right provider
+- [Querying](/docs/providers/querying) - Master query methods
+- [Submission](/docs/providers/submission) - Transaction submission patterns

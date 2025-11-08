@@ -1,5 +1,6 @@
 import { defineConfig, defineDocs, frontmatterSchema, metaSchema } from "fumadocs-mdx/config"
 import { transformerTwoslash } from "fumadocs-twoslash"
+import { createFileSystemTypesCache } from "fumadocs-twoslash/cache-fs"
 import { rehypeCodeDefaultOptions } from "fumadocs-core/mdx-plugins"
 
 // You can customise Zod schemas for frontmatter and `meta.json` here
@@ -16,14 +17,24 @@ export const docs = defineDocs({
 export default defineConfig({
   mdxOptions: {
     rehypeCodeOptions: {
+      lazy: true, // Load languages and themes on-demand to reduce memory usage
       themes: {
         light: "github-light",
         dark: "github-dark"
       },
-      langs: ['typescript', 'javascript', 'tsx', 'jsx', 'json', 'bash', 'shell', 'sh', 'mermaid'],
+      // Explicit language list for lazy loading
+      langs: ['ts', 'tsx', 'js', 'jsx', 'bash', 'sh'],
       transformers: [
         ...(rehypeCodeDefaultOptions.transformers ?? []),
-        transformerTwoslash()
+        transformerTwoslash({
+          typesCache: createFileSystemTypesCache(),
+          // Reduce memory by limiting TypeScript's work
+          twoslashOptions: {
+            compilerOptions: {
+              skipLibCheck: true,
+            }
+          }
+        })
       ]
     }
   }

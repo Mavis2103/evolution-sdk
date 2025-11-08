@@ -1,0 +1,357 @@
+---
+title: "Client architecture & patterns"
+description: "Frontend/backend architecture and client wiring"
+---
+
+# Client architecture & patterns
+
+Complete architecture patterns showing proper separation between frontend signing and backend transaction building. This page documents how to wire wallets and providers into clients for frontend and backend applications.
+
+## Read-Only Wallets
+
+Read-only wallets observe addresses and build transactions but cannot sign. They enable transaction construction on backends using the user's address without any signing capability.
+
+**What they are:** Wallets configured with an address but no private keys—can build, cannot sign.
+
+**When to use:** Backend transaction building in web applications. Server builds unsigned transactions for frontend to sign.
+
+**Why they work:** Provides transaction builder with proper UTxO selection and fee calculation for a specific address, without security risk of keys on backend.
+
+**How to secure:** Backend never sees keys. Frontend sends user address, backend builds transaction as that user, frontend signs with actual wallet.
+
+### Configuration
+
+```typescript twoslash
+interface ReadOnlyWalletConfig {
+  type: "read-only"
+  address: string          // Cardano address to observe (required)
+  rewardAddress?: string   // Stake address for rewards (optional)
+}
+```
+
+### Backend Transaction Building
+
+```typescript twoslash
+import { createClient, Transaction } from "@evolution-sdk/evolution";
+
+// Backend: read-only wallet with user's address (from frontend)
+const backendClient = createClient({
+  network: "mainnet",
+  provider: {
+    type: "blockfrost",
+    baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_PROJECT_ID!
+  },
+  wallet: {
+    type: "read-only",
+    address: "addr1qz8eg0aknl96hd3v6x3qfmmz5zhtrq5hn8hmq0x4qd6m2qdppx88rnw3eumv9zv2ctjns05c8jhsqwg98qaxcz2qh45qhjv39c"
+  }
+});
+
+// Build unsigned transaction
+const builder = backendClient.newTx();
+builder.payToAddress({
+  address: "addr1...",
+  assets: { lovelace: 5000000n }
+});
+
+// Build returns result, get transaction and serialize
+const result = await builder.build();
+const unsignedTx = await result.toTransaction();
+const txCbor = Transaction.toCBORHex(unsignedTx);
+
+// Return to frontend for signing
+// Frontend: wallet.signTx(txCbor) → wallet.submitTx(signedTxCbor)
+```
+
+---
+
+## Frontend: Signing Only
+
+Frontend applications connect to user wallets through CIP-30 but never have provider access. They retrieve addresses, sign transactions built by backends, and submit signed transactions.
+
+**Architecture:** API wallet client (no provider) → can sign, cannot build.
+
+**Workflow:**
+1. User connects browser extension wallet
+2. Frontend gets user's address
+3. Send address to backend
+4. Backend builds unsigned transaction
+5. Frontend receives unsigned CBOR
+6. Frontend requests signature from wallet
+7. User approves in wallet interface
+8. Frontend submits signed transaction
+
+### Implementation
+
+```typescript
+import { createClient } from "@evolution-sdk/evolution";
+
+// 1. Connect wallet
+declare const cardano: any;
+const walletApi = await cardano.eternl.enable();
+
+// 2. Create signing-only client
+const client = createClient({
+  network: "mainnet",
+  wallet: { type: "api", api: walletApi }
+});
+
+// 3. Get user address for backend
+const address = await client.address();
+
+// 4. Send address to backend, receive unsigned tx CBOR
+const unsignedTxCbor = await fetch("/api/build-tx", {
+  method: "POST",
+  body: JSON.stringify({ userAddress: address })
+}).then(r => r.json()).then(data => data.txCbor);
+
+// 5. Sign with user wallet
+const witnessSet = await client.signTx(unsignedTxCbor);
+
+// 6. Submit
+const txHash = await client.submitTx(unsignedTxCbor);
+console.log("Transaction submitted:", txHash);
+```
+
+**Security:**
+Provider API keys never exposed to frontend. User approves every signature. Keys stay on the user's device. Cannot build transactions without provider access.
+
+---
+
+## Backend: Building Only
+
+Backend services use read-only wallets configured with user addresses to build unsigned transactions. They have provider access for blockchain queries but zero signing capability.
+
+**Architecture:** Read-only wallet + provider → can build, cannot sign.
+
+**Workflow:**
+1. Receive user address from frontend
+2. Create read-only wallet with that address
+3. Build transaction with proper UTxO selection
+4. Calculate fees, validate outputs
+5. Return unsigned transaction CBOR
+6. Frontend handles signing and submission
+
+### Implementation
+
+```typescript
+import { createClient } from "@evolution-sdk/evolution";
+
+// Backend endpoint
+export async function buildTransaction(userAddress: string) {
+  // Create read-only client with user's address
+  const client = createClient({
+    network: "mainnet",
+    provider: {
+      type: "blockfrost",
+      baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+      projectId: process.env.BLOCKFROST_PROJECT_ID!
+    },
+    wallet: {
+      type: "read-only",
+      address: userAddress
+    }
+  });
+
+  // Build unsigned transaction
+  const builder = client.newTx();
+  builder.payToAddress({
+    address: "addr1...",
+    assets: { lovelace: 5000000n }
+  });
+
+  // Returns unsigned transaction
+  const unsignedTx = await builder.build();
+  const txCbor = unsignedTx.toCBOR();
+
+  return { txCbor };
+}
+```
+
+**Security:**
+Backend never sees private keys. Cannot sign even if server is compromised. Provider keys protected on server. Cannot submit transactions without signing from frontend.
+
+---
+
+## Full Flow: Build → Sign → Submit
+
+Complete architecture showing frontend/backend separation with proper security model.
+
+**Components:**
+- **Frontend**: API wallet (CIP-30) for signing
+- **Backend**: Read-only wallet for building
+- **Security**: Keys stay on user device, provider keys stay on server
+
+### Complete Example
+
+```typescript twoslash
+// @filename: shared.ts
+export type BuildPaymentResponse = { txCbor: string };
+
+// @filename: frontend.ts
+// ===== Frontend (Browser) =====
+import { createClient } from "@evolution-sdk/evolution";
+import type { BuildPaymentResponse } from "./shared";
+
+declare const cardano: any;
+
+async function sendPayment(recipientAddress: string, lovelace: bigint) {
+  // 1. Connect user wallet
+  const walletApi = await cardano.eternl.enable();
+  const walletClient = createClient({
+    network: "mainnet",
+    wallet: { type: "api", api: walletApi }
+  });
+
+  // 2. Get user address
+  const userAddress = await walletClient.address();
+
+  // 3. Request backend to build transaction
+  const response = await fetch("/api/build-payment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userAddress,
+      recipientAddress,
+      lovelace: lovelace.toString()
+    })
+  });
+  const { txCbor } = await response.json() as BuildPaymentResponse;
+
+  // 4. Sign with user wallet (prompts user approval)
+  const witnessSet = await walletClient.signTx(txCbor);
+
+  // 5. Submit signed transaction
+  const txHash = await walletClient.submitTx(txCbor);
+
+  return txHash;
+}
+
+// @filename: backend.ts
+// ===== Backend (Server) =====
+import { createClient, Transaction } from "@evolution-sdk/evolution";
+
+export async function buildPayment(
+  userAddress: string,
+  recipientAddress: string,
+  lovelace: bigint
+) {
+  // Create read-only client with user's address
+  const client = createClient({
+    network: "mainnet",
+    provider: {
+      type: "blockfrost",
+      baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+      projectId: process.env.BLOCKFROST_PROJECT_ID!
+    },
+    wallet: {
+      type: "read-only",
+      address: userAddress
+    }
+  });
+
+  // Build unsigned transaction
+  const builder = client.newTx();
+  builder.payToAddress({
+    address: recipientAddress,
+    assets: { lovelace }
+  });
+
+  // Return unsigned CBOR for frontend to sign
+  const result = await builder.build();
+  const unsignedTx = await result.toTransaction();
+  const txCbor = Transaction.toCBORHex(unsignedTx);
+
+  return { txCbor };
+}
+```
+
+### Why This Works
+
+### Why This Works
+
+User keys never leave their device. Provider API keys never exposed to frontend. Backend cannot sign transactions (compromised server results in no fund loss). Frontend cannot build transactions alone (no provider access). Both components required for complete transactions. Clean separation of concerns provides scalable architecture.
+
+---
+
+## Method Matrix
+
+| Method | Seed | Private Key | API Wallet | Read-Only |
+|--------|------|-------------|------------|-----------|
+| `address()` | Yes | Yes | Yes | Yes |
+| `rewardAddress()` | Yes | Yes | Yes | Yes |
+| `newTx()` | Yes | Yes | No | Yes |
+| `sign()` | Yes | Yes | Yes | No |
+| `signTx()` | Yes | Yes | Yes | No |
+| `submitTx()` | Yes | Yes | Yes | Yes |
+
+---
+
+## Common Mistakes
+
+**Error: Frontend trying to build:**
+
+```typescript
+// WRONG - Frontend has no provider
+const client = createClient({
+  network: "mainnet",
+  wallet: { type: "api", api: walletApi }
+  // No provider!
+});
+
+const builder = client.newTx(); // Error: Cannot build without provider
+```
+
+**Correct - Frontend signs only:**
+
+```typescript
+// CORRECT - Frontend signs, backend builds
+const client = createClient({
+  network: "mainnet",
+  wallet: { type: "api", api: walletApi }
+});
+
+// Get tx from backend, then sign
+const witnessSet = await client.signTx(txCborFromBackend);
+```
+
+**Error: Backend trying to sign:**
+
+```typescript
+// WRONG - Backend has no private keys
+const client = createClient({
+  network: "mainnet",
+  provider: { /* ... */ },
+  wallet: {
+    type: "read-only",
+    address: userAddress
+  }
+});
+
+await client.sign(); // Error: Cannot sign with read-only wallet
+```
+
+**Correct - Backend builds only:**
+
+```typescript
+// CORRECT - Backend builds, frontend signs
+const client = createClient({
+  network: "mainnet",
+    provider: { /* ... */ },
+  wallet: {
+    type: "read-only",
+    address: userAddress
+  }
+});
+
+const unsignedTx = await builder.build(); // Returns unsigned CBOR
+```
+
+---
+
+## Next Steps
+
+- **[API Wallets](/docs/wallets/api-wallet)** - CIP-30 integration details
+- **[Security](/docs/wallets/security)** - Complete security guide
+- **[Private Key](/docs/wallets/private-key)** - Backend automation
