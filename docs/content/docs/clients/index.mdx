@@ -1,12 +1,71 @@
 ---
 title: "Clients"
+description: "Client types combining wallets and providers"
 ---
-
-import { Card, Cards } from 'fumadocs-ui/components/card'
 
 # Clients
 
-<Cards>
-  <Card title="Provider Setup Comparison" href="/docs/clients/providers" />
-  <Card title="Client Basics" href="/docs/clients/client-basics" />
-</Cards>
+Clients combine wallets and providers to enable different blockchain operations. The Evolution SDK provides four client types, each optimized for specific capabilities and security requirements.
+
+## Overview
+
+A client's capabilities depend on its configuration:
+
+- **Wallet**: Provides signing capability and address context
+- **Provider**: Enables blockchain queries and transaction submission
+
+Different combinations create different client types with distinct capabilities.
+
+## Client Types
+
+| Client Type | Wallet | Provider | Can Query | Can Build Tx | Can Sign | Can Submit |
+|-------------|--------|----------|-----------|--------------|----------|------------|
+| **Full Client** | ✅ Signing | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **API Wallet Client** | ✅ API only | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Read-Only Client** | ✅ Read-only | ✅ | ✅ | ✅ | ❌ | ✅ |
+| **Provider-Only Client** | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
+
+## Configuration Pattern
+
+All clients use `createClient` with different configurations:
+
+```typescript
+createClient({
+  network: "mainnet" | "preprod" | "preview",
+  provider?: ProviderConfig,  // Optional
+  wallet?: WalletConfig       // Optional
+})
+```
+
+**Rules**:
+- At least one of `provider` or `wallet` must be present
+- `wallet` alone → API Wallet Client
+- `provider` alone → Provider-Only Client  
+- Both → Full Client or Read-Only Client (depends on wallet type)
+
+## Decision Tree
+
+```
+What do you need to do?
+
+Build + Sign + Submit transactions?
+├─ Development/Testing → Full Client (seed wallet)
+└─ Production automation → Full Client (private-key wallet)
+
+Sign only (frontend dApp)?
+└─ API Wallet Client (CIP-30)
+
+Build only (backend)?
+└─ Read-Only Client (user's address)
+
+Query + Submit pre-signed?
+└─ Provider-Only Client
+```
+
+## Next Steps
+
+- **[Client Basics](/docs/clients/client-basics)** - Understanding client capabilities
+- **[Provider Setup](/docs/clients/providers)** - Provider configuration comparison
+- **[Architecture](/docs/clients/architecture)** - Frontend/backend patterns
+- **[Wallets](/docs/wallets)** - Wallet types and security
+- **[Providers](/docs/providers)** - Provider-only client patterns

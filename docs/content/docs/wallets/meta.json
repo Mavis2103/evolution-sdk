@@ -2,7 +2,9 @@
   "title": "Wallets",
   "pages": [
     "index",
-    "wallet-basics",
-    "creating-wallets"
+    "seed-phrase",
+    "private-key",
+    "api-wallet",
+    "security"
   ]
 }

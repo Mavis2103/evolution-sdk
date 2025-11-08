@@ -5,6 +5,7 @@
     "architecture",
     "clients",
     "wallets",
+    "providers",
     "addresses",
     "transactions",
     "assets",
