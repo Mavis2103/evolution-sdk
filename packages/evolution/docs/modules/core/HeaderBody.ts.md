@@ -10,21 +10,18 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
 - [conversion](#conversion)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [HeaderBodyError (class)](#headerbodyerror-class)
 - [model](#model)
   - [HeaderBody (class)](#headerbody-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [predicates](#predicates)
   - [isHeaderBody](#isheaderbody)
 - [schemas](#schemas)
@@ -36,39 +33,11 @@ parent: Modules
 
 ---
 
-# constructors
-
-## make
-
-Smart constructor for creating HeaderBody instances
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: {
-    readonly slot: bigint
-    readonly protocolVersion: ProtocolVersion.ProtocolVersion
-    readonly blockNumber: bigint
-    readonly issuerVkey: VKey.VKey
-    readonly vrfVkey: VrfVkey.VrfVkey
-    readonly vrfResult: VrfCert.VrfCert
-    readonly blockBodySize: bigint
-    readonly blockBodyHash: BlockBodyHash.BlockBodyHash
-    readonly operationalCert: OperationalCert.OperationalCert
-    readonly prevHash: BlockHeaderHash.BlockHeaderHash | null
-  },
-  options?: Schema.MakeOptions | undefined
-) => HeaderBody
-```
-
-Added in v2.0.0
-
 # conversion
 
 ## fromCBORBytes
 
-Convert CBOR bytes to HeaderBody (unsafe)
+Convert CBOR bytes to HeaderBody
 
 **Signature**
 
@@ -80,7 +49,7 @@ Added in v2.0.0
 
 ## fromCBORHex
 
-Convert CBOR hex string to HeaderBody (unsafe)
+Convert CBOR hex string to HeaderBody
 
 **Signature**
 
@@ -92,60 +61,24 @@ Added in v2.0.0
 
 ## toCBORBytes
 
-Convert HeaderBody to CBOR bytes (unsafe)
+Convert HeaderBody to CBOR bytes
 
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: HeaderBody, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (headerBody: HeaderBody, options?: CBOR.CodecOptions) => Uint8Array
 ```
 
 Added in v2.0.0
 
 ## toCBORHex
 
-Convert HeaderBody to CBOR hex string (unsafe)
+Convert HeaderBody to CBOR hex string
 
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: HeaderBody, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect namespace for HeaderBody operations that can fail
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two HeaderBody instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: HeaderBody, b: HeaderBody) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## HeaderBodyError (class)
-
-Error class for HeaderBody related operations.
-
-**Signature**
-
-```ts
-export declare class HeaderBodyError
+export declare const toCBORHex: (headerBody: HeaderBody, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -175,6 +108,46 @@ export declare class HeaderBody
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # predicates
 

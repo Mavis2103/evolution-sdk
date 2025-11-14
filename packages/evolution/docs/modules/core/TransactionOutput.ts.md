@@ -10,30 +10,27 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [Either](#either)
-  - [Either (namespace)](#either-namespace)
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [makeBabbage](#makebabbage)
-  - [makeShelley](#makeshelley)
 - [decoding](#decoding)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [TransactionOutputError (class)](#transactionoutputerror-class)
 - [model](#model)
   - [BabbageTransactionOutput (class)](#babbagetransactionoutput-class)
+    - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [ShelleyTransactionOutput (class)](#shelleytransactionoutput-class)
+    - [toJSON (method)](#tojson-method-1)
     - [toString (method)](#tostring-method-1)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method-1)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-1)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
 - [schemas](#schemas)
   - [TransactionOutput](#transactionoutput)
 - [transformation](#transformation)
@@ -50,14 +47,6 @@ parent: Modules
 
 ---
 
-# Either
-
-## Either (namespace)
-
-Either namespace containing schema decode and encode operations.
-
-Added in v2.0.0
-
 # arbitrary
 
 ## arbitrary
@@ -70,62 +59,11 @@ export declare const arbitrary: FastCheck.Arbitrary<ShelleyTransactionOutput | B
 
 Added in v2.0.0
 
-# constructors
-
-## makeBabbage
-
-Create a Babbage transaction output.
-
-**Signature**
-
-```ts
-export declare const makeBabbage: (
-  props: {
-    readonly address:
-      | RewardAccount
-      | BaseAddress.BaseAddress
-      | EnterpriseAddress.EnterpriseAddress
-      | PointerAddress
-      | ByronAddress
-    readonly amount: Value.OnlyCoin | Value.WithAssets
-    readonly datumOption?: DatumOption.DatumHash | DatumOption.InlineDatum | undefined
-    readonly scriptRef?: ScriptRef.ScriptRef | undefined
-  },
-  options?: Schema.MakeOptions | undefined
-) => BabbageTransactionOutput
-```
-
-Added in v2.0.0
-
-## makeShelley
-
-Create a Shelley transaction output.
-
-**Signature**
-
-```ts
-export declare const makeShelley: (
-  props: {
-    readonly datumHash?: DatumOption.DatumHash | undefined
-    readonly address:
-      | RewardAccount
-      | BaseAddress.BaseAddress
-      | EnterpriseAddress.EnterpriseAddress
-      | PointerAddress
-      | ByronAddress
-    readonly amount: Value.OnlyCoin | Value.WithAssets
-  },
-  options?: Schema.MakeOptions | undefined
-) => ShelleyTransactionOutput
-```
-
-Added in v2.0.0
-
 # decoding
 
 ## fromCBORBytes
 
-Parse TransactionOutput from CBOR bytes (unsafe).
+Parse TransactionOutput from CBOR bytes.
 
 **Signature**
 
@@ -140,7 +78,7 @@ Added in v2.0.0
 
 ## fromCBORHex
 
-Parse TransactionOutput from CBOR hex (unsafe).
+Parse TransactionOutput from CBOR hex.
 
 **Signature**
 
@@ -157,58 +95,24 @@ Added in v2.0.0
 
 ## toCBORBytes
 
-Convert TransactionOutput to CBOR bytes (unsafe).
+Convert TransactionOutput to CBOR bytes.
 
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (
-  input: ShelleyTransactionOutput | BabbageTransactionOutput,
-  options?: CBOR.CodecOptions
-) => Uint8Array
+export declare const toCBORBytes: (data: TransactionOutput, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
 
 ## toCBORHex
 
-Convert TransactionOutput to CBOR hex (unsafe).
+Convert TransactionOutput to CBOR hex.
 
 **Signature**
 
 ```ts
-export declare const toCBORHex: (
-  input: ShelleyTransactionOutput | BabbageTransactionOutput,
-  options?: CBOR.CodecOptions
-) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two TransactionOutput instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: TransactionOutput, b: TransactionOutput) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## TransactionOutputError (class)
-
-Error class for TransactionOutput related operations.
-
-**Signature**
-
-```ts
-export declare class TransactionOutputError
+export declare const toCBORHex: (data: TransactionOutput, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -234,6 +138,14 @@ export declare class BabbageTransactionOutput
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
 ### toString (method)
 
 **Signature**
@@ -242,12 +154,28 @@ Added in v2.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 ## ShelleyTransactionOutput (class)
@@ -268,6 +196,14 @@ export declare class ShelleyTransactionOutput
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
 ### toString (method)
 
 **Signature**
@@ -276,12 +212,28 @@ Added in v2.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # schemas

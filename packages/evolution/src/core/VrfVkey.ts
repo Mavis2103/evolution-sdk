@@ -27,11 +27,11 @@ export class VrfVkey extends Schema.TaggedClass<VrfVkey>()("VrfVkey", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof VrfVkey && Bytes.equals(this.bytes, that.bytes)
+    return that instanceof VrfVkey && Bytes.bytesEquals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.array(Array.from(this.bytes)))
+    return Hash.array(Array.from(this.bytes))
   }
 }
 

@@ -12,14 +12,6 @@ parent: Modules
 
 - [constants](#constants)
   - [MAX_COIN_VALUE](#max_coin_value)
-- [constructors](#constructors)
-  - [make](#make)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [CoinError (class)](#coinerror-class)
 - [generators](#generators)
   - [arbitrary](#arbitrary)
 - [model](#model)
@@ -46,56 +38,6 @@ Maximum value for a coin amount (maxWord64).
 
 ```ts
 export declare const MAX_COIN_VALUE: 18446744073709551615n
-```
-
-Added in v2.0.0
-
-# constructors
-
-## make
-
-Smart constructor for creating Coin values.
-
-**Signature**
-
-```ts
-export declare const make: (a: bigint, options?: Schema.MakeOptions) => bigint
-```
-
-Added in v2.0.0
-
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two coin amounts are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Coin, b: Coin) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## CoinError (class)
-
-Error class for Coin related operations.
-
-**Signature**
-
-```ts
-export declare class CoinError
 ```
 
 Added in v2.0.0

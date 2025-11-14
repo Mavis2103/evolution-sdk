@@ -12,10 +12,6 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [ScriptError (class)](#scripterror-class)
 - [model](#model)
   - [Script](#script)
 - [schemas](#schemas)
@@ -45,34 +41,6 @@ FastCheck arbitrary for Script.
 export declare const arbitrary: FastCheck.Arbitrary<
   NativeScripts.NativeScript | PlutusV1.PlutusV1 | PlutusV2.PlutusV2 | PlutusV3.PlutusV3
 >
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two Script instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Script, b: Script) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## ScriptError (class)
-
-Error class for Script related operations.
-
-**Signature**
-
-```ts
-export declare class ScriptError
 ```
 
 Added in v2.0.0
@@ -275,10 +243,7 @@ export declare const fromCBORHex: (
 **Signature**
 
 ```ts
-export declare const toCBOR: (
-  input: NativeScripts.NativeScript | PlutusV1.PlutusV1 | PlutusV2.PlutusV2 | PlutusV3.PlutusV3,
-  options?: CBOR.CodecOptions
-) => Uint8Array
+export declare const toCBOR: (data: Script, options?: CBOR.CodecOptions) => any
 ```
 
 ## toCBORHex
@@ -286,8 +251,5 @@ export declare const toCBOR: (
 **Signature**
 
 ```ts
-export declare const toCBORHex: (
-  input: NativeScripts.NativeScript | PlutusV1.PlutusV1 | PlutusV2.PlutusV2 | PlutusV3.PlutusV3,
-  options?: CBOR.CodecOptions
-) => string
+export declare const toCBORHex: (data: Script, options?: CBOR.CodecOptions) => string
 ```

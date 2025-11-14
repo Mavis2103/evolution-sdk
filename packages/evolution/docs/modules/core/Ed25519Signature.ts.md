@@ -18,23 +18,18 @@ parent: Modules
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [Ed25519SignatureError (class)](#ed25519signatureerror-class)
 - [model](#model)
   - [Ed25519Signature (class)](#ed25519signature-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [predicates](#predicates)
   - [is](#is)
 - [schemas](#schemas)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
-- [utils](#utils)
-  - [Either (namespace)](#either-namespace)
-  - [make](#make)
 
 ---
 
@@ -61,7 +56,7 @@ Parse Ed25519Signature from bytes (unsafe - throws on error).
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => Ed25519Signature
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => Ed25519Signature
 ```
 
 Added in v2.0.0
@@ -73,7 +68,7 @@ Parse Ed25519Signature from hex string (unsafe - throws on error).
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => Ed25519Signature
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => Ed25519Signature
 ```
 
 Added in v2.0.0
@@ -87,7 +82,7 @@ Get the underlying bytes (returns a copy for safety).
 **Signature**
 
 ```ts
-export declare const toBytes: (input: Ed25519Signature) => Uint8Array
+export declare const toBytes: (a: Ed25519Signature, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -99,35 +94,7 @@ Convert to hex string using optimized lookup table.
 **Signature**
 
 ```ts
-export declare const toHex: (input: Ed25519Signature) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check equality with another Ed25519Signature.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Ed25519Signature, b: Ed25519Signature) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## Ed25519SignatureError (class)
-
-Error class for Ed25519SignatureClass related operations.
-
-**Signature**
-
-```ts
-export declare class Ed25519SignatureError
+export declare const toHex: (a: Ed25519Signature, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -153,7 +120,7 @@ Added in v2.0.0
 **Signature**
 
 ```ts
-toJSON(): string
+toJSON()
 ```
 
 ### toString (method)
@@ -164,12 +131,28 @@ toJSON(): string
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # predicates
@@ -220,18 +203,3 @@ export declare const FromHex: Schema.transform<
 ```
 
 Added in v2.0.0
-
-# utils
-
-## Either (namespace)
-
-## make
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly bytes: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => Ed25519Signature
-```

@@ -42,10 +42,7 @@ export class EnterpriseAddress extends Schema.TaggedClass<EnterpriseAddress>("En
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(
-      this,
-      Hash.combine(Hash.hash(this.networkId))(Hash.hash(this.paymentCredential))
-    )
+    return Hash.combine(Hash.hash(this.networkId))(Hash.hash(this.paymentCredential))
   }
 }
 

@@ -1,5 +1,6 @@
 import { Equal, FastCheck, Hash, Inspectable, Schema } from "effect"
 
+import * as Bytes from "./Bytes.js"
 import * as Bytes32 from "./Bytes32.js"
 
 /**
@@ -52,17 +53,17 @@ export class AssetName extends Schema.TaggedClass<AssetName>()("AssetName", {
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof AssetName && Equal.equals(this.bytes, that.bytes)
+    return that instanceof AssetName && Bytes.bytesEquals(this.bytes, that.bytes)
   }
 
   /**
-   * Hash code generation.
+   * Content-based hash for optimization of Equal.equals.
    *
    * @since 2.0.0
    * @category hashing
    */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.bytes))
+    return Hash.cached(this, Hash.array(Array.from(this.bytes)))
   }
 }
 

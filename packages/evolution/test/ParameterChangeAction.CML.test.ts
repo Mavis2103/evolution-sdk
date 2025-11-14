@@ -28,10 +28,14 @@ describe("ParameterChangeAction CML Compatibility", () => {
     expect(ppuRT.minfeeA).toBe(44n)
 
     // Build Evolution SDK governance action and wrap into a ProposalProcedure
-    const gov = GovernanceAction.makeParameterChange(null, ppu, null)
+    const gov = GovernanceAction.ParameterChangeAction.make({
+      protocolParamUpdate: ppu,
+      govActionId: null,
+      policyHash: null
+    })
     const deposit = 12345n
     const rewardAccount = generateTestRewardAccount(7)
-    const evoProcedure = ProposalProcedure.make({
+    const evoProcedure = new ProposalProcedure.ProposalProcedure({
       deposit,
       rewardAccount,
       governanceAction: gov,
@@ -80,7 +84,7 @@ describe("ParameterChangeAction CML Compatibility", () => {
         ppuArb,
         govArb,
         (deposit, rewardAccount, anchor, ppu, gov) => {
-          const evoProcedure = ProposalProcedure.make({ deposit, rewardAccount, governanceAction: gov, anchor })
+          const evoProcedure = new ProposalProcedure.ProposalProcedure({ deposit, rewardAccount, governanceAction: gov, anchor })
           const evoHex = ProposalProcedure.toCBORHex(evoProcedure)
           const cmlParsed = CML.ProposalProcedure.from_cbor_hex(evoHex)
           const cmlHex = cmlParsed.to_cbor_hex()

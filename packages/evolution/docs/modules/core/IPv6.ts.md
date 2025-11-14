@@ -12,15 +12,9 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [IPv6Error (class)](#ipv6error-class)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -30,6 +24,9 @@ parent: Modules
   - [IPv6 (class)](#ipv6-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [utils](#utils)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
@@ -50,14 +47,6 @@ export declare const arbitrary: FastCheck.Arbitrary<IPv6>
 
 Added in v2.0.0
 
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -67,7 +56,7 @@ Encode IPv6 to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: IPv6) => any
+export declare const toBytes: (a: IPv6, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -79,35 +68,7 @@ Encode IPv6 to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: IPv6) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Equality on bytes
-
-**Signature**
-
-```ts
-export declare const equals: (a: IPv6, b: IPv6) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## IPv6Error (class)
-
-Error class for IPv6 related operations.
-
-**Signature**
-
-```ts
-export declare class IPv6Error
+export declare const toHex: (a: IPv6, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -121,7 +82,7 @@ Parse IPv6 from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: any) => IPv6
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => IPv6
 ```
 
 Added in v2.0.0
@@ -133,7 +94,7 @@ Parse IPv6 from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => IPv6
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => IPv6
 ```
 
 Added in v2.0.0
@@ -171,7 +132,7 @@ Added in v2.0.0
 **Signature**
 
 ```ts
-toJSON(): string
+toJSON()
 ```
 
 ### toString (method)
@@ -182,6 +143,30 @@ toJSON(): string
 toString(): string
 ```
 
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 # utils
 
 ## FromBytes
@@ -189,7 +174,10 @@ toString(): string
 **Signature**
 
 ```ts
-export declare const FromBytes: Schema.transform<Schema.filter<typeof Schema.Uint8ArrayFromSelf>, typeof IPv6>
+export declare const FromBytes: Schema.transform<
+  Schema.SchemaClass<Uint8Array, Uint8Array, never>,
+  Schema.SchemaClass<IPv6, IPv6, never>
+>
 ```
 
 ## FromHex
@@ -198,7 +186,7 @@ export declare const FromBytes: Schema.transform<Schema.filter<typeof Schema.Uin
 
 ```ts
 export declare const FromHex: Schema.transform<
-  Schema.transform<Schema.Schema<string, string, never>, Schema.Schema<Uint8Array, Uint8Array, never>>,
-  Schema.transform<Schema.filter<typeof Schema.Uint8ArrayFromSelf>, typeof IPv6>
+  Schema.filter<Schema.Schema<Uint8Array, string, never>>,
+  Schema.transform<Schema.SchemaClass<Uint8Array, Uint8Array, never>, Schema.SchemaClass<IPv6, IPv6, never>>
 >
 ```

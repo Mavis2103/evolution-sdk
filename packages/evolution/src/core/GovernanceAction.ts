@@ -16,6 +16,74 @@ import * as TransactionIndex from "./TransactionIndex.js"
 import * as UnitInterval from "./UnitInterval.js"
 
 /**
+ * Helper for array equality using element-by-element comparison.
+ */
+const arrayEquals = <A>(a: ReadonlyArray<A> | undefined, b: ReadonlyArray<A> | undefined): boolean => {
+  if (a === b) return true
+  if (a === undefined || b === undefined) return false
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (!Equal.equals(a[i], b[i])) return false
+  }
+  return true
+}
+
+/**
+ * Helper for array hashing using element hashes.
+ */
+const arrayHash = <A>(arr: ReadonlyArray<A>): number => {
+  let hash = 0
+  for (const item of arr) {
+    hash = Hash.combine(hash)(Hash.hash(item))
+  }
+  return hash
+}
+
+/**
+ * Content-based Map equality helper.
+ * Compares two Maps by content, handling nested Maps recursively.
+ * Uses Equal.equals for key comparison since Map.has uses reference equality.
+ */
+const mapEquals = <K, V>(a: Map<K, V>, b: Map<K, V>): boolean => {
+  if (a.size !== b.size) return false
+
+  for (const [keyA, valueA] of a) {
+    // Find matching key in b using Equal.equals
+    let found = false
+    for (const [keyB, valueB] of b) {
+      if (Equal.equals(keyA, keyB)) {
+        found = true
+        // Handle nested Map values
+        if (valueA instanceof Map && valueB instanceof Map) {
+          if (!mapEquals(valueA as any, valueB as any)) return false
+        } else if (!Equal.equals(valueA, valueB)) {
+          return false
+        }
+        break
+      }
+    }
+    if (!found) return false
+  }
+
+  return true
+}
+
+/**
+ * Content-based Map hash helper.
+ * XORs hashes of all entries for order-independent content-based hash.
+ */
+const mapHash = <K, V>(map: Map<K, V>): number => {
+  let hash = 0
+  for (const [key, value] of map) {
+    const entryHash = Hash.combine(Hash.hash(key))(
+      value instanceof Map ? mapHash(value as any) : Hash.hash(value)
+    )
+    hash ^= entryHash
+  }
+  return hash
+}
+
+/**
  * GovActionId schema representing a governance action identifier.
  * ```
  * According to Conway CDDL: gov_action_id = [transaction_id : transaction_id, gov_action_index : uint .size 2]
@@ -344,13 +412,13 @@ export class TreasuryWithdrawalsAction extends Schema.TaggedClass<TreasuryWithdr
   [Equal.symbol](that: unknown): boolean {
     return (
       that instanceof TreasuryWithdrawalsAction &&
-      Equal.equals(this.withdrawals, that.withdrawals) &&
+      mapEquals(this.withdrawals, that.withdrawals) &&
       Equal.equals(this.policyHash, that.policyHash)
     )
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.combine(Hash.hash(this.withdrawals))(Hash.hash(this.policyHash)))
+    return Hash.cached(this, Hash.combine(mapHash(this.withdrawals))(Hash.hash(this.policyHash)))
   }
 }
 
@@ -535,8 +603,8 @@ export class UpdateCommitteeAction extends Schema.TaggedClass<UpdateCommitteeAct
     return (
       that instanceof UpdateCommitteeAction &&
       Equal.equals(this.govActionId, that.govActionId) &&
-      Equal.equals(this.membersToRemove, that.membersToRemove) &&
-      Equal.equals(this.membersToAdd, that.membersToAdd) &&
+      arrayEquals(this.membersToRemove, that.membersToRemove) &&
+      mapEquals(this.membersToAdd, that.membersToAdd) &&
       Equal.equals(this.threshold, that.threshold)
     )
   }
@@ -545,8 +613,8 @@ export class UpdateCommitteeAction extends Schema.TaggedClass<UpdateCommitteeAct
     return Hash.cached(
       this,
       Hash.combine(
-        Hash.combine(Hash.combine(Hash.hash(this.govActionId))(Hash.hash(this.membersToRemove)))(
-          Hash.hash(this.membersToAdd)
+        Hash.combine(Hash.combine(Hash.hash(this.govActionId))(arrayHash(this.membersToRemove)))(
+          mapHash(this.membersToAdd)
         )
       )(Hash.hash(this.threshold))
     )

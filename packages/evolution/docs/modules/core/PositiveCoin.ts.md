@@ -15,12 +15,6 @@ parent: Modules
 - [constants](#constants)
   - [MAX_POSITIVE_COIN_VALUE](#max_positive_coin_value)
   - [MIN_POSITIVE_COIN_VALUE](#min_positive_coin_value)
-- [constructors](#constructors)
-  - [make](#make)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [PositiveCoinError (class)](#positivecoinerror-class)
 - [model](#model)
   - [PositiveCoin (type alias)](#positivecoin-type-alias)
 - [ordering](#ordering)
@@ -71,49 +65,6 @@ Minimum value for a positive coin amount.
 
 ```ts
 export declare const MIN_POSITIVE_COIN_VALUE: 1n
-```
-
-Added in v2.0.0
-
-# constructors
-
-## make
-
-Smart constructor for creating PositiveCoin values.
-Uses the built-in .make property for branded schemas.
-
-**Signature**
-
-```ts
-export declare const make: (a: bigint, options?: Schema.MakeOptions) => bigint
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two positive coin amounts are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: PositiveCoin, b: PositiveCoin) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## PositiveCoinError (class)
-
-Error class for PositiveCoin related operations.
-
-**Signature**
-
-```ts
-export declare class PositiveCoinError
 ```
 
 Added in v2.0.0

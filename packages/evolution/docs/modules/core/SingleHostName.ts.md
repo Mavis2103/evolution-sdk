@@ -13,19 +13,20 @@ parent: Modules
 - [constructors](#constructors)
   - [withPort](#withport)
   - [withoutPort](#withoutport)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [SingleHostNameError (class)](#singlehostnameerror-class)
 - [generators](#generators)
   - [generator](#generator)
 - [model](#model)
   - [SingleHostName (class)](#singlehostname-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
+    - [toCBORBytes (method)](#tocborbytes-method)
+    - [toCBORHex (method)](#tocborhex-method)
     - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
@@ -70,14 +71,6 @@ export declare const withoutPort: (dnsName: DnsName.DnsName) => SingleHostName
 
 Added in v2.0.0
 
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -87,7 +80,7 @@ Convert a SingleHostName to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: SingleHostName, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: SingleHostName, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -99,35 +92,7 @@ Convert a SingleHostName to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: SingleHostName, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two SingleHostName instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: SingleHostName, b: SingleHostName) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## SingleHostNameError (class)
-
-Error class for SingleHostName related operations.
-
-**Signature**
-
-```ts
-export declare class SingleHostNameError
+export declare const toCBORHex: (data: SingleHostName, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -159,6 +124,76 @@ Used for A or AAAA DNS records.
 
 ```ts
 export declare class SingleHostName
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+Convert to JSON-serializable format.
+Relies on Option's built-in toJSON() for port serialization.
+Converts bigint port values to strings for JSON compatibility.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+### toCBORBytes (method)
+
+Convert to CBOR bytes.
+
+**Signature**
+
+```ts
+toCBORBytes(): Uint8Array
+```
+
+Added in v2.0.0
+
+### toCBORHex (method)
+
+Convert to CBOR hex string.
+
+**Signature**
+
+```ts
+toCBORHex(): string
 ```
 
 Added in v2.0.0
@@ -319,7 +354,7 @@ Get the port from a SingleHostName, if it exists.
 **Signature**
 
 ```ts
-export declare const getPort: (hostName: SingleHostName) => Option.Option<Port.Port>
+export declare const getPort: (hostName: SingleHostName) => Port.Port | undefined
 ```
 
 Added in v2.0.0

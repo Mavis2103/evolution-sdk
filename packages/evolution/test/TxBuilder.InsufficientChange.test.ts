@@ -363,7 +363,7 @@ describe("Multi-Asset minUTxO Calculation", () => {
       // Check if this output has native assets (WithAssets type)
       if (output.amount._tag === "WithAssets") {
         // MultiAsset is a Map<PolicyId, Map<AssetName, Amount>>
-        for (const [_policyId, assetMap] of output.amount.assets) {
+        for (const [_policyId, assetMap] of output.amount.assets.map) {
           totalTokensSeen += assetMap.size
         }
       }

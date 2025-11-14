@@ -18,21 +18,30 @@ parent: Modules
   - [emptyConwayAuxiliaryData](#emptyconwayauxiliarydata)
   - [shelley](#shelley)
   - [shelleyMA](#shelleyma)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [AuxiliaryDataError (class)](#auxiliarydataerror-class)
 - [model](#model)
   - [AuxiliaryData](#auxiliarydata)
   - [AuxiliaryData (type alias)](#auxiliarydata-type-alias)
   - [ConwayAuxiliaryData (class)](#conwayauxiliarydata-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [ShelleyAuxiliaryData (class)](#shelleyauxiliarydata-class)
+    - [toJSON (method)](#tojson-method-1)
+    - [toString (method)](#tostring-method-1)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-1)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
   - [ShelleyMAAuxiliaryData (class)](#shelleymaauxiliarydata-class)
+    - [toJSON (method)](#tojson-method-2)
+    - [toString (method)](#tostring-method-2)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-2)
+    - [[Equal.symbol] (method)](#equalsymbol-method-2)
+    - [[Hash.symbol] (method)](#hashsymbol-method-2)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
@@ -135,14 +144,6 @@ export declare const shelleyMA: (input: {
 
 Added in v2.0.0
 
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -152,10 +153,7 @@ Encode AuxiliaryData to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (
-  input: ConwayAuxiliaryData | ShelleyMAAuxiliaryData | ShelleyAuxiliaryData,
-  options?: CBOR.CodecOptions
-) => Uint8Array
+export declare const toCBORBytes: (data: AuxiliaryData, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -167,38 +165,7 @@ Encode AuxiliaryData to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (
-  input: ConwayAuxiliaryData | ShelleyMAAuxiliaryData | ShelleyAuxiliaryData,
-  options?: CBOR.CodecOptions
-) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two AuxiliaryData instances are equal (deep comparison).
-
-**Signature**
-
-```ts
-export declare const equals: (a: AuxiliaryData, b: AuxiliaryData) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## AuxiliaryDataError (class)
-
-Error class for AuxiliaryData related operations.
-
-**Signature**
-
-```ts
-export declare class AuxiliaryDataError
+export declare const toCBORHex: (data: AuxiliaryData, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -257,6 +224,56 @@ export declare class ConwayAuxiliaryData
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+Added in v2.0.0
+
 ## ShelleyAuxiliaryData (class)
 
 AuxiliaryData for Shelley era (direct metadata).
@@ -275,6 +292,56 @@ export declare class ShelleyAuxiliaryData
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+Added in v2.0.0
+
 ## ShelleyMAAuxiliaryData (class)
 
 AuxiliaryData for ShelleyMA era (array format).
@@ -289,6 +356,56 @@ auxiliary_data = [ metadata?, [* native_script]? ]
 
 ```ts
 export declare class ShelleyMAAuxiliaryData
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0

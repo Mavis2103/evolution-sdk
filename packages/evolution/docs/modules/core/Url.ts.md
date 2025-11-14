@@ -12,17 +12,16 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [UrlError (class)](#urlerror-class)
 - [model](#model)
   - [Url (class)](#url-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -31,7 +30,6 @@ parent: Modules
 - [utils](#utils)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
-  - [make](#make)
 
 ---
 
@@ -49,14 +47,6 @@ export declare const arbitrary: Arbitrary<Url>
 
 Added in v2.0.0
 
-# effect
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -66,7 +56,7 @@ Encode Url to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: Url) => Uint8Array
+export declare const toBytes: (url: Url) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -78,35 +68,7 @@ Encode Url to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: Url) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two Url instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Url, b: Url) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## UrlError (class)
-
-Error class for Url related operations.
-
-**Signature**
-
-```ts
-export declare class UrlError
+export declare const toHex: (url: Url) => string
 ```
 
 Added in v2.0.0
@@ -126,6 +88,66 @@ export declare class Url
 
 Added in v2.0.0
 
+### toJSON (method)
+
+Convert to JSON representation.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+Convert to string representation.
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+Hash code generation.
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+Added in v2.0.0
+
 # parsing
 
 ## fromBytes
@@ -135,7 +157,7 @@ Parse Url from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => Url
+export declare const fromBytes: (bytes: Uint8Array) => Url
 ```
 
 Added in v2.0.0
@@ -147,7 +169,7 @@ Parse Url from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => Url
+export declare const fromHex: (hex: string) => Url
 ```
 
 Added in v2.0.0
@@ -191,12 +213,4 @@ export declare const FromHex: Schema.transform<
     typeof Url
   >
 >
-```
-
-## make
-
-**Signature**
-
-```ts
-export declare const make: (props: { readonly href: string }, options?: Schema.MakeOptions | undefined) => Url
 ```

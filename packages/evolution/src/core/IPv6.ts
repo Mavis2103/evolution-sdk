@@ -25,11 +25,11 @@ export class IPv6 extends Schema.TaggedClass<IPv6>()("IPv6", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof IPv6 && Bytes.equals(this.bytes, that.bytes)
+    return that instanceof IPv6 && Bytes.bytesEquals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.array(Array.from(this.bytes)))
+    return Hash.array(Array.from(this.bytes))
   }
 }
 

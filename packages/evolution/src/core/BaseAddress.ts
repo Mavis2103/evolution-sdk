@@ -1,4 +1,4 @@
-import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
+import { Effect as Eff, Equal, FastCheck, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Bytes from "./Bytes.js"
 import * as Bytes57 from "./Bytes57.js"
@@ -41,15 +41,6 @@ export class BaseAddress extends Schema.TaggedClass<BaseAddress>("BaseAddress")(
       Equal.equals(this.networkId, that.networkId) &&
       Equal.equals(this.paymentCredential, that.paymentCredential) &&
       Equal.equals(this.stakeCredential, that.stakeCredential)
-    )
-  }
-
-  [Hash.symbol](): number {
-    return Hash.cached(
-      this,
-      Hash.combine(Hash.combine(Hash.hash(this.networkId))(Hash.hash(this.paymentCredential)))(
-        Hash.hash(this.stakeCredential)
-      )
     )
   }
 }

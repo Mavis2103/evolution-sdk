@@ -41,7 +41,7 @@ export class Pointer extends Schema.TaggedClass<Pointer>("Pointer")("Pointer", {
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.combine(Hash.hash(this.slot))(Hash.combine(Hash.hash(this.txIndex))(Hash.hash(this.certIndex))))
+    return Hash.combine(Hash.hash(this.slot))(Hash.combine(Hash.hash(this.txIndex))(Hash.hash(this.certIndex)))
   }
 }
 

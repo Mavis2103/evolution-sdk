@@ -38,7 +38,7 @@ export class Anchor extends Schema.TaggedClass<Anchor>()("Anchor", {
     return (
       that instanceof Anchor &&
       Equal.equals(this.anchorUrl, that.anchorUrl) &&
-      Bytes.equals(this.anchorDataHash, that.anchorDataHash)
+      Bytes.bytesEquals(this.anchorDataHash, that.anchorDataHash)
     )
   }
 

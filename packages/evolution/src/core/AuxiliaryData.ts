@@ -8,6 +8,67 @@ import * as PlutusV1 from "./PlutusV1.js"
 import * as PlutusV2 from "./PlutusV2.js"
 import * as PlutusV3 from "./PlutusV3.js"
 
+// ============================================================================
+// Helper functions for Equal/Hash implementations
+// ============================================================================
+
+/**
+ * Compare two optional arrays for equality using Equal.equals on elements
+ */
+const arrayEquals = <T>(x: ReadonlyArray<T> | undefined, y: ReadonlyArray<T> | undefined): boolean => {
+  if (x === undefined && y === undefined) return true
+  if (x === undefined || y === undefined) return false
+  if (x.length !== y.length) return false
+  for (let i = 0; i < x.length; i++) {
+    if (!Equal.equals(x[i], y[i])) return false
+  }
+  return true
+}
+
+/**
+ * Compare two optional metadata Maps for equality
+ */
+const metadataMapEquals = (x: Metadata.Metadata | undefined, y: Metadata.Metadata | undefined): boolean => {
+  if (x === undefined && y === undefined) return true
+  if (x === undefined || y === undefined) return false
+  if (x.size !== y.size) return false
+  for (const [key, value] of x) {
+    if (!y.has(key)) return false
+    if (!Equal.equals(value, y.get(key))) return false
+  }
+  return true
+}
+
+/**
+ * Hash an optional metadata Map with stable key ordering
+ */
+const hashMetadataMap = (m: Metadata.Metadata | undefined): number => {
+  if (!m) return Hash.hash(undefined)
+  let h = Hash.hash(m.size)
+  const sortedKeys = Array.from(m.keys()).sort((a, b) => Number(a - b))
+  for (const key of sortedKeys) {
+    const value = m.get(key)!
+    h = Hash.combine(h)(Hash.combine(Hash.hash(key))(Hash.hash(value)))
+  }
+  return h
+}
+
+/**
+ * Hash an optional array by hashing each element
+ */
+const hashArray = <T>(arr: ReadonlyArray<T> | undefined): number => {
+  if (!arr) return Hash.hash(undefined)
+  let h = Hash.hash(arr.length)
+  for (const item of arr) {
+    h = Hash.combine(h)(Hash.hash(item))
+  }
+  return h
+}
+
+// ============================================================================
+// AuxiliaryData Classes
+// ============================================================================
+
 /**
  * AuxiliaryData based on Conway CDDL specification.
  *
@@ -73,14 +134,12 @@ export class ConwayAuxiliaryData extends Schema.TaggedClass<ConwayAuxiliaryData>
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return (
-      that instanceof ConwayAuxiliaryData &&
-      Equal.equals(this.metadata, that.metadata) &&
-      Equal.equals(this.nativeScripts, that.nativeScripts) &&
-      Equal.equals(this.plutusV1Scripts, that.plutusV1Scripts) &&
-      Equal.equals(this.plutusV2Scripts, that.plutusV2Scripts) &&
-      Equal.equals(this.plutusV3Scripts, that.plutusV3Scripts)
-    )
+    if (!(that instanceof ConwayAuxiliaryData)) return false
+    return metadataMapEquals(this.metadata, that.metadata) &&
+           arrayEquals(this.nativeScripts, that.nativeScripts) &&
+           arrayEquals(this.plutusV1Scripts, that.plutusV1Scripts) &&
+           arrayEquals(this.plutusV2Scripts, that.plutusV2Scripts) &&
+           arrayEquals(this.plutusV3Scripts, that.plutusV3Scripts)
   }
 
   /**
@@ -92,11 +151,11 @@ export class ConwayAuxiliaryData extends Schema.TaggedClass<ConwayAuxiliaryData>
       this,
       Hash.combine(
         Hash.combine(
-          Hash.combine(Hash.combine(Hash.hash(this.metadata))(Hash.hash(this.nativeScripts)))(
-            Hash.hash(this.plutusV1Scripts)
-          )
-        )(Hash.hash(this.plutusV2Scripts))
-      )(Hash.hash(this.plutusV3Scripts))
+          Hash.combine(
+            Hash.combine(hashMetadataMap(this.metadata))(hashArray(this.nativeScripts))
+          )(hashArray(this.plutusV1Scripts))
+        )(hashArray(this.plutusV2Scripts))
+      )(hashArray(this.plutusV3Scripts))
     )
   }
 }
@@ -148,11 +207,9 @@ export class ShelleyMAAuxiliaryData extends Schema.TaggedClass<ShelleyMAAuxiliar
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return (
-      that instanceof ShelleyMAAuxiliaryData &&
-      Equal.equals(this.metadata, that.metadata) &&
-      Equal.equals(this.nativeScripts, that.nativeScripts)
-    )
+    if (!(that instanceof ShelleyMAAuxiliaryData)) return false
+    return metadataMapEquals(this.metadata, that.metadata) &&
+           arrayEquals(this.nativeScripts, that.nativeScripts)
   }
 
   /**
@@ -160,7 +217,7 @@ export class ShelleyMAAuxiliaryData extends Schema.TaggedClass<ShelleyMAAuxiliar
    * @category hash
    */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.combine(Hash.hash(this.metadata))(Hash.hash(this.nativeScripts)))
+    return Hash.cached(this, Hash.combine(hashMetadataMap(this.metadata))(hashArray(this.nativeScripts)))
   }
 }
 
@@ -210,7 +267,8 @@ export class ShelleyAuxiliaryData extends Schema.TaggedClass<ShelleyAuxiliaryDat
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof ShelleyAuxiliaryData && Equal.equals(this.metadata, that.metadata)
+    if (!(that instanceof ShelleyAuxiliaryData)) return false
+    return metadataMapEquals(this.metadata, that.metadata)
   }
 
   /**
@@ -218,7 +276,7 @@ export class ShelleyAuxiliaryData extends Schema.TaggedClass<ShelleyAuxiliaryDat
    * @category hash
    */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.metadata))
+    return Hash.cached(this, hashMetadataMap(this.metadata))
   }
 }
 
@@ -574,3 +632,4 @@ export const toCBORBytes = (data: AuxiliaryData, options: CBOR.CodecOptions = CB
  */
 export const toCBORHex = (data: AuxiliaryData, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.encodeSync(FromCBORHex(options))(data)
+

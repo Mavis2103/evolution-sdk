@@ -6,6 +6,42 @@ import * as Coin from "./Coin.js"
 import * as RewardAccount from "./RewardAccount.js"
 
 /**
+ * Helper function for content-based Map equality using Equal.equals.
+ *
+ * @since 2.0.0
+ * @category equality
+ */
+const mapEquals = <K, V>(a: Map<K, V>, b: Map<K, V>): boolean => {
+  if (a.size !== b.size) return false
+  for (const [aKey, aValue] of a.entries()) {
+    let found = false
+    for (const [bKey, bValue] of b.entries()) {
+      if (Equal.equals(aKey, bKey) && Equal.equals(aValue, bValue)) {
+        found = true
+        break
+      }
+    }
+    if (!found) return false
+  }
+  return true
+}
+
+/**
+ * Helper function for content-based Map hashing.
+ * Computes hash by XORing hashes of all entries for order-independence.
+ *
+ * @since 2.0.0
+ * @category hashing
+ */
+const mapHash = <K, V>(map: Map<K, V>): number => {
+  let hash = Hash.hash(map.size)
+  for (const [key, value] of map.entries()) {
+    hash ^= Hash.hash(key) ^ Hash.hash(value)
+  }
+  return hash
+}
+
+/**
  * Schema for Withdrawals representing a map of reward accounts to coin amounts.
  *
  * ```
@@ -37,11 +73,17 @@ export class Withdrawals extends Schema.TaggedClass<Withdrawals>()("Withdrawals"
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof Withdrawals && Equal.equals(this.withdrawals, that.withdrawals)
+    return that instanceof Withdrawals && mapEquals(this.withdrawals, that.withdrawals)
   }
 
+  /**
+   * Content-based hash for optimization of Equal.equals.
+   *
+   * @since 2.0.0
+   * @category hashing
+   */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.withdrawals))
+    return Hash.cached(this, mapHash(this.withdrawals))
   }
 }
 

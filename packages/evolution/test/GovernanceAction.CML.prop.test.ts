@@ -1,5 +1,5 @@
 import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
-import { FastCheck } from "effect"
+import { Equal, FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
 import * as GovernanceAction from "../src/core/GovernanceAction.js"
@@ -20,7 +20,7 @@ describe("GovernanceAction CML Compatibility (property)", () => {
 
         // Also ensure our decoder accepts CML's CBOR and equals original
         const evoRoundTrip = GovernanceAction.fromCBORHex(cmlHex)
-        expect(GovernanceAction.equals(evoRoundTrip, ga)).toBe(true)
+        expect(Equal.equals(evoRoundTrip, ga)).toBe(true)
       })
     )
   })
@@ -36,7 +36,7 @@ describe("GovernanceAction CML Compatibility (property)", () => {
         expect(evoHex).toBe(cmlHex)
 
         const evoRoundTrip = GovernanceAction.fromCBORHex(cmlHex)
-        expect(GovernanceAction.equals(evoRoundTrip, ga)).toBe(true)
+        expect(Equal.equals(evoRoundTrip, ga)).toBe(true)
       })
     )
   })
@@ -51,7 +51,7 @@ describe("GovernanceAction CML Compatibility (property)", () => {
         expect(evoHex).toBe(cmlHex)
 
         const evoRoundTrip = GovernanceAction.fromCBORHex(cmlHex)
-        expect(GovernanceAction.equals(evoRoundTrip, ga)).toBe(true)
+        expect(Equal.equals(evoRoundTrip, ga)).toBe(true)
       })
     )
   })
@@ -66,7 +66,7 @@ describe("GovernanceAction CML Compatibility (property)", () => {
         expect(evoHex).toBe(cmlHex)
 
         const evoRoundTrip = GovernanceAction.fromCBORHex(cmlHex)
-        expect(GovernanceAction.equals(evoRoundTrip, ga)).toBe(true)
+        expect(Equal.equals(evoRoundTrip, ga)).toBe(true)
       })
     )
   })
@@ -81,7 +81,7 @@ describe("GovernanceAction CML Compatibility (property)", () => {
         expect(evoHex).toBe(cmlHex)
 
         const evoRoundTrip = GovernanceAction.fromCBORHex(cmlHex)
-        expect(GovernanceAction.equals(evoRoundTrip, ga)).toBe(true)
+        expect(Equal.equals(evoRoundTrip, ga)).toBe(true)
       })
     )
   })
@@ -111,7 +111,7 @@ describe("GovernanceAction CML Compatibility (property)", () => {
         expect(evoHex).toBe(cmlHex)
 
         const evoRoundTrip = GovernanceAction.fromCBORHex(cmlHex)
-        expect(GovernanceAction.equals(evoRoundTrip, ga)).toBe(true)
+        expect(Equal.equals(evoRoundTrip, ga)).toBe(true)
       })
     )
   })
@@ -128,7 +128,7 @@ describe("GovernanceAction CML Compatibility (property)", () => {
         expect(evoHex).toBe(cmlHex)
 
         const evoRoundTrip = GovernanceAction.fromCBORHex(cmlHex)
-        expect(GovernanceAction.equals(evoRoundTrip, ga)).toBe(true)
+        expect(Equal.equals(evoRoundTrip, ga)).toBe(true)
       })
     )
   })
@@ -141,7 +141,7 @@ describe("GovernanceAction CML Compatibility (property)", () => {
 
         // Test Evolution roundtrip at minimum
         const evoRoundTrip = GovernanceAction.fromCBORHex(evoHex)
-        expect(GovernanceAction.equals(evoRoundTrip, ga)).toBe(true)
+        expect(Equal.equals(evoRoundTrip, ga)).toBe(true)
 
         const cmlParsed = CML.GovAction.from_cbor_hex(evoHex)
         const cmlHex = cmlParsed.to_cbor_hex()

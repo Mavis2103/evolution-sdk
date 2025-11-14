@@ -12,29 +12,25 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBech32](#tobech32)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
 - [parsing](#parsing)
   - [fromBech32](#frombech32)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
 - [schemas](#schemas)
   - [RewardAccount (class)](#rewardaccount-class)
+    - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [utils](#utils)
   - [FromBech32](#frombech32-1)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
-  - [RewardAccountError (class)](#rewardaccounterror-class)
 
 ---
 
@@ -52,31 +48,6 @@ export declare const arbitrary: FastCheck.Arbitrary<RewardAccount>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for creating RewardAccount instances
-
-**Signature**
-
-```ts
-export declare const make: (props: {
-  networkId: NetworkId.NetworkId
-  stakeCredential: Credential.CredentialSchema
-}) => RewardAccount
-```
-
-Added in v2.0.0
-
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBech32
@@ -86,7 +57,7 @@ Convert a RewardAccount to Bech32 string.
 **Signature**
 
 ```ts
-export declare const toBech32: (input: RewardAccount) => string
+export declare const toBech32: (data: RewardAccount) => string
 ```
 
 Added in v2.0.0
@@ -98,7 +69,7 @@ Convert a RewardAccount to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: RewardAccount) => any
+export declare const toBytes: (data: RewardAccount) => any
 ```
 
 Added in v2.0.0
@@ -110,21 +81,7 @@ Convert a RewardAccount to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: RewardAccount) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two RewardAccount instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: RewardAccount, b: RewardAccount) => boolean
+export declare const toHex: (data: RewardAccount) => string
 ```
 
 Added in v2.0.0
@@ -138,7 +95,7 @@ Parse a RewardAccount from Bech32 string.
 **Signature**
 
 ```ts
-export declare const fromBech32: (input: string) => RewardAccount
+export declare const fromBech32: (str: string) => RewardAccount
 ```
 
 Added in v2.0.0
@@ -150,7 +107,7 @@ Parse a RewardAccount from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: any) => RewardAccount
+export declare const fromBytes: (bytes: Uint8Array) => RewardAccount
 ```
 
 Added in v2.0.0
@@ -162,7 +119,7 @@ Parse a RewardAccount from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => RewardAccount
+export declare const fromHex: (hex: string) => RewardAccount
 ```
 
 Added in v2.0.0
@@ -181,6 +138,16 @@ export declare class RewardAccount
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
 ### toString (method)
 
 **Signature**
@@ -189,13 +156,37 @@ Added in v2.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
 ```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+Added in v2.0.0
 
 # utils
 
@@ -236,12 +227,4 @@ export declare const FromHex: Schema.transform<
     never
   >
 >
-```
-
-## RewardAccountError (class)
-
-**Signature**
-
-```ts
-export declare class RewardAccountError
 ```

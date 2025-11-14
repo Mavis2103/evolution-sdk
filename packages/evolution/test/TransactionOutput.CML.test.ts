@@ -1,5 +1,5 @@
 import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
-import { FastCheck } from "effect"
+import { Equal, FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
 import * as TransactionOutput from "../src/core/TransactionOutput.js"
@@ -14,7 +14,7 @@ describe("TransactionOutput CML Compatibility", () => {
         expect(evCbor).toBe(cmlCbor)
 
         const evFromCml = TransactionOutput.fromCBORHex(evCbor)
-        expect(TransactionOutput.equals(evOut, evFromCml)).toBe(true)
+        expect(Equal.equals(evOut, evFromCml)).toBe(true)
       })
     )
   })

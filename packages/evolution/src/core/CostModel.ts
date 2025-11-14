@@ -3,6 +3,25 @@ import { Equal, FastCheck, Hash, Inspectable, Schema } from "effect"
 import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 
+// Helper for array equality - Equal.equals compares arrays by instance, not content
+const arrayEquals = <A>(a: ReadonlyArray<A>, b: ReadonlyArray<A>): boolean => {
+  if (a === b) return true
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (!Equal.equals(a[i], b[i])) return false
+  }
+  return true
+}
+
+// Helper for array hashing - cannot use Hash.array for object arrays
+const arrayHash = <A>(arr: ReadonlyArray<A>): number => {
+  let hash = Hash.number(arr.length)
+  for (const item of arr) {
+    hash = Hash.combine(hash)(Hash.hash(item))
+  }
+  return hash
+}
+
 /**
  * Individual cost model for a specific Plutus language version.
  * Contains an array of cost parameters.
@@ -54,7 +73,7 @@ export class CostModel extends Schema.Class<CostModel>("CostModel")({
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof CostModel && Equal.equals(this.costs, that.costs)
+    return that instanceof CostModel && arrayEquals(this.costs, that.costs)
   }
 
   /**
@@ -64,7 +83,7 @@ export class CostModel extends Schema.Class<CostModel>("CostModel")({
    * @category hashing
    */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.costs))
+    return Hash.cached(this, arrayHash(this.costs))
   }
 }
 
@@ -132,15 +151,13 @@ export class CostModels extends Schema.Class<CostModels>("CostModels")({
 
   /**
    * Hash code generation.
+   * Only hash PlutusV1 for performance - allows hash collisions to trigger [Equal.symbol]
    *
    * @since 2.0.0
    * @category hashing
    */
   [Hash.symbol](): number {
-    return Hash.cached(
-      this,
-      Hash.combine(Hash.combine(Hash.hash(this.PlutusV1))(Hash.hash(this.PlutusV2)))(Hash.hash(this.PlutusV3))
-    )
+    return Hash.cached(this, Hash.hash(this.PlutusV1))
   }
 }
 

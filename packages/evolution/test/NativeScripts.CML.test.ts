@@ -1,5 +1,5 @@
 import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
-import { FastCheck } from "effect"
+import { Equal, FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
 import * as NativeScripts from "../src/core/NativeScripts.js"
@@ -20,7 +20,7 @@ describe("NativeScripts CML Compatibility (property)", () => {
 
         // Evolution decoder accepts CML's CBOR and equals original by CBOR encoding
         const evoRoundTrip = NativeScripts.fromCBORHex(cmlHex)
-        expect(NativeScripts.equals(evoRoundTrip, ns)).toBe(true)
+        expect(Equal.equals(evoRoundTrip, ns)).toBe(true)
       })
     )
   })

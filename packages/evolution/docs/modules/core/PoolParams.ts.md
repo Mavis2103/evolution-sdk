@@ -12,19 +12,18 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [PoolParamsError (class)](#poolparamserror-class)
 - [model](#model)
   - [PoolParams (class)](#poolparams-class)
+    - [toJSON (method)](#tojson-method)
+    - [toCBORBytes (method)](#tocborbytes-method)
+    - [toCBORHex (method)](#tocborhex-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -57,38 +56,6 @@ export declare const arbitrary: FastCheck.Arbitrary<PoolParams>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Create a PoolParams instance with validation.
-
-**Signature**
-
-```ts
-export declare const make: (params: {
-  operator: PoolKeyHash.PoolKeyHash
-  vrfKeyhash: VrfKeyHash.VrfKeyHash
-  pledge: Coin.Coin
-  cost: Coin.Coin
-  margin: UnitInterval.UnitInterval
-  rewardAccount: RewardAccount.RewardAccount
-  poolOwners: Array<KeyHash.KeyHash>
-  relays: Array<Relay.Relay>
-  poolMetadata?: PoolMetadata.PoolMetadata
-}) => PoolParams
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -98,7 +65,7 @@ Encode PoolParams to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: PoolParams, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toBytes: (params: PoolParams, options?: CBOR.CodecOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -110,35 +77,7 @@ Encode PoolParams to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: PoolParams, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two PoolParams instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: PoolParams, b: PoolParams) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## PoolParamsError (class)
-
-Error class for PoolParams related operations.
-
-**Signature**
-
-```ts
-export declare class PoolParamsError
+export declare const toHex: (params: PoolParams, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -170,6 +109,75 @@ export declare class PoolParams
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+Convert to JSON-serializable object.
+Converts bigint fields to strings and delegates to contained types' toJSON methods.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toCBORBytes (method)
+
+Encode to CBOR bytes.
+
+**Signature**
+
+```ts
+toCBORBytes(): Uint8Array
+```
+
+Added in v2.0.0
+
+### toCBORHex (method)
+
+Encode to CBOR hex string.
+
+**Signature**
+
+```ts
+toCBORHex(): string
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # parsing
 

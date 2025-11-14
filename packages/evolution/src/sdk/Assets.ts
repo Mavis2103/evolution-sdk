@@ -1,4 +1,5 @@
 import { Effect as Eff, Option, ParseResult, Schema } from "effect"
+import * as Equal from "effect/Equal"
 
 import * as AssetName from "../core/AssetName.js"
 import * as Coin from "../core/Coin.js"
@@ -291,7 +292,7 @@ export const valueToAssets = (value: CoreValue.Value): Assets => {
 export const assetsToValue = (assets: Assets): CoreValue.Value => {
   // Extract ADA amount (lovelace key)
   const adaAmount = assets.lovelace || BigInt(0)
-  const coin = Coin.make(adaAmount)
+  const coin = Coin.Coin.make(adaAmount)
 
   // Filter out ADA to get only native assets
   const nativeAssets = Object.entries(assets).filter(([unit]) => unit !== "lovelace")
@@ -301,12 +302,12 @@ export const assetsToValue = (assets: Assets): CoreValue.Value => {
     return CoreValue.onlyCoin(coin)
   }
 
-  // Build MultiAsset
-  const multiAssetMap = MultiAsset.empty()
+  // Build MultiAsset map (not a MultiAsset instance yet, to avoid schema validation issues)
+  const multiAssetMap = new Map<CorePolicyId.PolicyId, Map<AssetName.AssetName, PositiveCoin.PositiveCoin>>()
 
   for (const [unit, amount] of nativeAssets) {
     const { assetName, policyId } = Unit.fromUnit(unit)
-    const positiveAmount = PositiveCoin.make(amount)
+    const positiveAmount = PositiveCoin.PositiveCoinSchema.make(amount)
 
     // Create core policy ID from hex string
     const corePolicyId = CorePolicyId.fromHex(policyId)
@@ -317,7 +318,7 @@ export const assetsToValue = (assets: Assets): CoreValue.Value => {
     let policyMap: Map<AssetName.AssetName, PositiveCoin.PositiveCoin> | undefined
 
     for (const [existingId, existingMap] of multiAssetMap.entries()) {
-      if (CorePolicyId.equals(existingId, corePolicyId)) {
+      if (Equal.equals(existingId, corePolicyId)) {
         policyMap = existingMap
         break
       }
@@ -333,8 +334,13 @@ export const assetsToValue = (assets: Assets): CoreValue.Value => {
     policyMap.set(coreAssetName, positiveAmount)
   }
 
-  // Create the MultiAsset using the make function
-  const multiAsset = multiAssetMap as MultiAsset.MultiAsset
+  // Check if multiAssetMap is empty after processing
+  if (multiAssetMap.size === 0) {
+    return CoreValue.onlyCoin(coin)
+  }
+
+  // Create the MultiAsset only if we have assets
+  const multiAsset = new MultiAsset.MultiAsset({ map: multiAssetMap })
 
   return CoreValue.withAssets(coin, multiAsset)
 }
@@ -377,8 +383,8 @@ export const ValueFromAssets = Schema.transformOrFail(
           // Find existing policy map by comparing bytes
           let policyMap: Map<AssetName.AssetName, PositiveCoin.PositiveCoin> | undefined
 
-          for (const [existingId, existingMap] of multiAssetMap.entries()) {
-            if (CorePolicyId.equals(existingId, corePolicyId)) {
+          for (const [existingId, existingMap] of multiAssetMap.map.entries()) {
+            if (Equal.equals(existingId, corePolicyId)) {
               policyMap = existingMap
               break
             }
@@ -386,7 +392,7 @@ export const ValueFromAssets = Schema.transformOrFail(
 
           if (!policyMap) {
             policyMap = new Map()
-            multiAssetMap.set(corePolicyId, policyMap)
+            multiAssetMap.map.set(corePolicyId, policyMap)
           }
 
           policyMap.set(coreAssetName, amount)
@@ -469,14 +475,14 @@ export const MintFromAssets = Schema.transformOrFail(
           }
           assetMap.set(assetName, nonZeroAmount)
         }
-        return mint
+        return new CoreMint.Mint({ map: mint })
       }),
     encode: (mint) =>
       Eff.gen(function* () {
         // Mint → Assets
         const assets: Record<string, bigint> = {}
 
-        for (const [policyId, assetMap] of mint.entries()) {
+        for (const [policyId, assetMap] of mint.map.entries()) {
           const policyIdStr = CorePolicyId.toHex(policyId)
 
           for (const [assetName, amount] of assetMap.entries()) {

@@ -14,10 +14,6 @@ parent: Modules
   - [arbitrary](#arbitrary-1)
 - [constants](#constants)
   - [NEG_INT64_MIN](#neg_int64_min)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [NonZeroInt64Error (class)](#nonzeroint64error-class)
 - [model](#model)
   - [NonZeroInt64 (type alias)](#nonzeroint64-type-alias)
 - [ordering](#ordering)
@@ -67,34 +63,6 @@ nonZeroInt64 = negInt64/ posInt64
 
 ```ts
 export declare const NEG_INT64_MIN: -9223372036854775808n
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two NonZeroInt64 values are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: NonZeroInt64, b: NonZeroInt64) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## NonZeroInt64Error (class)
-
-Error class for NonZeroInt64 related operations.
-
-**Signature**
-
-```ts
-export declare class NonZeroInt64Error
 ```
 
 Added in v2.0.0

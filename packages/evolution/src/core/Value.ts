@@ -70,15 +70,11 @@ export class WithAssets extends Schema.TaggedClass<WithAssets>("WithAssets")("Wi
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return (
-      that instanceof WithAssets &&
-      Equal.equals(this.coin, that.coin) &&
-      Equal.equals(this.assets, that.assets)
-    )
+    return that instanceof WithAssets && Equal.equals(this.coin, that.coin) && Equal.equals(this.assets, that.assets)
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.combine(Hash.hash(this.coin))(Hash.hash(this.assets)))
+    return Hash.cached(this, Hash.hash(this.coin) ^ Hash.hash(this.assets))
   }
 }
 

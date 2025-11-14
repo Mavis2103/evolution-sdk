@@ -113,11 +113,89 @@ export class NativeScript extends Schema.TaggedClass<NativeScript>("NativeScript
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof NativeScript && Equal.equals(this.script, that.script)
+    return that instanceof NativeScript && nativeScriptVariantsEquals(this.script, that.script)
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.script))
+    return nativeScriptVariantsHash(this.script)
+  }
+}
+
+// Helper functions for comparing/hashing NativeScriptVariants
+const nativeScriptVariantsEquals = (a: NativeScriptVariants, b: NativeScriptVariants): boolean => {
+  if (a._tag !== b._tag) return false
+
+  switch (a._tag) {
+    case "ScriptPubKey":
+      if (b._tag !== "ScriptPubKey") return false
+      if (a.keyHash.length !== b.keyHash.length) return false
+      for (let i = 0; i < a.keyHash.length; i++) {
+        if (a.keyHash[i] !== b.keyHash[i]) return false
+      }
+      return true
+    case "InvalidBefore":
+      return b._tag === "InvalidBefore" && a.slot === b.slot
+    case "InvalidHereafter":
+      return b._tag === "InvalidHereafter" && a.slot === b.slot
+    case "ScriptAll":
+      if (b._tag !== "ScriptAll") return false
+      if (a.scripts.length !== b.scripts.length) return false
+      for (let i = 0; i < a.scripts.length; i++) {
+        if (!nativeScriptVariantsEquals(a.scripts[i], b.scripts[i])) return false
+      }
+      return true
+    case "ScriptAny":
+      if (b._tag !== "ScriptAny") return false
+      if (a.scripts.length !== b.scripts.length) return false
+      for (let i = 0; i < a.scripts.length; i++) {
+        if (!nativeScriptVariantsEquals(a.scripts[i], b.scripts[i])) return false
+      }
+      return true
+    case "ScriptNOfK":
+      if (b._tag !== "ScriptNOfK") return false
+      if (a.required !== b.required) return false
+      if (a.scripts.length !== b.scripts.length) return false
+      for (let i = 0; i < a.scripts.length; i++) {
+        if (!nativeScriptVariantsEquals(a.scripts[i], b.scripts[i])) return false
+      }
+      return true
+  }
+}
+
+const nativeScriptVariantsHash = (v: NativeScriptVariants): number => {
+  switch (v._tag) {
+    case "ScriptPubKey": {
+      let h = Hash.string("ScriptPubKey")
+      for (let i = 0; i < v.keyHash.length; i++) {
+        h = Hash.combine(h)(Hash.number(v.keyHash[i]))
+      }
+      return h
+    }
+    case "InvalidBefore":
+      return Hash.combine(Hash.string("InvalidBefore"))(Hash.number(Number(v.slot)))
+    case "InvalidHereafter":
+      return Hash.combine(Hash.string("InvalidHereafter"))(Hash.number(Number(v.slot)))
+    case "ScriptAll": {
+      let h = Hash.string("ScriptAll")
+      for (const script of v.scripts) {
+        h = Hash.combine(h)(nativeScriptVariantsHash(script))
+      }
+      return h
+    }
+    case "ScriptAny": {
+      let h = Hash.string("ScriptAny")
+      for (const script of v.scripts) {
+        h = Hash.combine(h)(nativeScriptVariantsHash(script))
+      }
+      return h
+    }
+    case "ScriptNOfK": {
+      let h = Hash.combine(Hash.string("ScriptNOfK"))(Hash.number(Number(v.required)))
+      for (const script of v.scripts) {
+        h = Hash.combine(h)(nativeScriptVariantsHash(script))
+      }
+      return h
+    }
   }
 }
 

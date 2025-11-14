@@ -12,19 +12,16 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [AssetNameError (class)](#assetnameerror-class)
 - [model](#model)
   - [AssetName (class)](#assetname-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -50,31 +47,6 @@ export declare const arbitrary: FastCheck.Arbitrary<AssetName>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for AssetName that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly bytes: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => AssetName
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -84,7 +56,7 @@ Encode AssetName to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: AssetName) => Uint8Array
+export declare const toBytes: (assetName: AssetName) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -96,35 +68,7 @@ Encode AssetName to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: AssetName) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two AssetName instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: AssetName, b: AssetName) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## AssetNameError (class)
-
-Error class for AssetName related operations.
-
-**Signature**
-
-```ts
-export declare class AssetNameError
+export declare const toHex: (assetName: AssetName) => string
 ```
 
 Added in v2.0.0
@@ -144,6 +88,66 @@ export declare class AssetName
 
 Added in v2.0.0
 
+### toJSON (method)
+
+Convert to JSON representation.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+Convert to string representation.
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+Content-based hash for optimization of Equal.equals.
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+Added in v2.0.0
+
 # parsing
 
 ## fromBytes
@@ -153,7 +157,7 @@ Parse AssetName from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => AssetName
+export declare const fromBytes: (bytes: Uint8Array) => AssetName
 ```
 
 Added in v2.0.0
@@ -165,7 +169,7 @@ Parse AssetName from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => AssetName
+export declare const fromHex: (hex: string) => AssetName
 ```
 
 Added in v2.0.0

@@ -10,17 +10,150 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
+- [encoding](#encoding)
+  - [toCBORBytes](#tocborbytes)
+  - [toCBORHex](#tocborhex)
+- [parsing](#parsing)
+  - [fromCBORBytes](#fromcborbytes)
+  - [fromCBORHex](#fromcborhex)
+- [schemas](#schemas)
+  - [FromCBORBytes](#fromcborbytes-1)
+  - [FromCBORHex](#fromcborhex-1)
 - [utils](#utils)
   - [BootstrapWitness (class)](#bootstrapwitness-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [CDDLSchema](#cddlschema)
   - [FromCDDL](#fromcddl)
   - [arbitrary](#arbitrary)
-  - [fromCBORBytes](#fromcborbytes)
-  - [fromCBORHex](#fromcborhex)
-  - [toCBORBytes](#tocborbytes)
-  - [toCBORHex](#tocborhex)
 
 ---
+
+# encoding
+
+## toCBORBytes
+
+Encode BootstrapWitness to CBOR bytes.
+
+**Signature**
+
+```ts
+export declare const toCBORBytes: (witness: BootstrapWitness, options?: CBOR.CodecOptions) => Uint8Array
+```
+
+Added in v2.0.0
+
+## toCBORHex
+
+Encode BootstrapWitness to CBOR hex string.
+
+**Signature**
+
+```ts
+export declare const toCBORHex: (witness: BootstrapWitness, options?: CBOR.CodecOptions) => string
+```
+
+Added in v2.0.0
+
+# parsing
+
+## fromCBORBytes
+
+Parse BootstrapWitness from CBOR bytes.
+
+**Signature**
+
+```ts
+export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => BootstrapWitness
+```
+
+Added in v2.0.0
+
+## fromCBORHex
+
+Parse BootstrapWitness from CBOR hex string.
+
+**Signature**
+
+```ts
+export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => BootstrapWitness
+```
+
+Added in v2.0.0
+
+# schemas
+
+## FromCBORBytes
+
+CBOR bytes transformation schema for BootstrapWitness.
+Transforms between Uint8Array and BootstrapWitness using CBOR encoding.
+
+**Signature**
+
+```ts
+export declare const FromCBORBytes: (
+  options?: CBOR.CodecOptions
+) => Schema.transform<
+  Schema.transformOrFail<
+    typeof Schema.Uint8ArrayFromSelf,
+    Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
+    never
+  >,
+  Schema.transformOrFail<
+    Schema.Tuple<
+      [
+        typeof Schema.Uint8ArrayFromSelf,
+        typeof Schema.Uint8ArrayFromSelf,
+        typeof Schema.Uint8ArrayFromSelf,
+        typeof Schema.Uint8ArrayFromSelf
+      ]
+    >,
+    Schema.SchemaClass<BootstrapWitness, BootstrapWitness, never>,
+    never
+  >
+>
+```
+
+Added in v2.0.0
+
+## FromCBORHex
+
+CBOR hex transformation schema for BootstrapWitness.
+Transforms between hex string and BootstrapWitness using CBOR encoding.
+
+**Signature**
+
+```ts
+export declare const FromCBORHex: (
+  options?: CBOR.CodecOptions
+) => Schema.transform<
+  Schema.transform<Schema.Schema<string, string, never>, Schema.Schema<Uint8Array, Uint8Array, never>>,
+  Schema.transform<
+    Schema.transformOrFail<
+      typeof Schema.Uint8ArrayFromSelf,
+      Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
+      never
+    >,
+    Schema.transformOrFail<
+      Schema.Tuple<
+        [
+          typeof Schema.Uint8ArrayFromSelf,
+          typeof Schema.Uint8ArrayFromSelf,
+          typeof Schema.Uint8ArrayFromSelf,
+          typeof Schema.Uint8ArrayFromSelf
+        ]
+      >,
+      Schema.SchemaClass<BootstrapWitness, BootstrapWitness, never>,
+      never
+    >
+  >
+>
+```
+
+Added in v2.0.0
 
 # utils
 
@@ -44,6 +177,67 @@ bootstrap_witness = [
 ```ts
 export declare class BootstrapWitness
 ```
+
+### toJSON (method)
+
+Convert to JSON representation.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+Convert to string representation.
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+Hash code generation.
+Only hashes publicKey for performance (minimal identifying field).
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+Added in v2.0.0
 
 ## CDDLSchema
 
@@ -89,36 +283,4 @@ Arbitrary generator for BootstrapWitness instances.
 
 ```ts
 export declare const arbitrary: FastCheck.Arbitrary<BootstrapWitness>
-```
-
-## fromCBORBytes
-
-**Signature**
-
-```ts
-export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => BootstrapWitness
-```
-
-## fromCBORHex
-
-**Signature**
-
-```ts
-export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => BootstrapWitness
-```
-
-## toCBORBytes
-
-**Signature**
-
-```ts
-export declare const toCBORBytes: (input: BootstrapWitness, options?: CBOR.CodecOptions) => Uint8Array
-```
-
-## toCBORHex
-
-**Signature**
-
-```ts
-export declare const toCBORHex: (input: BootstrapWitness, options?: CBOR.CodecOptions) => string
 ```

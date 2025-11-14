@@ -10,12 +10,6 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [EpochNoError (class)](#epochnoerror-class)
 - [generators](#generators)
   - [generator](#generator)
 - [model](#model)
@@ -32,48 +26,6 @@ parent: Modules
   - [arbitrary](#arbitrary)
 
 ---
-
-# constructors
-
-## make
-
-Smart constructor for creating EpochNo values.
-
-**Signature**
-
-```ts
-export declare const make: (a: bigint, options?: Schema.MakeOptions) => bigint & Brand<"EpochNo">
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two EpochNo instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: EpochNo, b: EpochNo) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## EpochNoError (class)
-
-Error class for EpochNo related operations.
-
-**Signature**
-
-```ts
-export declare class EpochNoError
-```
-
-Added in v2.0.0
 
 # generators
 
@@ -126,7 +78,7 @@ Check if a value is a valid EpochNo.
 **Signature**
 
 ```ts
-export declare const is: (u: unknown, overrideOptions?: ParseOptions | number) => u is bigint & Brand<"EpochNo">
+export declare const is: (u: unknown, overrideOptions?: ParseOptions | number) => u is bigint
 ```
 
 Added in v2.0.0
@@ -140,7 +92,7 @@ Schema for validating epoch numbers (0-255).
 **Signature**
 
 ```ts
-export declare const EpochNoSchema: Schema.brand<Schema.refine<bigint, typeof Schema.BigIntFromSelf>, "EpochNo">
+export declare const EpochNoSchema: Schema.refine<bigint, typeof Schema.BigIntFromSelf>
 ```
 
 Added in v2.0.0
@@ -162,10 +114,7 @@ export declare const CDDLSchema: typeof Schema.BigIntFromSelf
 **Signature**
 
 ```ts
-export declare const FromCDDL: Schema.transform<
-  typeof Schema.BigIntFromSelf,
-  Schema.SchemaClass<bigint & Brand<"EpochNo">, bigint & Brand<"EpochNo">, never>
->
+export declare const FromCDDL: Schema.transform<typeof Schema.BigIntFromSelf, Schema.SchemaClass<bigint, bigint, never>>
 ```
 
 ## arbitrary

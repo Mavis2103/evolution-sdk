@@ -46,10 +46,7 @@ export class PointerAddress extends Schema.TaggedClass<PointerAddress>("PointerA
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(
-      this,
-      Hash.combine(Hash.combine(Hash.hash(this.networkId))(Hash.hash(this.paymentCredential)))(Hash.hash(this.pointer))
-    )
+    return Hash.combine(Hash.combine(Hash.hash(this.networkId))(Hash.hash(this.paymentCredential)))(Hash.hash(this.pointer))
   }
 }
 

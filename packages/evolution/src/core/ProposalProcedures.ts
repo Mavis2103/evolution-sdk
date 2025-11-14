@@ -9,6 +9,28 @@ import * as ProposalProcedure from "./ProposalProcedure.js"
 import * as RewardAccount from "./RewardAccount.js"
 
 /**
+ * Helper for array equality using element-by-element comparison.
+ */
+const arrayEquals = <A>(a: ReadonlyArray<A>, b: ReadonlyArray<A>): boolean => {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (!Equal.equals(a[i], b[i])) return false
+  }
+  return true
+}
+
+/**
+ * Helper for array hashing using element hashes.
+ */
+const arrayHash = <A>(arr: ReadonlyArray<A>): number => {
+  let hash = 0
+  for (const item of arr) {
+    hash = Hash.combine(hash)(Hash.hash(item))
+  }
+  return hash
+}
+
+/**
  * ProposalProcedures based on Conway CDDL specification.
  *
  * ```
@@ -43,12 +65,12 @@ export class ProposalProcedures extends Schema.TaggedClass<ProposalProcedures>()
   [Equal.symbol](that: unknown): boolean {
     return (
       that instanceof ProposalProcedures &&
-      Equal.equals(this.procedures, that.procedures)
+      arrayEquals(this.procedures, that.procedures)
     )
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.array(this.procedures))
+    return Hash.cached(this, arrayHash(this.procedures))
   }
 }
 

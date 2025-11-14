@@ -24,10 +24,10 @@ const sumExUnits = (redeemers: ReadonlyArray<Redeemer.Redeemer>): Redeemer.ExUni
   let mem = 0n
   let steps = 0n
   for (const r of redeemers) {
-    mem += r.exUnits[0]
-    steps += r.exUnits[1]
+    mem += r.exUnits.mem
+    steps += r.exUnits.steps
   }
-  return [mem, steps]
+  return new Redeemer.ExUnits({ mem, steps })
 }
 
 describe("UtilsHash helpers CML parity", () => {
@@ -84,8 +84,8 @@ describe("UtilsHash helpers CML parity", () => {
       FastCheck.property(redeemersArb, (redeemers) => {
         const expected = sumExUnits(redeemers)
         const actualExUnits = UtilsHash.computeTotalExUnits(redeemers)
-        expect(actualExUnits[0]).toBe(expected[0])
-        expect(actualExUnits[1]).toBe(expected[1])
+        expect(actualExUnits.mem).toBe(expected.mem)
+        expect(actualExUnits.steps).toBe(expected.steps)
       })
     )
   })

@@ -44,7 +44,7 @@ export class DatumHash extends Schema.TaggedClass<DatumHash>()("DatumHash", {
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof DatumHash && Equal.equals(this.hash, that.hash)
+    return that instanceof DatumHash && Bytes.bytesEquals(this.hash, that.hash)
   }
 
   /**
@@ -52,7 +52,7 @@ export class DatumHash extends Schema.TaggedClass<DatumHash>()("DatumHash", {
    * @category hash
    */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.hash))
+    return Hash.array(Array.from(this.hash))
   }
 }
 
@@ -107,7 +107,7 @@ export class InlineDatum extends Schema.TaggedClass<InlineDatum>()("InlineDatum"
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof InlineDatum && Equal.equals(this.data, that.data)
+    return that instanceof InlineDatum && PlutusData.equals(this.data, that.data)
   }
 
   /**
@@ -115,7 +115,7 @@ export class InlineDatum extends Schema.TaggedClass<InlineDatum>()("InlineDatum"
    * @category hash
    */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.data))
+    return Hash.cached(this, PlutusData.hash(this.data))
   }
 }
 

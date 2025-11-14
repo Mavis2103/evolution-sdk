@@ -29,24 +29,31 @@ export type RedeemerTag = typeof RedeemerTag.Type
  * @since 2.0.0
  * @category model
  */
-export const ExUnits = Schema.Tuple(
-  Numeric.Uint64Schema.annotations({
+export class ExUnits extends Schema.Class<ExUnits>("Redeemer.ExUnits")({
+  mem: Numeric.Uint64Schema.annotations({
     identifier: "Redeemer.ExUnits.Memory",
     title: "Memory Units",
     description: "Memory units consumed by script execution"
   }),
-  Numeric.Uint64Schema.annotations({
+  steps: Numeric.Uint64Schema.annotations({
     identifier: "Redeemer.ExUnits.Steps",
     title: "CPU Steps",
     description: "CPU steps consumed by script execution"
   })
-).annotations({
-  identifier: "Redeemer.ExUnits",
-  title: "Execution Units",
-  description: "Memory and CPU limits for Plutus script execution"
-})
+}) {
+  [Equal.symbol](that: unknown): boolean {
+    return (
+      that instanceof ExUnits &&
+      Equal.equals(this.mem, that.mem) &&
+      Equal.equals(this.steps, that.steps)
+    )
+  }
 
-export type ExUnits = typeof ExUnits.Type
+  [Hash.symbol](): number {
+    // Only hash mem for performance
+    return Hash.cached(this, Hash.hash(this.mem))
+  }
+}
 
 /**
  * Redeemer for Plutus script execution based on Conway CDDL specification.
@@ -122,24 +129,20 @@ export class Redeemer extends Schema.Class<Redeemer>("Redeemer")({
       that instanceof Redeemer &&
       this.tag === that.tag &&
       this.index === that.index &&
-      Equal.equals(this.data, that.data) &&
+      PlutusData.equals(this.data, that.data) &&
       Equal.equals(this.exUnits, that.exUnits)
     )
   }
 
   /**
    * Hash code generation.
+   * Only hashes tag and index for performance (minimal structure).
    *
    * @since 2.0.0
    * @category hashing
    */
   [Hash.symbol](): number {
-    return Hash.cached(
-      this,
-      Hash.combine(
-        Hash.combine(Hash.combine(Hash.string(this.tag))(Hash.hash(this.index)))(Hash.hash(this.data))
-      )(Hash.hash(this.exUnits))
-    )
+    return Hash.cached(this, Hash.combine(Hash.string(this.tag))(Hash.hash(this.index)))
   }
 }
 
@@ -234,16 +237,16 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Red
     Effect.gen(function* () {
       const tagInteger = tagToInteger(redeemer.tag)
       const dataCBOR = yield* ParseResult.encode(PlutusData.FromCDDL)(redeemer.data)
-      return [tagInteger, redeemer.index, dataCBOR, redeemer.exUnits] as const
+      return [tagInteger, redeemer.index, dataCBOR, [redeemer.exUnits.mem, redeemer.exUnits.steps]] as const
     }),
-  decode: ([tagInteger, index, dataCBOR, exUnits]) =>
+  decode: ([tagInteger, index, dataCBOR, [mem, steps]]) =>
     Effect.gen(function* () {
       const tag = yield* Effect.try({
         try: () => integerToTag(tagInteger),
         catch: (error) => new ParseResult.Type(RedeemerTag.ast, tagInteger, String(error))
       })
       const data = yield* ParseResult.decode(PlutusData.FromCDDL)(dataCBOR)
-      return new Redeemer({ tag, index, data, exUnits })
+      return new Redeemer({ tag, index, data, exUnits: new ExUnits({ mem, steps }) })
     })
 })
 
@@ -423,7 +426,7 @@ export const arbitraryRedeemerTag: FastCheck.Arbitrary<RedeemerTag> = FastCheck.
 export const arbitraryExUnits: FastCheck.Arbitrary<ExUnits> = FastCheck.tuple(
   FastCheck.bigInt({ min: 0n, max: 10_000_000n }), // memory
   FastCheck.bigInt({ min: 0n, max: 10_000_000n }) // steps
-)
+).map(([mem, steps]) => new ExUnits({ mem, steps }))
 
 /**
  * FastCheck arbitrary for generating random Redeemer instances.

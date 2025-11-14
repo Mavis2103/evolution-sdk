@@ -36,11 +36,11 @@ export class ScriptRef extends Schema.TaggedClass<ScriptRef>()("ScriptRef", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof ScriptRef && Equal.equals(this.bytes, that.bytes)
+    return that instanceof ScriptRef && Bytes.bytesEquals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.bytes))
+    return Hash.array(Array.from(this.bytes))
   }
 }
 

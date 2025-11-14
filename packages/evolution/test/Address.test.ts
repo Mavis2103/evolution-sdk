@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@effect/vitest"
-import { FastCheck } from "effect"
+import { Equal, FastCheck } from "effect"
 
 import * as Address from "../src/core/AddressEras.js"
 
@@ -168,7 +168,7 @@ describe("Address", () => {
         try {
           const addr1 = Address.fromBech32(address)
           const addr2 = Address.fromBech32(address)
-          expect(Address.equals(addr1, addr2)).toBe(true)
+          expect(Equal.equals(addr1, addr2)).toBe(true)
         } catch (error) {
           expect.fail(`Failed to decode address: ${error}`)
         }
@@ -180,7 +180,7 @@ describe("Address", () => {
         try {
           const addr1 = Address.fromBech32(ALL_ADDRESSES[0])
           const addr2 = Address.fromBech32(ALL_ADDRESSES[1])
-          expect(Address.equals(addr1, addr2)).toBe(false)
+          expect(Equal.equals(addr1, addr2)).toBe(false)
         } catch (error) {
           expect.fail(`Failed to decode addresses: ${error}`)
         }
@@ -195,7 +195,7 @@ describe("Address", () => {
       try {
         const addr1 = Address.fromBech32(lowerCaseAddr)
         const addr2 = Address.fromBech32(upperCaseAddr)
-        expect(Address.equals(addr1, addr2)).toBe(true)
+        expect(Equal.equals(addr1, addr2)).toBe(true)
       } catch (error) {
         expect.fail(`Failed to decode case-modified addresses: ${error}`)
       }

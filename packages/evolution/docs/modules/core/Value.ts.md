@@ -13,15 +13,9 @@ parent: Modules
 - [constructors](#constructors)
   - [onlyCoin](#onlycoin)
   - [withAssets](#withassets)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [ValueError (class)](#valueerror-class)
 - [generators](#generators)
   - [arbitrary](#arbitrary)
 - [model](#model)
@@ -40,6 +34,11 @@ parent: Modules
   - [FromCBORHex](#fromcborhex-1)
   - [FromCDDL](#fromcddl)
   - [OnlyCoin (class)](#onlycoin-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [transformation](#transformation)
   - [add](#add)
   - [getAda](#getada)
@@ -50,6 +49,11 @@ parent: Modules
   - [Value](#value)
   - [Value (type alias)](#value-type-alias)
   - [WithAssets (class)](#withassets-class)
+    - [toJSON (method)](#tojson-method-1)
+    - [toString (method)](#tostring-method-1)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-1)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
 
 ---
 
@@ -79,14 +83,6 @@ export declare const withAssets: (ada: Coin.Coin, assets: MultiAsset.MultiAsset)
 
 Added in v2.0.0
 
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -96,7 +92,7 @@ Encode Value to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: OnlyCoin | WithAssets, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: Value, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -108,35 +104,7 @@ Encode Value to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: OnlyCoin | WithAssets, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two Values are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Value, b: Value) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## ValueError (class)
-
-Error class for Value related operations.
-
-**Signature**
-
-```ts
-export declare class ValueError
+export declare const toCBORHex: (data: Value, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -388,6 +356,46 @@ export declare class OnlyCoin
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 # transformation
 
 ## add
@@ -480,4 +488,44 @@ export type Value = typeof Value.Type
 
 ```ts
 export declare class WithAssets
+```
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```

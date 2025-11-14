@@ -1,5 +1,6 @@
 import { Equal, FastCheck, Hash, Inspectable, Schema } from "effect"
 
+import * as Bytes from "./Bytes.js"
 import * as Hash28 from "./Hash28.js"
 
 /**
@@ -32,11 +33,11 @@ export class PolicyId extends Schema.TaggedClass<PolicyId>()("PolicyId", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof PolicyId && Equal.equals(this.hash, that.hash)
+    return that instanceof PolicyId && Bytes.bytesEquals(this.hash, that.hash)
   }
 
   [Hash.symbol](): number {
-    return Hash.hash(this.hash)
+    return Hash.array(Array.from(this.hash))
   }
 }
 

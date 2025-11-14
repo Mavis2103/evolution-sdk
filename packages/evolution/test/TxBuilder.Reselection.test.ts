@@ -837,7 +837,7 @@ describe("TxBuilder Reselection After Change", () => {
 
     // Verify native assets are in change (not burned)
     if (changeOutput.amount._tag === "WithAssets") {
-      expect(changeOutput.amount.assets.size).toBeGreaterThan(0)
+      expect(changeOutput.amount.assets.map.size).toBeGreaterThan(0)
     } else {
       throw new Error("Expected change output to have native assets")
     }

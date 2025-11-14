@@ -53,7 +53,7 @@ export class PrivateKey extends Schema.TaggedClass<PrivateKey>()("PrivateKey", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof PrivateKey && Bytes.equals(this.key, that.key)
+    return that instanceof PrivateKey && Bytes.bytesEquals(this.key, that.key)
   }
 
   [Hash.symbol](): number {

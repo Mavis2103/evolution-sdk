@@ -12,14 +12,13 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [PlutusV2Error (class)](#plutusv2error-class)
 - [model](#model)
   - [PlutusV2 (class)](#plutusv2-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [schemas](#schemas)
   - [CDDLSchema](#cddlschema)
   - [FromCDDL](#fromcddl)
@@ -40,48 +39,6 @@ export declare const arbitrary: FastCheck.Arbitrary<PlutusV2>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for PlutusV2.
-
-**Signature**
-
-```ts
-export declare const make: <C>(this: C, ...args: ConstructorParameters<C>) => InstanceType<C>
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two PlutusV2 instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: PlutusV2, b: PlutusV2) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## PlutusV2Error (class)
-
-Error class for PlutusV2 related operations.
-
-**Signature**
-
-```ts
-export declare class PlutusV2Error
-```
-
-Added in v2.0.0
-
 # model
 
 ## PlutusV2 (class)
@@ -92,6 +49,66 @@ Plutus V2 script wrapper (raw bytes).
 
 ```ts
 export declare class PlutusV2
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+Convert to JSON representation.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+Convert to string representation.
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+Hash code generation.
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0

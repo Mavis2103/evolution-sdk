@@ -21,6 +21,27 @@ import * as TransactionOutput from "./TransactionOutput.js"
 import * as VotingProcedures from "./VotingProcedures.js"
 import * as Withdrawals from "./Withdrawals.js"
 
+// Helper functions for array comparison
+const arrayEquals = <A>(a: ReadonlyArray<A> | undefined, b: ReadonlyArray<A> | undefined): boolean => {
+  if (a === b) return true
+  if (a === undefined || b === undefined) return false
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (!Equal.equals(a[i], b[i])) return false
+  }
+  return true
+}
+
+// Helper function for array hashing
+const arrayHash = <A>(arr: ReadonlyArray<A> | undefined): number => {
+  if (arr === undefined) return 0
+  let hash = Hash.number(arr.length)
+  for (const item of arr) {
+    hash = Hash.combine(hash)(Hash.hash(item))
+  }
+  return hash
+}
+
 /**
  * TransactionBody
  *
@@ -111,22 +132,22 @@ export class TransactionBody extends Schema.TaggedClass<TransactionBody>()("Tran
   [Equal.symbol](that: unknown): boolean {
     if (!(that instanceof TransactionBody)) return false
     return (
-      Equal.equals(this.inputs, that.inputs) &&
-      Equal.equals(this.outputs, that.outputs) &&
-      this.fee === that.fee &&
+      arrayEquals(this.inputs, that.inputs) &&
+      arrayEquals(this.outputs, that.outputs) &&
+      Equal.equals(this.fee, that.fee) &&
       this.ttl === that.ttl &&
-      Equal.equals(this.certificates, that.certificates) &&
+      arrayEquals(this.certificates, that.certificates) &&
       Equal.equals(this.withdrawals, that.withdrawals) &&
       Equal.equals(this.auxiliaryDataHash, that.auxiliaryDataHash) &&
       this.validityIntervalStart === that.validityIntervalStart &&
       Equal.equals(this.mint, that.mint) &&
       Equal.equals(this.scriptDataHash, that.scriptDataHash) &&
-      Equal.equals(this.collateralInputs, that.collateralInputs) &&
-      Equal.equals(this.requiredSigners, that.requiredSigners) &&
-      this.networkId === that.networkId &&
+      arrayEquals(this.collateralInputs, that.collateralInputs) &&
+      arrayEquals(this.requiredSigners, that.requiredSigners) &&
+      Equal.equals(this.networkId, that.networkId) &&
       Equal.equals(this.collateralReturn, that.collateralReturn) &&
       this.totalCollateral === that.totalCollateral &&
-      Equal.equals(this.referenceInputs, that.referenceInputs) &&
+      arrayEquals(this.referenceInputs, that.referenceInputs) &&
       Equal.equals(this.votingProcedures, that.votingProcedures) &&
       Equal.equals(this.proposalProcedures, that.proposalProcedures) &&
       this.currentTreasuryValue === that.currentTreasuryValue &&
@@ -134,8 +155,22 @@ export class TransactionBody extends Schema.TaggedClass<TransactionBody>()("Tran
     )
   }
 
+  /**
+   * Custom hash implementation for TransactionBody.
+   * Only hashes frequently-changing fields for performance.
+   *
+   * @since 2.0.0
+   * @category hashing
+   */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.combine(Hash.array(this.inputs))(Hash.array(this.outputs)))
+    // Hash only the most frequently changing fields
+    // inputs, outputs, and fee are the most common changes
+    return Hash.cached(
+      this,
+      Hash.combine(
+        Hash.combine(Hash.hash(this.fee))(arrayHash(this.inputs))
+      )(arrayHash(this.outputs))
+    )
   }
 }
 

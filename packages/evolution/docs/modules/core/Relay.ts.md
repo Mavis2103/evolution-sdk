@@ -10,26 +10,20 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [Effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [FastCheck](#fastcheck)
   - [arbitrary](#arbitrary)
 - [constructors](#constructors)
   - [fromMultiHostName](#frommultihostname)
   - [fromSingleHostAddr](#fromsinglehostaddr)
   - [fromSingleHostName](#fromsinglehostname)
-- [decoding](#decoding)
-  - [fromCBORBytes](#fromcborbytes)
-  - [fromCBORHex](#fromcborhex)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [RelayError (class)](#relayerror-class)
 - [model](#model)
   - [Relay (type alias)](#relay-type-alias)
+- [parsing](#parsing)
+  - [fromCBORBytes](#fromcborbytes)
+  - [fromCBORHex](#fromcborhex)
 - [predicates](#predicates)
   - [isMultiHostName](#ismultihostname)
   - [isSingleHostAddr](#issinglehostaddr)
@@ -44,14 +38,6 @@ parent: Modules
   - [FromCDDL](#fromcddl)
 
 ---
-
-# Effect
-
-## Either (namespace)
-
-Effect namespace containing schema decode and encode operations.
-
-Added in v2.0.0
 
 # FastCheck
 
@@ -105,94 +91,28 @@ export declare const fromSingleHostName: (singleHostName: SingleHostName.SingleH
 
 Added in v2.0.0
 
-# decoding
-
-## fromCBORBytes
-
-Parse Relay from CBOR bytes (unsafe).
-
-**Signature**
-
-```ts
-export declare const fromCBORBytes: (
-  bytes: Uint8Array,
-  options?: CBOR.CodecOptions
-) => SingleHostAddr.SingleHostAddr | SingleHostName.SingleHostName | MultiHostName.MultiHostName
-```
-
-Added in v2.0.0
-
-## fromCBORHex
-
-Parse Relay from CBOR hex (unsafe).
-
-**Signature**
-
-```ts
-export declare const fromCBORHex: (
-  hex: string,
-  options?: CBOR.CodecOptions
-) => SingleHostAddr.SingleHostAddr | SingleHostName.SingleHostName | MultiHostName.MultiHostName
-```
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
 
-Convert Relay to CBOR bytes (unsafe).
+Convert Relay to CBOR bytes.
 
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (
-  input: SingleHostAddr.SingleHostAddr | SingleHostName.SingleHostName | MultiHostName.MultiHostName,
-  options?: CBOR.CodecOptions
-) => Uint8Array
+export declare const toCBORBytes: (data: Relay, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
 
 ## toCBORHex
 
-Convert Relay to CBOR hex (unsafe).
+Convert Relay to CBOR hex.
 
 **Signature**
 
 ```ts
-export declare const toCBORHex: (
-  input: SingleHostAddr.SingleHostAddr | SingleHostName.SingleHostName | MultiHostName.MultiHostName,
-  options?: CBOR.CodecOptions
-) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two Relay instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (self: Relay, that: Relay) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## RelayError (class)
-
-Error class for Relay related operations.
-
-**Signature**
-
-```ts
-export declare class RelayError
+export declare const toCBORHex: (data: Relay, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -207,6 +127,38 @@ Type alias for Relay.
 
 ```ts
 export type Relay = typeof Relay.Type
+```
+
+Added in v2.0.0
+
+# parsing
+
+## fromCBORBytes
+
+Parse Relay from CBOR bytes.
+
+**Signature**
+
+```ts
+export declare const fromCBORBytes: (
+  bytes: Uint8Array,
+  options?: CBOR.CodecOptions
+) => SingleHostAddr.SingleHostAddr | SingleHostName.SingleHostName | MultiHostName.MultiHostName
+```
+
+Added in v2.0.0
+
+## fromCBORHex
+
+Parse Relay from CBOR hex.
+
+**Signature**
+
+```ts
+export declare const fromCBORHex: (
+  hex: string,
+  options?: CBOR.CodecOptions
+) => SingleHostAddr.SingleHostAddr | SingleHostName.SingleHostName | MultiHostName.MultiHostName
 ```
 
 Added in v2.0.0

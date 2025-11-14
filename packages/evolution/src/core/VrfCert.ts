@@ -25,10 +25,10 @@ export class VRFOutput extends Schema.TaggedClass<VRFOutput>()("VrfOutput", {
     return this.toJSON()
   }
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof VRFOutput && Equal.equals(this.bytes, that.bytes)
+    return that instanceof VRFOutput && Bytes.bytesEquals(this.bytes, that.bytes)
   }
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.bytes))
+    return Hash.array(Array.from(this.bytes))
   }
 }
 
@@ -85,10 +85,10 @@ export class VRFProof extends Schema.TaggedClass<VRFProof>()("VrfProof", {
     return this.toJSON()
   }
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof VRFProof && Equal.equals(this.bytes, that.bytes)
+    return that instanceof VRFProof && Bytes.bytesEquals(this.bytes, that.bytes)
   }
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.bytes))
+    return Hash.array(Array.from(this.bytes))
   }
 }
 

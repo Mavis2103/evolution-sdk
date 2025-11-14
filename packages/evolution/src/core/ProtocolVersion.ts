@@ -112,20 +112,6 @@ export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTION
  *
  * @since 2.0.0
  * @category conversion
- * 
- * @example
- * ```ts
- * import { ProtocolVersion, CBOR } from "@evolution-sdk/evolution"
- * 
- * // With default options
- * const decode1 = ProtocolVersion.fromCBORBytes()
- * 
- * // With custom options
- * const decode2 = ProtocolVersion.fromCBORBytes({ maxDepth: 10 })
- * 
- * // Data-first style
- * const version = ProtocolVersion.fromCBORBytes(bytes, { maxDepth: 10 })
- * ```
  */
 export const fromCBORBytes: {
   (options?: CBOR.CodecOptions): (bytes: Uint8Array) => ProtocolVersion
@@ -141,20 +127,6 @@ export const fromCBORBytes: {
  *
  * @since 2.0.0
  * @category conversion
- * 
- * @example
- * ```ts
- * import { ProtocolVersion, CBOR } from "@evolution-sdk/evolution"
- * 
- * // With default options
- * const decode1 = ProtocolVersion.fromCBORHex()
- * 
- * // With custom options
- * const decode2 = ProtocolVersion.fromCBORHex({ maxDepth: 10 })
- * 
- * // Data-first style
- * const version = ProtocolVersion.fromCBORHex("820304", { maxDepth: 10 })
- * ```
  */
 export const fromCBORHex: {
   (options?: CBOR.CodecOptions): (hex: string) => ProtocolVersion
@@ -170,20 +142,6 @@ export const fromCBORHex: {
  *
  * @since 2.0.0
  * @category conversion
- * 
- * @example
- * ```ts
- * import { ProtocolVersion, CBOR } from "@evolution-sdk/evolution"
- * 
- * // With default options
- * const encode1 = ProtocolVersion.toCBORBytes()
- * 
- * // With custom options
- * const encode2 = ProtocolVersion.toCBORBytes({ maxDepth: 10 })
- * 
- * // Data-first style
- * const bytes = ProtocolVersion.toCBORBytes(version, { maxDepth: 10 })
- * ```
  */
 export const toCBORBytes: {
   (options?: CBOR.CodecOptions): (version: ProtocolVersion) => Uint8Array
@@ -199,20 +157,6 @@ export const toCBORBytes: {
  *
  * @since 2.0.0
  * @category conversion
- * 
- * @example
- * ```ts
- * import { ProtocolVersion, CBOR } from "@evolution-sdk/evolution"
- * 
- * // With default options
- * const encode1 = ProtocolVersion.toCBORHex()
- * 
- * // With custom options
- * const encode2 = ProtocolVersion.toCBORHex({ maxDepth: 10 })
- * 
- * // Data-first style
- * const hex = ProtocolVersion.toCBORHex(version, { maxDepth: 10 })
- * ```
  */
 export const toCBORHex: {
   (options?: CBOR.CodecOptions): (version: ProtocolVersion) => string

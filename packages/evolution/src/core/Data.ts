@@ -1,4 +1,4 @@
-import { Data as EffectData, Effect, FastCheck, ParseResult, Schema } from "effect"
+import { Data as EffectData, Effect, FastCheck, Hash, ParseResult, Schema } from "effect"
 
 import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
@@ -653,8 +653,52 @@ export const cborValueToPlutusData = (cborValue: CBOR.CBOR): Data => {
 }
 
 /**
+ * Deep structural hash for Plutus Data values.
+ * Handles maps, lists, ints, bytes, and constrs.
+ *
+ * @since 2.0.0
+ * @category equality
+ */
+export const hash = (data: Data): number => {
+  if (typeof data === "bigint") return Hash.hash(data)
+  if (typeof data === "string") return Hash.string(data)
+
+  // Arrays (Lists)
+  if (Array.isArray(data)) {
+    let h = Hash.hash(data.length)
+    for (const item of data) {
+      h ^= hash(item)
+    }
+    return h
+  }
+
+  // Constr
+  if (data instanceof Constr) {
+    let h = Hash.hash(data.index)
+    for (const field of data.fields) {
+      h ^= hash(field as Data)
+    }
+    return h
+  }
+
+  // Map
+  if (data instanceof Map) {
+    let h = Hash.hash(data.size)
+    for (const [key, value] of data.entries()) {
+      h ^= hash(key as Data) ^ hash(value as Data)
+    }
+    return h
+  }
+
+  return 0
+}
+
+/**
  * Deep structural equality for Plutus Data values.
  * Handles maps, lists, ints, bytes, and constrs.
+ *
+ * @since 2.0.0
+ * @category equality
  */
 export const equals = (a: Data, b: Data): boolean => {
   if (typeof a === "bigint" || typeof b === "bigint") return a === b

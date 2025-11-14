@@ -1,0 +1,135 @@
+---
+title: sdk/PoolParams.ts
+nav_order: 162
+parent: Modules
+---
+
+## PoolParams overview
+
+SDK PoolParams module - user-friendly types for pool registration parameters.
+
+Added in v2.0.0
+
+---
+
+<h2 class="text-delta">Table of contents</h2>
+
+- [conversions](#conversions)
+  - [fromCore](#fromcore)
+  - [toCore](#tocore)
+- [model](#model)
+  - [PoolParams (type alias)](#poolparams-type-alias)
+
+---
+
+# conversions
+
+## fromCore
+
+Convert from Core PoolParams to SDK PoolParams (encode to lightweight form).
+
+**Signature**
+
+```ts
+export declare const fromCore: (
+  a: CorePoolParams.PoolParams,
+  overrideOptions?: ParseOptions
+) => {
+  readonly _tag: "PoolParams"
+  readonly operator: { readonly hash: string; readonly _tag: "PoolKeyHash" }
+  readonly vrfKeyhash: { readonly hash: string; readonly _tag: "VrfKeyHash" }
+  readonly pledge: bigint
+  readonly cost: bigint
+  readonly margin: { readonly numerator: bigint; readonly denominator: bigint }
+  readonly rewardAccount: {
+    readonly networkId: number
+    readonly stakeCredential:
+      | { readonly hash: string; readonly _tag: "KeyHash" }
+      | { readonly hash: string; readonly _tag: "ScriptHash" }
+    readonly _tag: "RewardAccount"
+  }
+  readonly poolOwners: readonly { readonly hash: string; readonly _tag: "KeyHash" }[]
+  readonly relays: readonly (
+    | {
+        readonly _tag: "SingleHostAddr"
+        readonly port?: bigint | undefined
+        readonly ipv4?: { readonly _tag: "IPv4"; readonly bytes: string } | undefined
+        readonly ipv6?: { readonly _tag: "IPv6"; readonly bytes: string } | undefined
+      }
+    | { readonly _tag: "SingleHostName"; readonly dnsName: string; readonly port?: bigint | undefined }
+    | { readonly _tag: "MultiHostName"; readonly dnsName: string }
+  )[]
+  readonly poolMetadata?:
+    | {
+        readonly hash: any
+        readonly _tag: "PoolMetadata"
+        readonly url: { readonly _tag: "Url"; readonly href: string }
+      }
+    | null
+    | undefined
+}
+```
+
+Added in v2.0.0
+
+## toCore
+
+Convert from SDK PoolParams to Core PoolParams (decode to strict form).
+
+**Signature**
+
+```ts
+export declare const toCore: (
+  i: {
+    readonly _tag: "PoolParams"
+    readonly operator: { readonly hash: string; readonly _tag: "PoolKeyHash" }
+    readonly vrfKeyhash: { readonly hash: string; readonly _tag: "VrfKeyHash" }
+    readonly pledge: bigint
+    readonly cost: bigint
+    readonly margin: { readonly numerator: bigint; readonly denominator: bigint }
+    readonly rewardAccount: {
+      readonly networkId: number
+      readonly stakeCredential:
+        | { readonly hash: string; readonly _tag: "KeyHash" }
+        | { readonly hash: string; readonly _tag: "ScriptHash" }
+      readonly _tag: "RewardAccount"
+    }
+    readonly poolOwners: readonly { readonly hash: string; readonly _tag: "KeyHash" }[]
+    readonly relays: readonly (
+      | {
+          readonly _tag: "SingleHostAddr"
+          readonly port?: bigint | undefined
+          readonly ipv4?: { readonly _tag: "IPv4"; readonly bytes: string } | undefined
+          readonly ipv6?: { readonly _tag: "IPv6"; readonly bytes: string } | undefined
+        }
+      | { readonly _tag: "SingleHostName"; readonly dnsName: string; readonly port?: bigint | undefined }
+      | { readonly _tag: "MultiHostName"; readonly dnsName: string }
+    )[]
+    readonly poolMetadata?:
+      | {
+          readonly hash: any
+          readonly _tag: "PoolMetadata"
+          readonly url: { readonly _tag: "Url"; readonly href: string }
+        }
+      | null
+      | undefined
+  },
+  overrideOptions?: ParseOptions
+) => CorePoolParams.PoolParams
+```
+
+Added in v2.0.0
+
+# model
+
+## PoolParams (type alias)
+
+User-friendly pool registration parameters type (lightweight encoded form).
+
+**Signature**
+
+```ts
+export type PoolParams = typeof CorePoolParams.PoolParams.Encoded
+```
+
+Added in v2.0.0

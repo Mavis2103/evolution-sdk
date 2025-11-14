@@ -12,17 +12,16 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [ScriptDataHashError (class)](#scriptdatahasherror-class)
 - [model](#model)
   - [ScriptDataHash (class)](#scriptdatahash-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -31,8 +30,6 @@ parent: Modules
 - [schemas](#schemas)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
-- [utils](#utils)
-  - [Either (namespace)](#either-namespace)
 
 ---
 
@@ -50,23 +47,6 @@ export declare const arbitrary: FastCheck.Arbitrary<ScriptDataHash>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for ScriptDataHash.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly hash: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => ScriptDataHash
-```
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -76,7 +56,7 @@ Encode ScriptDataHash to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: ScriptDataHash) => Uint8Array
+export declare const toBytes: (a: ScriptDataHash, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -88,35 +68,7 @@ Encode ScriptDataHash to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: ScriptDataHash) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two ScriptDataHash instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: ScriptDataHash, b: ScriptDataHash) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## ScriptDataHashError (class)
-
-Error class for ScriptDataHash related operations.
-
-**Signature**
-
-```ts
-export declare class ScriptDataHashError
+export declare const toHex: (a: ScriptDataHash, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -145,6 +97,46 @@ export declare class ScriptDataHash
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 # parsing
 
 ## fromBytes
@@ -154,7 +146,7 @@ Parse ScriptDataHash from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => ScriptDataHash
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => ScriptDataHash
 ```
 
 Added in v2.0.0
@@ -166,7 +158,7 @@ Parse ScriptDataHash from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => ScriptDataHash
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => ScriptDataHash
 ```
 
 Added in v2.0.0
@@ -219,7 +211,3 @@ export declare const FromHex: Schema.transform<
 ```
 
 Added in v2.0.0
-
-# utils
-
-## Either (namespace)

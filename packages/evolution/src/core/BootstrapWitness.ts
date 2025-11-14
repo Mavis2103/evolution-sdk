@@ -7,6 +7,17 @@ import * as Ed25519Signature from "./Ed25519Signature.js"
 import * as VKey from "./VKey.js"
 
 /**
+ * Helper to compare two Uint8Arrays by content.
+ */
+const uint8ArrayEquals = (a: Uint8Array, b: Uint8Array): boolean => {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
+/**
  * Bootstrap witness for Byron-era addresses.
  *
  * CDDL:
@@ -72,24 +83,20 @@ export class BootstrapWitness extends Schema.Class<BootstrapWitness>("BootstrapW
       that instanceof BootstrapWitness &&
       Equal.equals(this.publicKey, that.publicKey) &&
       Equal.equals(this.signature, that.signature) &&
-      Equal.equals(this.chainCode, that.chainCode) &&
-      Equal.equals(this.attributes, that.attributes)
+      uint8ArrayEquals(this.chainCode, that.chainCode) &&
+      uint8ArrayEquals(this.attributes, that.attributes)
     )
   }
 
   /**
    * Hash code generation.
+   * Only hashes publicKey for performance (minimal identifying field).
    *
    * @since 2.0.0
    * @category hashing
    */
   [Hash.symbol](): number {
-    return Hash.cached(
-      this,
-      Hash.combine(
-        Hash.combine(Hash.combine(Hash.hash(this.publicKey))(Hash.hash(this.signature)))(Hash.hash(this.chainCode))
-      )(Hash.hash(this.attributes))
-    )
+    return Hash.cached(this, Hash.hash(this.publicKey))
   }
 }
 

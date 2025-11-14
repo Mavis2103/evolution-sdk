@@ -11,48 +11,119 @@ import * as UnitInterval from "./UnitInterval.js"
 /**
  * ex_unit_prices (domain) = [mem_price : NonnegativeInterval, step_price : NonnegativeInterval]
  */
-export const ExUnitPrices = Schema.Tuple(
+export class ExUnitPrices extends Schema.Class<ExUnitPrices>("ExUnitPrices")({
+  memPrice: NonnegativeInterval.NonnegativeInterval,
+  stepPrice: NonnegativeInterval.NonnegativeInterval
+}) {
+  [Equal.symbol](that: unknown): boolean {
+    return (
+      that instanceof ExUnitPrices &&
+      Equal.equals(this.memPrice, that.memPrice) &&
+      Equal.equals(this.stepPrice, that.stepPrice)
+    )
+  }
+
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.hash(this.memPrice))
+  }
+}
+
+export const ExUnitPricesCDDL = Schema.Tuple(
   NonnegativeInterval.NonnegativeInterval,
   NonnegativeInterval.NonnegativeInterval
-).annotations({ identifier: "ExUnitPrices" })
-export type ExUnitPrices = typeof ExUnitPrices.Type
+).annotations({ identifier: "ExUnitPricesCDDL" })
 
 /**
  * ex_units = [mem : uint, steps : uint]
  */
-export const ExUnits = Schema.Tuple(Numeric.Uint64Schema, Numeric.Uint64Schema).annotations({
-  identifier: "ExUnits"
+export class ExUnits extends Schema.Class<ExUnits>("ExUnits")({
+  mem: Numeric.Uint64Schema,
+  steps: Numeric.Uint64Schema
+}) {
+  [Equal.symbol](that: unknown): boolean {
+    return that instanceof ExUnits && this.mem === that.mem && this.steps === that.steps
+  }
+
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.hash(this.mem))
+  }
+}
+
+export const ExUnitsCDDL = Schema.Tuple(Numeric.Uint64Schema, Numeric.Uint64Schema).annotations({
+  identifier: "ExUnitsCDDL"
 })
-export type ExUnits = typeof ExUnits.Type
 
 /**
  * pool_voting_thresholds (domain) = [u,u,u,u,u] (5 unit_intervals)
  */
-export const PoolVotingThresholds = Schema.Tuple(
+export class PoolVotingThresholds extends Schema.Class<PoolVotingThresholds>("PoolVotingThresholds")({
+  t1: UnitInterval.UnitInterval,
+  t2: UnitInterval.UnitInterval,
+  t3: UnitInterval.UnitInterval,
+  t4: UnitInterval.UnitInterval,
+  t5: UnitInterval.UnitInterval
+}) {
+  [Equal.symbol](that: unknown): boolean {
+    return (
+      that instanceof PoolVotingThresholds &&
+      Equal.equals(this.t1, that.t1) &&
+      Equal.equals(this.t2, that.t2) &&
+      Equal.equals(this.t3, that.t3) &&
+      Equal.equals(this.t4, that.t4) &&
+      Equal.equals(this.t5, that.t5)
+    )
+  }
+
+  [Hash.symbol](): number {
+    // Only hash first threshold for performance
+    return Hash.cached(this, Hash.hash(this.t1))
+  }
+}
+
+export const PoolVotingThresholdsCDDL = Schema.Tuple(
   UnitInterval.UnitInterval,
   UnitInterval.UnitInterval,
   UnitInterval.UnitInterval,
   UnitInterval.UnitInterval,
   UnitInterval.UnitInterval
-).annotations({ identifier: "PoolVotingThresholds" })
-export type PoolVotingThresholds = typeof PoolVotingThresholds.Type
+).annotations({ identifier: "PoolVotingThresholdsCDDL" })
 
 /**
  * drep_voting_thresholds (domain) = [10 unit_intervals]
  */
-export const DRepVotingThresholds = Schema.Tuple(
-  UnitInterval.UnitInterval,
-  UnitInterval.UnitInterval,
-  UnitInterval.UnitInterval,
-  UnitInterval.UnitInterval,
-  UnitInterval.UnitInterval,
-  UnitInterval.UnitInterval,
-  UnitInterval.UnitInterval,
-  UnitInterval.UnitInterval,
-  UnitInterval.UnitInterval,
-  UnitInterval.UnitInterval
-).annotations({ identifier: "DRepVotingThresholds" })
-export type DRepVotingThresholds = typeof DRepVotingThresholds.Type
+export class DRepVotingThresholds extends Schema.Class<DRepVotingThresholds>("DRepVotingThresholds")({
+  t1: UnitInterval.UnitInterval,
+  t2: UnitInterval.UnitInterval,
+  t3: UnitInterval.UnitInterval,
+  t4: UnitInterval.UnitInterval,
+  t5: UnitInterval.UnitInterval,
+  t6: UnitInterval.UnitInterval,
+  t7: UnitInterval.UnitInterval,
+  t8: UnitInterval.UnitInterval,
+  t9: UnitInterval.UnitInterval,
+  t10: UnitInterval.UnitInterval
+}) {
+  [Equal.symbol](that: unknown): boolean {
+    return (
+      that instanceof DRepVotingThresholds &&
+      Equal.equals(this.t1, that.t1) &&
+      Equal.equals(this.t2, that.t2) &&
+      Equal.equals(this.t3, that.t3) &&
+      Equal.equals(this.t4, that.t4) &&
+      Equal.equals(this.t5, that.t5) &&
+      Equal.equals(this.t6, that.t6) &&
+      Equal.equals(this.t7, that.t7) &&
+      Equal.equals(this.t8, that.t8) &&
+      Equal.equals(this.t9, that.t9) &&
+      Equal.equals(this.t10, that.t10)
+    )
+  }
+
+  [Hash.symbol](): number {
+    // Only hash first threshold for performance
+    return Hash.cached(this, Hash.hash(this.t1))
+  }
+}
 
 /**
  * ProtocolParamUpdate CDDL record with optional fields keyed by indexes.
@@ -183,40 +254,12 @@ export class ProtocolParamUpdate extends Schema.TaggedClass<ProtocolParamUpdate>
   }
 
   [Hash.symbol](): number {
+    // Only hash 1-2 most frequently changing fields for performance
+    // This allows hash collisions to trigger [Equal.symbol] for full equality check
+    // Most common updates are fee-related parameters and cost models
     return Hash.cached(
       this,
-      Hash.array([
-        this.minfeeA,
-        this.minfeeB,
-        this.maxBlockBodySize,
-        this.maxTxSize,
-        this.maxBlockHeaderSize,
-        this.keyDeposit,
-        this.poolDeposit,
-        this.maxEpoch,
-        this.nOpt,
-        this.poolPledgeInfluence,
-        this.expansionRate,
-        this.treasuryGrowthRate,
-        this.minPoolCost,
-        this.adaPerUtxoByte,
-        this.costModels,
-        this.exUnitPrices,
-        this.maxTxExUnits,
-        this.maxBlockExUnits,
-        this.maxValueSize,
-        this.collateralPercentage,
-        this.maxCollateralInputs,
-        this.poolVotingThresholds,
-        this.drepVotingThresholds,
-        this.minCommitteeSize,
-        this.committeeTermLimit,
-        this.governanceActionValidity,
-        this.governanceActionDeposit,
-        this.drepDeposit,
-        this.drepInactivityPeriod,
-        this.minfeeRefScriptCoinsPerByte
-      ])
+      Hash.combine(Hash.hash(this.minfeeA))(Hash.hash(this.costModels))
     )
   }
 }
@@ -254,16 +297,15 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Pro
 
       // ExUnitPrices (tuple of two nonnegative intervals)
       if (toA.exUnitPrices !== undefined) {
-        const [memPrice, stepPrice] = toA.exUnitPrices
         out.set(19n, [
-          yield* ParseResult.encode(NonnegativeInterval.FromCDDL)(memPrice),
-          yield* ParseResult.encode(NonnegativeInterval.FromCDDL)(stepPrice)
+          yield* ParseResult.encode(NonnegativeInterval.FromCDDL)(toA.exUnitPrices.memPrice),
+          yield* ParseResult.encode(NonnegativeInterval.FromCDDL)(toA.exUnitPrices.stepPrice)
         ] as const)
       }
 
-      // ExUnits (passthrough bigints)
-      if (toA.maxTxExUnits !== undefined) out.set(20n, toA.maxTxExUnits)
-      if (toA.maxBlockExUnits !== undefined) out.set(21n, toA.maxBlockExUnits)
+      // ExUnits (convert to tuple)
+      if (toA.maxTxExUnits !== undefined) out.set(20n, [toA.maxTxExUnits.mem, toA.maxTxExUnits.steps] as const)
+      if (toA.maxBlockExUnits !== undefined) out.set(21n, [toA.maxBlockExUnits.mem, toA.maxBlockExUnits.steps] as const)
 
       if (toA.maxValueSize !== undefined) out.set(22n, toA.maxValueSize)
       if (toA.collateralPercentage !== undefined) out.set(23n, toA.collateralPercentage)
@@ -271,30 +313,29 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Pro
 
       // PoolVotingThresholds (5 unit intervals)
       if (toA.poolVotingThresholds !== undefined) {
-        const [a, b, c, d, e] = toA.poolVotingThresholds
         out.set(25n, [
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(a),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(b),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(c),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(d),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(e)
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(toA.poolVotingThresholds.t1),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(toA.poolVotingThresholds.t2),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(toA.poolVotingThresholds.t3),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(toA.poolVotingThresholds.t4),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(toA.poolVotingThresholds.t5)
         ] as const)
       }
 
       // DRepVotingThresholds (10 unit intervals)
       if (toA.drepVotingThresholds !== undefined) {
-        const [a, b, c, d, e, f, g, h, i, j] = toA.drepVotingThresholds
+        const d = toA.drepVotingThresholds
         out.set(26n, [
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(a),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(b),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(c),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(d),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(e),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(f),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(g),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(h),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(i),
-          yield* ParseResult.encode(UnitInterval.FromCDDL)(j)
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(d.t1),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(d.t2),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(d.t3),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(d.t4),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(d.t5),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(d.t6),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(d.t7),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(d.t8),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(d.t9),
+          yield* ParseResult.encode(UnitInterval.FromCDDL)(d.t10)
         ] as const)
       }
 
@@ -386,16 +427,16 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Pro
       const v19 = get<readonly [unknown, unknown]>(19n)
       if (v19 !== undefined) {
         const [mem, step] = v19 as any
-        model.exUnitPrices = [
-          yield* ParseResult.decode(NonnegativeInterval.FromCDDL)(mem),
-          yield* ParseResult.decode(NonnegativeInterval.FromCDDL)(step)
-        ]
+        model.exUnitPrices = new ExUnitPrices({
+          memPrice: yield* ParseResult.decode(NonnegativeInterval.FromCDDL)(mem),
+          stepPrice: yield* ParseResult.decode(NonnegativeInterval.FromCDDL)(step)
+        })
       }
 
-      const v20 = get<ExUnits>(20n)
-      if (v20 !== undefined) model.maxTxExUnits = v20
-      const v21 = get<ExUnits>(21n)
-      if (v21 !== undefined) model.maxBlockExUnits = v21
+      const v20 = get<readonly [bigint, bigint]>(20n)
+      if (v20 !== undefined) model.maxTxExUnits = new ExUnits({ mem: v20[0], steps: v20[1] })
+      const v21 = get<readonly [bigint, bigint]>(21n)
+      if (v21 !== undefined) model.maxBlockExUnits = new ExUnits({ mem: v21[0], steps: v21[1] })
 
       const v22 = get<Numeric.Uint32>(22n)
       if (v22 !== undefined) model.maxValueSize = v22
@@ -407,31 +448,31 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Pro
       const v25 = get<readonly [unknown, unknown, unknown, unknown, unknown]>(25n)
       if (v25 !== undefined) {
         const [a, b, c, d, e] = v25 as any
-        model.poolVotingThresholds = [
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(a),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(b),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(c),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(d),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(e)
-        ]
+        model.poolVotingThresholds = new PoolVotingThresholds({
+          t1: yield* ParseResult.decode(UnitInterval.FromCDDL)(a),
+          t2: yield* ParseResult.decode(UnitInterval.FromCDDL)(b),
+          t3: yield* ParseResult.decode(UnitInterval.FromCDDL)(c),
+          t4: yield* ParseResult.decode(UnitInterval.FromCDDL)(d),
+          t5: yield* ParseResult.decode(UnitInterval.FromCDDL)(e)
+        })
       }
 
       const v26 =
         get<readonly [unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown]>(26n)
       if (v26 !== undefined) {
         const [a, b, c, d, e, f, g, h, i, j] = v26 as any
-        model.drepVotingThresholds = [
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(a),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(b),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(c),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(d),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(e),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(f),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(g),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(h),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(i),
-          yield* ParseResult.decode(UnitInterval.FromCDDL)(j)
-        ]
+        model.drepVotingThresholds = new DRepVotingThresholds({
+          t1: yield* ParseResult.decode(UnitInterval.FromCDDL)(a),
+          t2: yield* ParseResult.decode(UnitInterval.FromCDDL)(b),
+          t3: yield* ParseResult.decode(UnitInterval.FromCDDL)(c),
+          t4: yield* ParseResult.decode(UnitInterval.FromCDDL)(d),
+          t5: yield* ParseResult.decode(UnitInterval.FromCDDL)(e),
+          t6: yield* ParseResult.decode(UnitInterval.FromCDDL)(f),
+          t7: yield* ParseResult.decode(UnitInterval.FromCDDL)(g),
+          t8: yield* ParseResult.decode(UnitInterval.FromCDDL)(h),
+          t9: yield* ParseResult.decode(UnitInterval.FromCDDL)(i),
+          t10: yield* ParseResult.decode(UnitInterval.FromCDDL)(j)
+        })
       }
 
       const v27 = get<Numeric.Uint16>(27n)
@@ -503,15 +544,24 @@ export const arbitrary: FastCheck.Arbitrary<ProtocolParamUpdate> = FastCheck.rec
   minPoolCost: FastCheck.option(coinArb, { nil: undefined }),
   adaPerUtxoByte: FastCheck.option(coinArb, { nil: undefined }),
   costModels: FastCheck.option(costModelsArb, { nil: undefined }),
-  exUnitPrices: FastCheck.option(FastCheck.tuple(NonnegativeInterval.arbitrary, NonnegativeInterval.arbitrary), {
-    nil: undefined
-  }),
-  maxTxExUnits: FastCheck.option(FastCheck.tuple(Numeric.Uint64Arbitrary, Numeric.Uint64Arbitrary), {
-    nil: undefined
-  }),
-  maxBlockExUnits: FastCheck.option(FastCheck.tuple(Numeric.Uint64Arbitrary, Numeric.Uint64Arbitrary), {
-    nil: undefined
-  }),
+  exUnitPrices: FastCheck.option(
+    FastCheck.tuple(NonnegativeInterval.arbitrary, NonnegativeInterval.arbitrary).map(
+      ([memPrice, stepPrice]) => new ExUnitPrices({ memPrice, stepPrice })
+    ),
+    { nil: undefined }
+  ),
+  maxTxExUnits: FastCheck.option(
+    FastCheck.tuple(Numeric.Uint64Arbitrary, Numeric.Uint64Arbitrary).map(
+      ([mem, steps]) => new ExUnits({ mem, steps })
+    ),
+    { nil: undefined }
+  ),
+  maxBlockExUnits: FastCheck.option(
+    FastCheck.tuple(Numeric.Uint64Arbitrary, Numeric.Uint64Arbitrary).map(
+      ([mem, steps]) => new ExUnits({ mem, steps })
+    ),
+    { nil: undefined }
+  ),
   maxValueSize: FastCheck.option(Numeric.Uint32Arbitrary, { nil: undefined }),
   collateralPercentage: FastCheck.option(Numeric.Uint16Arbitrary, { nil: undefined }),
   maxCollateralInputs: FastCheck.option(Numeric.Uint16Arbitrary, { nil: undefined }),
@@ -522,7 +572,7 @@ export const arbitrary: FastCheck.Arbitrary<ProtocolParamUpdate> = FastCheck.rec
       UnitInterval.arbitrary,
       UnitInterval.arbitrary,
       UnitInterval.arbitrary
-    ),
+    ).map(([t1, t2, t3, t4, t5]) => new PoolVotingThresholds({ t1, t2, t3, t4, t5 })),
     { nil: undefined }
   ),
   drepVotingThresholds: FastCheck.option(
@@ -537,7 +587,7 @@ export const arbitrary: FastCheck.Arbitrary<ProtocolParamUpdate> = FastCheck.rec
       UnitInterval.arbitrary,
       UnitInterval.arbitrary,
       UnitInterval.arbitrary
-    ),
+    ).map(([t1, t2, t3, t4, t5, t6, t7, t8, t9, t10]) => new DRepVotingThresholds({ t1, t2, t3, t4, t5, t6, t7, t8, t9, t10 })),
     { nil: undefined }
   ),
   minCommitteeSize: FastCheck.option(Numeric.Uint16Arbitrary, { nil: undefined }),

@@ -12,15 +12,9 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [KesSignatureError (class)](#kessignatureerror-class)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -30,6 +24,9 @@ parent: Modules
   - [KesSignature (class)](#kessignature-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [utils](#utils)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
@@ -50,14 +47,6 @@ export declare const arbitrary: FastCheck.Arbitrary<KesSignature>
 
 Added in v2.0.0
 
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -67,7 +56,7 @@ Encode KesSignature to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: KesSignature) => any
+export declare const toBytes: (a: KesSignature, overrideOptions?: ParseOptions) => any
 ```
 
 Added in v2.0.0
@@ -79,35 +68,7 @@ Encode KesSignature to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: KesSignature) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Equality on bytes
-
-**Signature**
-
-```ts
-export declare const equals: (a: KesSignature, b: KesSignature) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## KesSignatureError (class)
-
-Error class for KesSignature related operations.
-
-**Signature**
-
-```ts
-export declare class KesSignatureError
+export declare const toHex: (a: KesSignature, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -121,7 +82,7 @@ Parse KesSignature from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: any) => KesSignature
+export declare const fromBytes: (i: any, overrideOptions?: ParseOptions) => KesSignature
 ```
 
 Added in v2.0.0
@@ -133,7 +94,7 @@ Parse KesSignature from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => KesSignature
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => KesSignature
 ```
 
 Added in v2.0.0
@@ -172,7 +133,7 @@ Added in v2.0.0
 **Signature**
 
 ```ts
-toJSON(): string
+toJSON()
 ```
 
 ### toString (method)
@@ -181,6 +142,30 @@ toJSON(): string
 
 ```ts
 toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # utils

@@ -51,7 +51,13 @@ export class PlutusV1 extends Schema.TaggedClass<PlutusV1>("PlutusV1")("PlutusV1
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof PlutusV1 && Equal.equals(this.bytes, that.bytes)
+    if (!(that instanceof PlutusV1)) return false
+    // Compare Uint8Array content byte by byte
+    if (this.bytes.length !== that.bytes.length) return false
+    for (let i = 0; i < this.bytes.length; i++) {
+      if (this.bytes[i] !== that.bytes[i]) return false
+    }
+    return true
   }
 
   /**
@@ -61,7 +67,12 @@ export class PlutusV1 extends Schema.TaggedClass<PlutusV1>("PlutusV1")("PlutusV1
    * @category hashing
    */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.bytes))
+    // Hash Uint8Array content byte by byte
+    let h = Hash.hash(this.bytes.length)
+    for (const byte of this.bytes) {
+      h = Hash.combine(h)(Hash.hash(byte))
+    }
+    return Hash.cached(this, h)
   }
 }
 

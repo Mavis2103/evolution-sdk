@@ -11,6 +11,60 @@ import * as PlutusV3 from "./PlutusV3.js"
 import * as Redeemer from "./Redeemer.js"
 import * as VKey from "./VKey.js"
 
+// Helper function for array comparison
+const arrayEquals = <A>(a: ReadonlyArray<A> | undefined, b: ReadonlyArray<A> | undefined): boolean => {
+  if (a === b) return true
+  // Treat empty arrays and undefined as equal
+  const aLen = a?.length ?? 0
+  const bLen = b?.length ?? 0
+  if (aLen === 0 && bLen === 0) return true
+  if (a === undefined || b === undefined) return false
+  if (aLen !== bLen) return false
+  for (let i = 0; i < aLen; i++) {
+    if (!Equal.equals(a[i], b[i])) return false
+  }
+  return true
+}
+
+// Helper function for array hashing
+const arrayHash = <A>(arr: ReadonlyArray<A> | undefined): number => {
+  const len = arr?.length ?? 0
+  if (len === 0) return Hash.hash(0) // Treat empty arrays and undefined the same
+  let hash = Hash.hash(len)
+  for (const item of arr!) {
+    hash = Hash.combine(hash)(Hash.hash(item))
+  }
+  return hash
+}
+
+// Helper function for PlutusData array hashing (uses Data.hash instead of Hash.hash)
+const plutusDataArrayHash = (arr: ReadonlyArray<PlutusData.Data> | undefined): number => {
+  const len = arr?.length ?? 0
+  if (len === 0) return Hash.hash(0)
+  let hash = Hash.hash(len)
+  for (const item of arr!) {
+    hash = Hash.combine(hash)(PlutusData.hash(item))
+  }
+  return hash
+}
+
+// Helper function for PlutusData array comparison (uses Data.equals instead of Equal.equals)
+const plutusDataArrayEquals = (
+  a: ReadonlyArray<PlutusData.Data> | undefined,
+  b: ReadonlyArray<PlutusData.Data> | undefined
+): boolean => {
+  if (a === b) return true
+  const aLen = a?.length ?? 0
+  const bLen = b?.length ?? 0
+  if (aLen === 0 && bLen === 0) return true
+  if (a === undefined || b === undefined) return false
+  if (aLen !== bLen) return false
+  for (let i = 0; i < aLen; i++) {
+    if (!PlutusData.equals(a[i], b[i])) return false
+  }
+  return true
+}
+
 /**
  * VKey witness for Ed25519 signatures.
  *
@@ -171,14 +225,14 @@ export class TransactionWitnessSet extends Schema.Class<TransactionWitnessSet>("
   [Equal.symbol](that: unknown): boolean {
     return (
       that instanceof TransactionWitnessSet &&
-      Equal.equals(this.vkeyWitnesses, that.vkeyWitnesses) &&
-      Equal.equals(this.nativeScripts, that.nativeScripts) &&
-      Equal.equals(this.bootstrapWitnesses, that.bootstrapWitnesses) &&
-      Equal.equals(this.plutusV1Scripts, that.plutusV1Scripts) &&
-      Equal.equals(this.plutusData, that.plutusData) &&
-      Equal.equals(this.redeemers, that.redeemers) &&
-      Equal.equals(this.plutusV2Scripts, that.plutusV2Scripts) &&
-      Equal.equals(this.plutusV3Scripts, that.plutusV3Scripts)
+      arrayEquals(this.vkeyWitnesses, that.vkeyWitnesses) &&
+      arrayEquals(this.nativeScripts, that.nativeScripts) &&
+      arrayEquals(this.bootstrapWitnesses, that.bootstrapWitnesses) &&
+      arrayEquals(this.plutusV1Scripts, that.plutusV1Scripts) &&
+      plutusDataArrayEquals(this.plutusData, that.plutusData) &&
+      arrayEquals(this.redeemers, that.redeemers) &&
+      arrayEquals(this.plutusV2Scripts, that.plutusV2Scripts) &&
+      arrayEquals(this.plutusV3Scripts, that.plutusV3Scripts)
     )
   }
 
@@ -194,14 +248,14 @@ export class TransactionWitnessSet extends Schema.Class<TransactionWitnessSet>("
           Hash.combine(
             Hash.combine(
               Hash.combine(
-                Hash.combine(Hash.combine(Hash.hash(this.vkeyWitnesses))(Hash.hash(this.nativeScripts)))(
-                  Hash.hash(this.bootstrapWitnesses)
+                Hash.combine(Hash.combine(arrayHash(this.vkeyWitnesses))(arrayHash(this.nativeScripts)))(
+                  arrayHash(this.bootstrapWitnesses)
                 )
-              )(Hash.hash(this.plutusV1Scripts))
-            )(Hash.hash(this.plutusData))
-          )(Hash.hash(this.redeemers))
-        )(Hash.hash(this.plutusV2Scripts))
-      )(Hash.hash(this.plutusV3Scripts))
+              )(arrayHash(this.plutusV1Scripts))
+            )(plutusDataArrayHash(this.plutusData))
+          )(arrayHash(this.redeemers))
+        )(arrayHash(this.plutusV2Scripts))
+      )(arrayHash(this.plutusV3Scripts))
     )
   }
 }
@@ -308,7 +362,7 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
             Eff.gen(function* () {
               const dataCBOR = yield* ParseResult.encode(PlutusData.FromCDDL)(redeemer.data)
               const tagInteger = Redeemer.tagToInteger(redeemer.tag)
-              return [tagInteger, redeemer.index, dataCBOR, redeemer.exUnits] as const
+              return [tagInteger, redeemer.index, dataCBOR, [redeemer.exUnits.mem, redeemer.exUnits.steps]] as const
             })
           )
         )
@@ -438,13 +492,20 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
       const redeemersArray = asRedeemersArray(fromA.get(5n))
       if (redeemersArray !== undefined) {
         const redeemers: Array<Redeemer.Redeemer> = []
-        for (const [tag, index, dataCBOR, exUnits] of redeemersArray) {
+        for (const [tag, index, dataCBOR, [mem, steps]] of redeemersArray) {
           // Guard against unexpected CBOR simple `undefined` in datum position by substituting empty bytes
           const safeDataCBOR = (
             dataCBOR === undefined ? new Uint8Array(0) : dataCBOR
           ) as typeof PlutusData.CDDLSchema.Type
           const data = yield* ParseResult.decode(PlutusData.FromCDDL)(safeDataCBOR)
-          redeemers.push(new Redeemer.Redeemer({ tag: Redeemer.integerToTag(tag), index, data, exUnits }))
+          redeemers.push(
+            new Redeemer.Redeemer({
+              tag: Redeemer.integerToTag(tag),
+              index,
+              data,
+              exUnits: new Redeemer.ExUnits({ mem, steps })
+            })
+          )
         }
         witnessSet.redeemers = redeemers
       }
@@ -511,7 +572,7 @@ export const arbitrary: FastCheck.Arbitrary<TransactionWitnessSet> = FastCheck.r
         exUnits: FastCheck.tuple(
           FastCheck.bigInt({ min: 0n, max: 10000000n }),
           FastCheck.bigInt({ min: 0n, max: 10000000n })
-        ),
+        ).map(([mem, steps]) => new Redeemer.ExUnits({ mem, steps })),
         index: FastCheck.bigInt({ min: 0n, max: 1000n }),
         tag: FastCheck.constantFrom("spend" as const, "mint" as const, "cert" as const, "reward" as const)
       }).map(({ data, exUnits, index, tag }) => new Redeemer.Redeemer({ tag, index, data, exUnits }))

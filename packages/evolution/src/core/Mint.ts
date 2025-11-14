@@ -8,6 +8,50 @@ import * as NonZeroInt64 from "./NonZeroInt64.js"
 import * as PolicyId from "./PolicyId.js"
 
 /**
+ * Helper function for content-based Map equality using Equal.equals.
+ * Compares two Maps by iterating entries and using Equal.equals for both keys and values.
+ *
+ * @since 2.0.0
+ * @category equality
+ */
+const mapEquals = <K, V>(a: Map<K, V>, b: Map<K, V>): boolean => {
+  if (a.size !== b.size) return false
+  
+  for (const [aKey, aValue] of a.entries()) {
+    let found = false
+    for (const [bKey, bValue] of b.entries()) {
+      if (Equal.equals(aKey, bKey)) {
+        if (aValue instanceof Map && bValue instanceof Map) {
+          if (!mapEquals(aValue, bValue)) return false
+        } else {
+          if (!Equal.equals(aValue, bValue)) return false
+        }
+        found = true
+        break
+      }
+    }
+    if (!found) return false
+  }
+  
+  return true
+}
+
+/**
+ * Helper function for content-based Map hashing.
+ * Computes hash by XORing hashes of all entries for order-independence.
+ *
+ * @since 2.0.0
+ * @category hashing
+ */
+const mapHash = <K, V>(map: Map<K, V>): number => {
+  let hash = Hash.hash(map.size)
+  for (const [key, value] of map.entries()) {
+    hash ^= Hash.hash(key) ^ Hash.hash(value)
+  }
+  return hash
+}
+
+/**
  * Schema for inner asset map
  * ```
  * (asset_name => nonZeroInt64).
@@ -84,17 +128,24 @@ export class Mint extends Schema.Class<Mint>("Mint")({
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof Mint && Equal.equals(this.map, that.map)
+    return that instanceof Mint && mapEquals(this.map, that.map)
   }
 
   /**
-   * Hash code generation.
+   * Content-based hash for optimization of Equal.equals.
+   * Uses nested mapHash to handle the Map<PolicyId, Map<AssetName, bigint>> structure.
    *
    * @since 2.0.0
    * @category hashing
    */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.map))
+    let hash = Hash.hash(this.map.size)
+    for (const [policyId, assetMap] of this.map.entries()) {
+      const policyHash = Hash.hash(policyId)
+      const assetMapHash = mapHash(assetMap)
+      hash ^= policyHash ^ assetMapHash
+    }
+    return Hash.cached(this, hash)
   }
 }
 

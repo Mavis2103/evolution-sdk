@@ -22,14 +22,11 @@ Added in v2.0.0
 - [encoding](#encoding)
   - [toHex](#tohex)
   - [toVariableHex](#tovariablehex)
-- [errors](#errors)
-  - [Bytes57Error (class)](#bytes57error-class)
 - [schemas](#schemas)
   - [FromHex](#fromhex-1)
   - [VariableBytesFromHex](#variablebytesfromhex)
 - [utils](#utils)
   - [BytesSchema](#bytesschema)
-  - [Either (namespace)](#either-namespace)
   - [HexSchema](#hexschema)
   - [VariableBytes](#variablebytes)
   - [equals](#equals)
@@ -59,7 +56,7 @@ Decode fixed-length hex into bytes.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => Uint8Array
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -71,7 +68,7 @@ Decode variable-length hex (0..BYTES_LENGTH) into bytes.
 **Signature**
 
 ```ts
-export declare const fromVariableHex: (input: string) => Uint8Array
+export declare const fromVariableHex: (i: string, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -85,7 +82,7 @@ Encode fixed-length bytes to hex.
 **Signature**
 
 ```ts
-export declare const toHex: (input: Uint8Array) => string
+export declare const toHex: (a: Uint8Array, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -97,21 +94,7 @@ Encode variable-length bytes (0..BYTES_LENGTH) to hex.
 **Signature**
 
 ```ts
-export declare const toVariableHex: (input: Uint8Array) => string
-```
-
-Added in v2.0.0
-
-# errors
-
-## Bytes57Error (class)
-
-Error type for this module.
-
-**Signature**
-
-```ts
-export declare class Bytes57Error
+export declare const toVariableHex: (a: Uint8Array, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -157,8 +140,6 @@ Added in v2.0.0
 ```ts
 export declare const BytesSchema: Schema.filter<typeof Schema.Uint8ArrayFromSelf>
 ```
-
-## Either (namespace)
 
 ## HexSchema
 

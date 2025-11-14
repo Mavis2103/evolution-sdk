@@ -26,11 +26,11 @@ export class KesSignature extends Schema.TaggedClass<KesSignature>()("KesSignatu
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof KesSignature && Bytes.equals(this.bytes, that.bytes)
+    return that instanceof KesSignature && Bytes.bytesEquals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.array(Array.from(this.bytes)))
+    return Hash.array(Array.from(this.bytes))
   }
 }
 

@@ -2,7 +2,7 @@ import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
 import { describe, expect, it } from "vitest"
 
 import * as KeyHash from "../src/core/KeyHash.js"
-import * as NetworkId from "../src/core/NetworkId.js"
+import type * as NetworkId from "../src/core/NetworkId.js"
 import * as RewardAccount from "../src/core/RewardAccount.js"
 
 describe("RewardAccount CML Compatibility", () => {
@@ -20,8 +20,8 @@ describe("RewardAccount CML Compatibility", () => {
     networks.forEach((networkValue) => {
       // Create Evolution SDK RewardAccount
       const keyHash = KeyHash.fromBytes(keyHashBytes)
-      const networkId = NetworkId.make(networkValue)
-      const evolutionRewardAccount = RewardAccount.make({
+      const networkId = networkValue as NetworkId.NetworkId
+      const evolutionRewardAccount = RewardAccount.RewardAccount.make({
         networkId,
         stakeCredential: keyHash
       })

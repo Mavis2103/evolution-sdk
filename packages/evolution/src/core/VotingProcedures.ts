@@ -13,6 +13,50 @@ import * as TransactionHash from "./TransactionHash.js"
 import * as TransactionIndex from "./TransactionIndex.js"
 
 /**
+ * Helper function for content-based Map equality using Equal.equals.
+ * Compares two Maps by iterating entries and using Equal.equals for both keys and values.
+ *
+ * @since 2.0.0
+ * @category equality
+ */
+const mapEquals = <K, V>(a: Map<K, V>, b: Map<K, V>): boolean => {
+  if (a.size !== b.size) return false
+  
+  for (const [aKey, aValue] of a.entries()) {
+    let found = false
+    for (const [bKey, bValue] of b.entries()) {
+      if (Equal.equals(aKey, bKey)) {
+        if (aValue instanceof Map && bValue instanceof Map) {
+          if (!mapEquals(aValue, bValue)) return false
+        } else {
+          if (!Equal.equals(aValue, bValue)) return false
+        }
+        found = true
+        break
+      }
+    }
+    if (!found) return false
+  }
+  
+  return true
+}
+
+/**
+ * Helper function for content-based Map hashing.
+ * Computes hash by XORing hashes of all entries for order-independence.
+ *
+ * @since 2.0.0
+ * @category hashing
+ */
+const mapHash = <K, V>(map: Map<K, V>): number => {
+  let hash = Hash.hash(map.size)
+  for (const [key, value] of map.entries()) {
+    hash ^= Hash.hash(key) ^ Hash.hash(value)
+  }
+  return hash
+}
+
+/**
  * Voter types based on Conway CDDL specification.
  *
  * Conway / CML mapping:
@@ -194,11 +238,11 @@ export const VoterFromCDDL = Schema.transformOrFail(VoterCDDL, Schema.typeSchema
         }
         case 2n: {
           const keyHash = yield* ParseResult.decode(KeyHash.FromBytes)(voterData)
-          return new DRepVoter({ drep: { _tag: "KeyHashDRep", keyHash } as DRep.DRep })
+          return new DRepVoter({ drep: new DRep.KeyHashDRep({ keyHash }) })
         }
         case 3n: {
           const scriptHash = yield* ParseResult.decode(ScriptHash.FromBytes)(voterData)
-          return new DRepVoter({ drep: { _tag: "ScriptHashDRep", scriptHash } as DRep.DRep })
+          return new DRepVoter({ drep: new DRep.ScriptHashDRep({ scriptHash }) })
         }
         case 4n: {
           const poolKeyHash = yield* ParseResult.decode(PoolKeyHash.FromBytes)(voterData)
@@ -453,11 +497,24 @@ export class VotingProcedures extends Schema.Class<VotingProcedures>("VotingProc
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof VotingProcedures && Equal.equals(this.procedures, that.procedures)
+    return that instanceof VotingProcedures && mapEquals(this.procedures, that.procedures)
   }
 
+  /**
+   * Content-based hash for optimization of Equal.equals.
+   * Uses nested mapHash to handle the Map<Voter, Map<GovActionId, VotingProcedure>> structure.
+   *
+   * @since 2.0.0
+   * @category hashing
+   */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.procedures))
+    let hash = Hash.hash(this.procedures.size)
+    for (const [voter, govActionMap] of this.procedures.entries()) {
+      const voterHash = Hash.hash(voter)
+      const govActionMapHash = mapHash(govActionMap)
+      hash ^= voterHash ^ govActionMapHash
+    }
+    return Hash.cached(this, hash)
   }
 }
 

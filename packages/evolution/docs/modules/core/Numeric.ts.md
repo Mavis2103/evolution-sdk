@@ -21,8 +21,6 @@ parent: Modules
   - [Uint32Make](#uint32make)
   - [Uint64Make](#uint64make)
   - [Uint8Make](#uint8make)
-- [errors](#errors)
-  - [NumericError (class)](#numericerror-class)
 - [model](#model)
   - [Uint8 (type alias)](#uint8-type-alias)
 - [schemas](#schemas)
@@ -176,20 +174,6 @@ Smart constructor for Uint8 that validates and applies branding.
 
 ```ts
 export declare const Uint8Make: (a: bigint, options?: Schema.MakeOptions) => bigint
-```
-
-Added in v2.0.0
-
-# errors
-
-## NumericError (class)
-
-Error class for Numeric related operations.
-
-**Signature**
-
-```ts
-export declare class NumericError
 ```
 
 Added in v2.0.0

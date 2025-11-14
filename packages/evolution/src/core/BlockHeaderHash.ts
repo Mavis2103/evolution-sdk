@@ -30,11 +30,11 @@ export class BlockHeaderHash extends Schema.TaggedClass<BlockHeaderHash>()("Bloc
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof BlockHeaderHash && Bytes.equals(this.bytes, that.bytes)
+    return that instanceof BlockHeaderHash && Bytes.bytesEquals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.array(Array.from(this.bytes)))
+    return Hash.array(Array.from(this.bytes))
   }
 }
 

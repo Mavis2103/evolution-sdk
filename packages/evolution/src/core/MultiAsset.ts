@@ -8,6 +8,51 @@ import * as PolicyId from "./PolicyId.js"
 import * as PositiveCoin from "./PositiveCoin.js"
 
 /**
+ * Helper function for content-based Map equality using Equal.equals.
+ * Compares two Maps by iterating entries and using Equal.equals for both keys and values.
+ *
+ * @since 2.0.0
+ * @category equality
+ */
+const mapEquals = <K, V>(a: Map<K, V>, b: Map<K, V>): boolean => {
+  if (a.size !== b.size) return false
+  
+  for (const [aKey, aValue] of a.entries()) {
+    let found = false
+    for (const [bKey, bValue] of b.entries()) {
+      if (Equal.equals(aKey, bKey)) {
+        // Special handling for nested Maps
+        if (aValue instanceof Map && bValue instanceof Map) {
+          if (!mapEquals(aValue, bValue)) return false
+        } else {
+          if (!Equal.equals(aValue, bValue)) return false
+        }
+        found = true
+        break
+      }
+    }
+    if (!found) return false
+  }
+  
+  return true
+}
+
+/**
+ * Helper function for content-based Map hashing.
+ * Computes hash by XORing hashes of all entries for order-independence.
+ *
+ * @since 2.0.0
+ * @category hashing
+ */
+const mapHash = <K, V>(map: Map<K, V>): number => {
+  let hash = Hash.hash(map.size)
+  for (const [key, value] of map.entries()) {
+    hash ^= Hash.hash(key) ^ Hash.hash(value)
+  }
+  return hash
+}
+
+/**
  * Schema for inner asset map (asset_name => positive_coin).
  *
  * @since 2.0.0
@@ -88,18 +133,64 @@ export class MultiAsset extends Schema.Class<MultiAsset>("MultiAsset")({
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof MultiAsset && Equal.equals(this.map, that.map)
+    return that instanceof MultiAsset && mapEquals(this.map, that.map)
   }
 
   /**
-   * Hash code generation.
+   * Content-based hash for optimization of Equal.equals.
+   * Uses nested mapHash to handle the Map<PolicyId, Map<AssetName, bigint>> structure.
    *
    * @since 2.0.0
    * @category hashing
    */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.hash(this.map))
+    let hash = Hash.hash(this.map.size)
+    for (const [policyId, assetMap] of this.map.entries()) {
+      // Hash the policy ID
+      const policyHash = Hash.hash(policyId)
+      // Hash the asset map (nested Map) using mapHash for content-based hashing
+      const assetMapHash = mapHash(assetMap)
+      // XOR them together
+      hash ^= policyHash ^ assetMapHash
+    }
+    return Hash.cached(this, hash)
   }
+}
+
+export const equals = (a: MultiAsset, b: MultiAsset): boolean => {
+  if (a.map.size !== b.map.size) return false
+
+  // Compare using byte arrays directly for all keys
+  for (const [aPolicyId, aAssetMap] of a.map.entries()) {
+    // Find matching policy in b by comparing bytes
+    let bAssetMap: typeof aAssetMap | undefined
+    for (const [bPolicyId, bAssets] of b.map.entries()) {
+      if (Bytes.bytesEquals(aPolicyId.hash, bPolicyId.hash)) {
+        bAssetMap = bAssets
+        break
+      }
+    }
+    
+    if (bAssetMap === undefined) return false
+    if (aAssetMap.size !== bAssetMap.size) return false
+    
+    // Compare asset maps
+    for (const [aAssetName, aAmount] of aAssetMap.entries()) {
+      // Find matching asset name in b by comparing bytes
+      let bAmount: bigint | undefined
+      for (const [bAssetName, bAmt] of bAssetMap.entries()) {
+        if (Bytes.bytesEquals(aAssetName.bytes, bAssetName.bytes)) {
+          bAmount = bAmt as bigint
+          break
+        }
+      }
+      
+      if (bAmount === undefined) return false
+      if ((aAmount as bigint) !== bAmount) return false
+    }
+  }
+
+  return true
 }
 
 /**
@@ -206,8 +297,6 @@ export const getAssetsByPolicy = (multiAsset: MultiAsset, policyId: PolicyId.Pol
   const assetMap = multiAsset.map.get(policyId)
   return assetMap !== undefined ? Array.from(assetMap.entries()) : []
 }
-
-
 
 /**
  * Check if a value is a valid MultiAsset.
@@ -468,4 +557,3 @@ export const subtract = (a: MultiAsset, b: MultiAsset): MultiAsset => {
 
   return new MultiAsset({ map: result })
 }
-

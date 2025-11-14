@@ -12,24 +12,19 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
 - [schemas](#schemas)
   - [BaseAddress (class)](#baseaddress-class)
+    - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
 - [utils](#utils)
-  - [BaseAddressError (class)](#baseaddresserror-class)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
 
@@ -49,40 +44,6 @@ export declare const arbitrary: FastCheck.Arbitrary<BaseAddress>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for BaseAddress.
-
-**Signature**
-
-```ts
-export declare const make: (
-  i: {
-    readonly _tag: "BaseAddress"
-    readonly networkId: number
-    readonly stakeCredential:
-      | { readonly _tag: "KeyHash"; readonly hash: string }
-      | { readonly _tag: "ScriptHash"; readonly hash: string }
-    readonly paymentCredential:
-      | { readonly _tag: "KeyHash"; readonly hash: string }
-      | { readonly _tag: "ScriptHash"; readonly hash: string }
-  },
-  overrideOptions?: ParseOptions
-) => BaseAddress
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -92,7 +53,7 @@ Convert a BaseAddress to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: BaseAddress) => any
+export declare const toBytes: (data: BaseAddress) => any
 ```
 
 Added in v2.0.0
@@ -104,21 +65,7 @@ Convert a BaseAddress to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: BaseAddress) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two BaseAddress instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: BaseAddress, b: BaseAddress) => boolean
+export declare const toHex: (data: BaseAddress) => string
 ```
 
 Added in v2.0.0
@@ -132,7 +79,7 @@ Parse a BaseAddress from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: any) => BaseAddress
+export declare const fromBytes: (bytes: Uint8Array) => BaseAddress
 ```
 
 Added in v2.0.0
@@ -144,7 +91,7 @@ Parse a BaseAddress from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => BaseAddress
+export declare const fromHex: (hex: string) => BaseAddress
 ```
 
 Added in v2.0.0
@@ -163,6 +110,14 @@ export declare class BaseAddress
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
 ### toString (method)
 
 **Signature**
@@ -171,23 +126,23 @@ Added in v2.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
 ```
 
 # utils
-
-## BaseAddressError (class)
-
-**Signature**
-
-```ts
-export declare class BaseAddressError
-```
 
 ## FromBytes
 

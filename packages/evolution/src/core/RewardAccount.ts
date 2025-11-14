@@ -59,7 +59,7 @@ export class RewardAccount extends Schema.TaggedClass<RewardAccount>("RewardAcco
    * @category hash
    */
   [Hash.symbol](): number {
-    return Hash.cached(this, Hash.combine(Hash.hash(this.networkId))(Hash.hash(this.stakeCredential)))
+    return Hash.combine(Hash.hash(this.networkId))(Hash.hash(this.stakeCredential))
   }
 }
 

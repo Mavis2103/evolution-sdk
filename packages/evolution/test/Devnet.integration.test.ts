@@ -68,7 +68,7 @@ describe("Devnet Integration Tests", () => {
 
     it("should create cluster with custom initial funds", { timeout: 120_000 }, async () => {
       const privateKeyBytes = PrivateKey.generate()
-      const privateKey = PrivateKey.make({ key: privateKeyBytes })
+      const privateKey = PrivateKey.fromBytes(privateKeyBytes)
       const publicKey = VKey.fromPrivateKey(privateKey)
       const keyHash = KeyHash.fromVKey(publicKey)
       const addressHex = KeyHash.toHex(keyHash)
@@ -411,7 +411,7 @@ describe("Devnet Integration Tests", () => {
   describe("Real-World Scenarios", () => {
     it("should create funded devnet cluster and query UTxOs", { timeout: 240_000 }, async () => {
       const privateKeyBytes = PrivateKey.generate()
-      const privateKey = PrivateKey.make({ key: privateKeyBytes })
+      const privateKey = PrivateKey.fromBytes(privateKeyBytes)
       const publicKey = VKey.fromPrivateKey(privateKey)
       const keyHash = KeyHash.fromVKey(publicKey)
 

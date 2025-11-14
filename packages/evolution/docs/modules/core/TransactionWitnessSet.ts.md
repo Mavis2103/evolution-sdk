@@ -16,20 +16,23 @@ parent: Modules
   - [empty](#empty)
   - [fromNativeScripts](#fromnativescripts)
   - [fromVKeyWitnesses](#fromvkeywitnesses)
-  - [make](#make)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [TransactionWitnessSetError (class)](#transactionwitnessseterror-class)
 - [model](#model)
   - [PlutusScript](#plutusscript)
   - [TransactionWitnessSet (class)](#transactionwitnessset-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [VKeyWitness (class)](#vkeywitness-class)
+    - [toJSON (method)](#tojson-method-1)
+    - [toString (method)](#tostring-method-1)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-1)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
@@ -95,41 +98,6 @@ export declare const fromVKeyWitnesses: (witnesses: Array<VKeyWitness>) => Trans
 
 Added in v2.0.0
 
-## make
-
-Smart constructor for TransactionWitnessSet that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props?:
-    | void
-    | {
-        readonly nativeScripts?: readonly NativeScripts.NativeScript[] | undefined
-        readonly plutusV1Scripts?: readonly PlutusV1.PlutusV1[] | undefined
-        readonly plutusV2Scripts?: readonly PlutusV2.PlutusV2[] | undefined
-        readonly plutusV3Scripts?: readonly PlutusV3.PlutusV3[] | undefined
-        readonly vkeyWitnesses?: readonly VKeyWitness[] | undefined
-        readonly bootstrapWitnesses?: readonly Bootstrap.BootstrapWitness[] | undefined
-        readonly plutusData?: readonly PlutusData.Data[] | undefined
-        readonly redeemers?: readonly Redeemer.Redeemer[] | undefined
-      }
-    | undefined,
-  options?: Schema.MakeOptions | undefined
-) => TransactionWitnessSet
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -139,7 +107,7 @@ Convert a TransactionWitnessSet to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: TransactionWitnessSet, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: TransactionWitnessSet, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -151,35 +119,7 @@ Convert a TransactionWitnessSet to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: TransactionWitnessSet, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two TransactionWitnessSet instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: TransactionWitnessSet, b: TransactionWitnessSet) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## TransactionWitnessSetError (class)
-
-Error class for TransactionWitnessSet related operations.
-
-**Signature**
-
-```ts
-export declare class TransactionWitnessSetError
+export declare const toCBORHex: (data: TransactionWitnessSet, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -234,6 +174,56 @@ export declare class TransactionWitnessSet
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+Added in v2.0.0
+
 ## VKeyWitness (class)
 
 VKey witness for Ed25519 signatures.
@@ -244,6 +234,56 @@ CDDL: vkeywitness = [ vkey, ed25519_signature ]
 
 ```ts
 export declare class VKeyWitness
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0

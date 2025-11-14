@@ -10,20 +10,12 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
 - [cryptography](#cryptography)
   - [fromPrivateKey](#fromprivatekey)
   - [verify](#verify)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [VKeyError (class)](#vkeyerror-class)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -31,6 +23,11 @@ parent: Modules
   - [isVKey](#isvkey)
 - [schemas](#schemas)
   - [VKey (class)](#vkey-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [testing](#testing)
   - [arbitrary](#arbitrary)
 - [utils](#utils)
@@ -38,20 +35,6 @@ parent: Modules
   - [FromHex](#fromhex-1)
 
 ---
-
-# constructors
-
-## make
-
-Smart constructor for VKey that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (props: { readonly bytes: Uint8Array }, options?: Schema.MakeOptions | undefined) => VKey
-```
-
-Added in v2.0.0
 
 # cryptography
 
@@ -81,14 +64,6 @@ export declare const verify: (vkey: VKey, message: Uint8Array, signature: Uint8A
 
 Added in v2.0.0
 
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -98,7 +73,7 @@ Convert a VKey to raw bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: VKey) => Uint8Array
+export declare const toBytes: (a: VKey, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -110,35 +85,7 @@ Convert a VKey to a hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: VKey) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two VKey instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: VKey, b: VKey) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## VKeyError (class)
-
-Error class for VKey related operations.
-
-**Signature**
-
-```ts
-export declare class VKeyError
+export declare const toHex: (a: VKey, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -153,7 +100,7 @@ Expects exactly 32 bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => VKey
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => VKey
 ```
 
 Added in v2.0.0
@@ -166,7 +113,7 @@ Expects exactly 64 hex characters (32 bytes).
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => VKey
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => VKey
 ```
 
 Added in v2.0.0
@@ -200,6 +147,46 @@ export declare class VKey
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # testing
 

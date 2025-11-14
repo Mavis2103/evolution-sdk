@@ -1,4 +1,4 @@
-import { Data, FastCheck, Schema } from "effect"
+import { Data, Equal, FastCheck, Hash, Schema } from "effect"
 
 import * as CBOR from "./CBOR.js"
 import * as Function from "./Function.js"
@@ -87,6 +87,90 @@ export const TransactionMetadatumVariants = Schema.Union(
   identifier: "TransactionMetadatum",
   description: "A transaction metadata value supporting text, integers, bytes, arrays, and maps"
 })
+
+// Add Equal/Hash implementations to variant classes
+// @ts-expect-error - Adding Equal symbol to prototype
+TextMetadatum.prototype[Equal.symbol] = function(that: unknown): boolean {
+  return that instanceof TextMetadatum && this.value === that.value
+}
+// @ts-expect-error - Adding Hash symbol to prototype
+TextMetadatum.prototype[Hash.symbol] = function(): number {
+  return Hash.string(this.value)
+}
+
+// @ts-expect-error - Adding Equal symbol to prototype
+IntMetadatum.prototype[Equal.symbol] = function(that: unknown): boolean {
+  return that instanceof IntMetadatum && this.value === that.value
+}
+// @ts-expect-error - Adding Hash symbol to prototype
+IntMetadatum.prototype[Hash.symbol] = function(): number {
+  return Hash.number(Number(this.value))
+}
+
+// @ts-expect-error - Adding Equal symbol to prototype
+BytesMetadatum.prototype[Equal.symbol] = function(that: unknown): boolean {
+  if (!(that instanceof BytesMetadatum)) return false
+  if (this.value.length !== that.value.length) return false
+  for (let i = 0; i < this.value.length; i++) {
+    if (this.value[i] !== that.value[i]) return false
+  }
+  return true
+}
+// @ts-expect-error - Adding Hash symbol to prototype
+BytesMetadatum.prototype[Hash.symbol] = function(): number {
+  let h = Hash.string("BytesMetadatum")
+  for (let i = 0; i < this.value.length; i++) {
+    h = Hash.combine(h)(Hash.number(this.value[i]))
+  }
+  return h
+}
+
+// @ts-expect-error - Adding Equal symbol to prototype
+ArrayMetadatum.prototype[Equal.symbol] = function(that: unknown): boolean {
+  if (!(that instanceof ArrayMetadatum)) return false
+  if (this.value.length !== that.value.length) return false
+  for (let i = 0; i < this.value.length; i++) {
+    if (!Equal.equals(this.value[i], that.value[i])) return false
+  }
+  return true
+}
+// @ts-expect-error - Adding Hash symbol to prototype
+ArrayMetadatum.prototype[Hash.symbol] = function(): number {
+  let h = Hash.string("ArrayMetadatum")
+  for (const item of this.value) {
+    h = Hash.combine(h)(Hash.hash(item))
+  }
+  return h
+}
+
+// @ts-expect-error - Adding Equal symbol to prototype
+MetadatumMap.prototype[Equal.symbol] = function(that: unknown): boolean {
+  if (!(that instanceof MetadatumMap)) return false
+  if (this.value.size !== that.value.size) return false
+  for (const [key, val] of this.value.entries()) {
+    let found = false
+    for (const [bKey, bVal] of that.value.entries()) {
+      if (Equal.equals(key, bKey)) {
+        if (!Equal.equals(val, bVal)) return false
+        found = true
+        break
+      }
+    }
+    if (!found) return false
+  }
+  return true
+}
+// @ts-expect-error - Adding Hash symbol to prototype
+MetadatumMap.prototype[Hash.symbol] = function(): number {
+  let h = Hash.string("MetadatumMap")
+  const entries = Array.from(this.value.entries())
+  entries.sort((a, b) => Hash.hash(a[0]) - Hash.hash(b[0]))
+  for (const [key, val] of entries) {
+    h = Hash.combine(h)(Hash.hash(key))
+    h = Hash.combine(h)(Hash.hash(val))
+  }
+  return h
+}
 
 export class TransactionMetadatum extends Schema.Class<TransactionMetadatum>("TransactionMetadatum")({
   variants: TransactionMetadatumVariants
