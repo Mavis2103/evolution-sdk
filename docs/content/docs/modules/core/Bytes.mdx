@@ -26,6 +26,8 @@ parent: Modules
   - [fromHexLenient](#fromhexlenient)
   - [toHex](#tohex)
   - [toHexLenient](#tohexlenient)
+- [equality](#equality)
+  - [bytesEquals](#bytesequals)
 - [namespaces](#namespaces)
   - [Either (namespace)](#either-namespace)
 - [predicates](#predicates)
@@ -248,6 +250,21 @@ Convert Uint8Array to hex string (returns empty string for empty arrays). Never 
 
 ```ts
 export declare const toHexLenient: (bytes: Uint8Array) => string
+```
+
+Added in v2.0.0
+
+# equality
+
+## bytesEquals
+
+Compare two Uint8Array instances for equality.
+Returns true if both arrays have the same length and same byte values.
+
+**Signature**
+
+```ts
+export declare const bytesEquals: (a: Uint8Array | undefined, b: Uint8Array | undefined) => boolean
 ```
 
 Added in v2.0.0

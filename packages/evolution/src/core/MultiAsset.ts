@@ -137,9 +137,6 @@ export class MultiAsset extends Schema.Class<MultiAsset>("MultiAsset")({
   }
 
   /**
-   * Content-based hash for optimization of Equal.equals.
-   * Uses nested mapHash to handle the Map<PolicyId, Map<AssetName, bigint>> structure.
-   *
    * @since 2.0.0
    * @category hashing
    */

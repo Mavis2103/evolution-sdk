@@ -15,18 +15,17 @@ parent: Modules
 - [constructors](#constructors)
   - [empty](#empty)
   - [singleton](#singleton)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [MultiAssetError (class)](#multiasseterror-class)
 - [model](#model)
   - [AssetMap (type alias)](#assetmap-type-alias)
-  - [MultiAsset (interface)](#multiasset-interface)
+  - [MultiAsset (class)](#multiasset-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
@@ -38,7 +37,6 @@ parent: Modules
   - [FromCBORBytes](#fromcborbytes-1)
   - [FromCBORHex](#fromcborhex-1)
   - [FromCDDL](#fromcddl)
-  - [MultiAsset](#multiasset)
 - [transformation](#transformation)
   - [addAsset](#addasset)
   - [getAsset](#getasset)
@@ -46,6 +44,8 @@ parent: Modules
   - [getPolicyIds](#getpolicyids)
   - [merge](#merge)
   - [subtract](#subtract)
+- [utils](#utils)
+  - [equals](#equals)
 
 ---
 
@@ -67,13 +67,12 @@ Added in v2.0.0
 
 ## empty
 
-Create an empty Map for building MultiAssets (note: empty maps will fail validation).
-Use this only as a starting point for building a MultiAsset with add operations.
+Create an empty MultiAsset
 
 **Signature**
 
 ```ts
-export declare const empty: () => Map<PolicyId.PolicyId, AssetMap>
+export declare const empty: () => MultiAsset
 ```
 
 Added in v2.0.0
@@ -94,14 +93,6 @@ export declare const singleton: (
 
 Added in v2.0.0
 
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -111,10 +102,7 @@ Encode MultiAsset to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (
-  input: Map<PolicyId.PolicyId, Map<AssetName.AssetName, bigint>> & Brand<"MultiAsset">,
-  options?: CBOR.CodecOptions
-) => Uint8Array
+export declare const toCBORBytes: (data: MultiAsset, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -126,38 +114,7 @@ Encode MultiAsset to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (
-  input: Map<PolicyId.PolicyId, Map<AssetName.AssetName, bigint>> & Brand<"MultiAsset">,
-  options?: CBOR.CodecOptions
-) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two MultiAsset instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: MultiAsset, b: MultiAsset) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## MultiAssetError (class)
-
-Error class for MultiAsset related operations.
-
-**Signature**
-
-```ts
-export declare class MultiAssetError
+export declare const toCBORHex: (data: MultiAsset, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -176,16 +133,77 @@ export type AssetMap = typeof AssetMap.Type
 
 Added in v2.0.0
 
-## MultiAsset (interface)
+## MultiAsset (class)
 
-Type alias for MultiAsset representing a collection of native assets.
-Each policy ID maps to a collection of asset names and their amounts.
-All amounts must be positive (non-zero).
+Schema for MultiAsset representing native assets.
+
+```
+multiasset<a0> = {+ policy_id => {+ asset_name => a0}}
+case: multiasset<positive_coin> = {+ policy_id => {+ asset_name => positive_coin}}
+```
 
 **Signature**
 
 ```ts
-export interface MultiAsset extends Schema.Schema.Type<typeof MultiAsset> {}
+export declare class MultiAsset
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+Convert to JSON representation.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+Convert to string representation.
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0
@@ -199,10 +217,7 @@ Parse MultiAsset from CBOR bytes.
 **Signature**
 
 ```ts
-export declare const fromCBORBytes: (
-  bytes: Uint8Array,
-  options?: CBOR.CodecOptions
-) => Map<PolicyId.PolicyId, Map<AssetName.AssetName, bigint>> & Brand<"MultiAsset">
+export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => MultiAsset
 ```
 
 Added in v2.0.0
@@ -214,10 +229,7 @@ Parse MultiAsset from CBOR hex string.
 **Signature**
 
 ```ts
-export declare const fromCBORHex: (
-  hex: string,
-  options?: CBOR.CodecOptions
-) => Map<PolicyId.PolicyId, Map<AssetName.AssetName, bigint>> & Brand<"MultiAsset">
+export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => MultiAsset
 ```
 
 Added in v2.0.0
@@ -290,11 +302,7 @@ export declare const FromCBORBytes: (
       typeof Schema.Uint8ArrayFromSelf,
       Schema.MapFromSelf<typeof Schema.Uint8ArrayFromSelf, typeof Schema.BigIntFromSelf>
     >,
-    Schema.SchemaClass<
-      Map<PolicyId.PolicyId, Map<AssetName.AssetName, bigint>> & Brand<"MultiAsset">,
-      Map<PolicyId.PolicyId, Map<AssetName.AssetName, bigint>> & Brand<"MultiAsset">,
-      never
-    >,
+    Schema.SchemaClass<MultiAsset, MultiAsset, never>,
     never
   >
 >
@@ -325,11 +333,7 @@ export declare const FromCBORHex: (
         typeof Schema.Uint8ArrayFromSelf,
         Schema.MapFromSelf<typeof Schema.Uint8ArrayFromSelf, typeof Schema.BigIntFromSelf>
       >,
-      Schema.SchemaClass<
-        Map<PolicyId.PolicyId, Map<AssetName.AssetName, bigint>> & Brand<"MultiAsset">,
-        Map<PolicyId.PolicyId, Map<AssetName.AssetName, bigint>> & Brand<"MultiAsset">,
-        never
-      >,
+      Schema.SchemaClass<MultiAsset, MultiAsset, never>,
       never
     >
   >
@@ -354,40 +358,8 @@ export declare const FromCDDL: Schema.transformOrFail<
     typeof Schema.Uint8ArrayFromSelf,
     Schema.MapFromSelf<typeof Schema.Uint8ArrayFromSelf, typeof Schema.BigIntFromSelf>
   >,
-  Schema.SchemaClass<
-    Map<PolicyId.PolicyId, Map<AssetName.AssetName, bigint>> & Brand<"MultiAsset">,
-    Map<PolicyId.PolicyId, Map<AssetName.AssetName, bigint>> & Brand<"MultiAsset">,
-    never
-  >,
+  Schema.SchemaClass<MultiAsset, MultiAsset, never>,
   never
->
-```
-
-Added in v2.0.0
-
-## MultiAsset
-
-Schema for MultiAsset representing native assets.
-
-```
-multiasset<a0> = {+ policy_id => {+ asset_name => a0}}
-case: multiasset<positive_coin> = {+ policy_id => {+ asset_name => positive_coin}}
-```
-
-**Signature**
-
-```ts
-export declare const MultiAsset: Schema.brand<
-  Schema.filter<
-    Schema.Map$<
-      typeof PolicyId.PolicyId,
-      Schema.refine<
-        Map<AssetName.AssetName, bigint>,
-        Schema.Map$<typeof AssetName.AssetName, Schema.refine<bigint, typeof Schema.BigIntFromSelf>>
-      >
-    >
-  >,
-  "MultiAsset"
 >
 ```
 
@@ -481,3 +453,13 @@ export declare const subtract: (a: MultiAsset, b: MultiAsset) => MultiAsset
 ```
 
 Added in v2.0.0
+
+# utils
+
+## equals
+
+**Signature**
+
+```ts
+export declare const equals: (a: MultiAsset, b: MultiAsset) => boolean
+```

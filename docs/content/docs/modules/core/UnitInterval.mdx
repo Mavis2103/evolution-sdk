@@ -12,25 +12,23 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [codecs](#codecs)
-  - [CBORCodec](#cborcodec)
 - [constructors](#constructors)
   - [fromBigDecimal](#frombigdecimal)
-  - [make](#make)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [UnitIntervalError (class)](#unitintervalerror-class)
+- [model](#model)
+  - [UnitInterval (class)](#unitinterval-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [schemas](#schemas)
   - [FromCBORBytes](#fromcborbytes)
   - [FromCBORHex](#fromcborhex)
   - [FromCDDL](#fromcddl)
-  - [UnitInterval](#unitinterval)
 - [transformation](#transformation)
   - [toBigDecimal](#tobigdecimal)
 - [utils](#utils)
   - [CDDLSchema](#cddlschema)
-  - [UnitInterval (type alias)](#unitinterval-type-alias)
 
 ---
 
@@ -43,72 +41,7 @@ FastCheck arbitrary for generating random UnitInterval instances.
 **Signature**
 
 ```ts
-export declare const arbitrary: FastCheck.Arbitrary<{ readonly numerator: bigint; readonly denominator: bigint }>
-```
-
-Added in v2.0.0
-
-# codecs
-
-## CBORCodec
-
-CBOR codec utilities for UnitInterval.
-
-**Signature**
-
-```ts
-export declare const CBORCodec: (options?: CBOR.CodecOptions) => {
-  Encode: {
-    cborBytes: (input: { readonly numerator: bigint; readonly denominator: bigint }) => any
-    cborHex: (input: { readonly numerator: bigint; readonly denominator: bigint }) => string
-  }
-  Decode: {
-    cborBytes: (input: any) => { readonly numerator: bigint; readonly denominator: bigint }
-    cborHex: (input: string) => { readonly numerator: bigint; readonly denominator: bigint }
-  }
-  EncodeEffect: {
-    cborBytes: (input: {
-      readonly numerator: bigint
-      readonly denominator: bigint
-    }) => Effect.Effect<any, InstanceType<typeof UnitIntervalError>>
-    cborHex: (input: {
-      readonly numerator: bigint
-      readonly denominator: bigint
-    }) => Effect.Effect<string, InstanceType<typeof UnitIntervalError>>
-  }
-  DecodeEffect: {
-    cborBytes: (
-      input: any
-    ) => Effect.Effect<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      InstanceType<typeof UnitIntervalError>
-    >
-    cborHex: (
-      input: string
-    ) => Effect.Effect<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      InstanceType<typeof UnitIntervalError>
-    >
-  }
-  EncodeEither: {
-    cborBytes: (input: {
-      readonly numerator: bigint
-      readonly denominator: bigint
-    }) => Either<any, InstanceType<typeof UnitIntervalError>>
-    cborHex: (input: {
-      readonly numerator: bigint
-      readonly denominator: bigint
-    }) => Either<string, InstanceType<typeof UnitIntervalError>>
-  }
-  DecodeEither: {
-    cborBytes: (
-      input: any
-    ) => Either<{ readonly numerator: bigint; readonly denominator: bigint }, InstanceType<typeof UnitIntervalError>>
-    cborHex: (
-      input: string
-    ) => Either<{ readonly numerator: bigint; readonly denominator: bigint }, InstanceType<typeof UnitIntervalError>>
-  }
-}
+export declare const arbitrary: FastCheck.Arbitrary<UnitInterval>
 ```
 
 Added in v2.0.0
@@ -127,49 +60,88 @@ export declare const fromBigDecimal: (value: BigDecimal.BigDecimal) => UnitInter
 
 Added in v2.0.0
 
-## make
+# model
 
-Smart constructor for creating UnitInterval values.
+## UnitInterval (class)
+
+Schema for UnitInterval representing a fractional value between 0 and 1.
 
 ```
-Validates that denominator > 0 and numerator <= denominator.
+CDDL: unit_interval = #6.30([uint, uint])
+```
+
+A unit interval is a number in the range between 0 and 1, which
+means there are two extra constraints:
+
+```
+1. numerator ≤ denominator
+2. denominator > 0
 ```
 
 **Signature**
 
 ```ts
-export declare const make: (
-  a: { readonly numerator: bigint; readonly denominator: bigint },
-  options?: Schema.MakeOptions
-) => { readonly numerator: bigint; readonly denominator: bigint }
+export declare class UnitInterval
 ```
 
 Added in v2.0.0
 
-# equality
+### toJSON (method)
 
-## equals
-
-Check if two UnitInterval instances are equal.
+Convert to JSON representation.
 
 **Signature**
 
 ```ts
-export declare const equals: (a: UnitInterval, b: UnitInterval) => boolean
+toJSON()
 ```
 
 Added in v2.0.0
 
-# errors
+### toString (method)
 
-## UnitIntervalError (class)
-
-Error class for UnitInterval related operations.
+Convert to string representation.
 
 **Signature**
 
 ```ts
-export declare class UnitIntervalError
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+Hash code generation.
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0
@@ -197,11 +169,7 @@ export declare const FromCBORBytes: (
       "Tag",
       { tag: Schema.Literal<[30]>; value: Schema.Tuple2<typeof Schema.BigIntFromSelf, typeof Schema.BigIntFromSelf> }
     >,
-    Schema.SchemaClass<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      { readonly numerator: bigint; readonly denominator: bigint },
-      never
-    >,
+    Schema.SchemaClass<UnitInterval, UnitInterval, never>,
     never
   >
 >
@@ -232,11 +200,7 @@ export declare const FromCBORHex: (
         "Tag",
         { tag: Schema.Literal<[30]>; value: Schema.Tuple2<typeof Schema.BigIntFromSelf, typeof Schema.BigIntFromSelf> }
       >,
-      Schema.SchemaClass<
-        { readonly numerator: bigint; readonly denominator: bigint },
-        { readonly numerator: bigint; readonly denominator: bigint },
-        never
-      >,
+      Schema.SchemaClass<UnitInterval, UnitInterval, never>,
       never
     >
   >
@@ -263,42 +227,8 @@ export declare const FromCDDL: Schema.transformOrFail<
     "Tag",
     { tag: Schema.Literal<[30]>; value: Schema.Tuple2<typeof Schema.BigIntFromSelf, typeof Schema.BigIntFromSelf> }
   >,
-  Schema.SchemaClass<
-    { readonly numerator: bigint; readonly denominator: bigint },
-    { readonly numerator: bigint; readonly denominator: bigint },
-    never
-  >,
+  Schema.SchemaClass<UnitInterval, UnitInterval, never>,
   never
->
-```
-
-Added in v2.0.0
-
-## UnitInterval
-
-Schema for UnitInterval representing a fractional value between 0 and 1.
-
-```
-CDDL: unit_interval = #6.30([uint, uint])
-```
-
-A unit interval is a number in the range between 0 and 1, which
-means there are two extra constraints:
-
-```
-1. numerator ≤ denominator
-2. denominator > 0
-```
-
-**Signature**
-
-```ts
-export declare const UnitInterval: Schema.refine<
-  { readonly numerator: bigint; readonly denominator: bigint },
-  Schema.Struct<{
-    numerator: Schema.refine<bigint, typeof Schema.BigIntFromSelf>
-    denominator: Schema.refine<bigint, typeof Schema.BigIntFromSelf>
-  }>
 >
 ```
 
@@ -329,12 +259,4 @@ export declare const CDDLSchema: Schema.TaggedStruct<
   "Tag",
   { tag: Schema.Literal<[30]>; value: Schema.Tuple2<typeof Schema.BigIntFromSelf, typeof Schema.BigIntFromSelf> }
 >
-```
-
-## UnitInterval (type alias)
-
-**Signature**
-
-```ts
-export type UnitInterval = typeof UnitInterval.Type
 ```

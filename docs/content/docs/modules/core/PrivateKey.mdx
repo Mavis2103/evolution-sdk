@@ -20,8 +20,6 @@ parent: Modules
   - [validateMnemonic](#validatemnemonic)
 - [cardano](#cardano)
   - [CardanoPath](#cardanopath)
-- [constructors](#constructors)
-  - [make](#make)
 - [cryptography](#cryptography)
   - [sign](#sign)
   - [toPublicKey](#topublickey)
@@ -31,10 +29,9 @@ parent: Modules
   - [toBech32](#tobech32)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
 - [errors](#errors)
   - [PrivateKeyError (class)](#privatekeyerror-class)
+    - [\_tag (property)](#_tag-property)
 - [generators](#generators)
   - [generate](#generate)
   - [generateExtended](#generateextended)
@@ -44,6 +41,11 @@ parent: Modules
   - [fromHex](#fromhex)
 - [schemas](#schemas)
   - [PrivateKey (class)](#privatekey-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [utils](#utils)
   - [FromBech32](#frombech32-1)
   - [FromBytes](#frombytes-1)
@@ -138,20 +140,6 @@ export declare const CardanoPath: {
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for PrivateKey that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (props: { readonly key: Uint8Array }, options?: Schema.MakeOptions | undefined) => PrivateKey
-```
-
-Added in v2.0.0
-
 # cryptography
 
 ## sign
@@ -200,7 +188,7 @@ Format: ed25519e_sk1...
 **Signature**
 
 ```ts
-export declare const toBech32: (input: PrivateKey) => string
+export declare const toBech32: (a: PrivateKey, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -212,7 +200,7 @@ Convert a PrivateKey to raw bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: PrivateKey) => Uint8Array
+export declare const toBytes: (a: PrivateKey, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -224,21 +212,7 @@ Convert a PrivateKey to a hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: PrivateKey) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two PrivateKey instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: PrivateKey, b: PrivateKey) => boolean
+export declare const toHex: (a: PrivateKey, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -247,15 +221,25 @@ Added in v2.0.0
 
 ## PrivateKeyError (class)
 
-Error class for PrivateKey related operations.
+Error class for PrivateKey operations
 
 **Signature**
 
 ```ts
-export declare class PrivateKeyError
+export declare class PrivateKeyError {
+  constructor(message: string)
+}
 ```
 
 Added in v2.0.0
+
+### \_tag (property)
+
+**Signature**
+
+```ts
+readonly _tag: "PrivateKeyError"
+```
 
 # generators
 
@@ -295,7 +279,7 @@ Expected format: ed25519e_sk1...
 **Signature**
 
 ```ts
-export declare const fromBech32: (input: string) => PrivateKey
+export declare const fromBech32: (i: string, overrideOptions?: ParseOptions) => PrivateKey
 ```
 
 Added in v2.0.0
@@ -308,7 +292,7 @@ Supports both 32-byte and 64-byte private keys.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => PrivateKey
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => PrivateKey
 ```
 
 Added in v2.0.0
@@ -321,7 +305,7 @@ Supports both 32-byte (64 chars) and 64-byte (128 chars) hex strings.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => PrivateKey
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => PrivateKey
 ```
 
 Added in v2.0.0
@@ -341,6 +325,46 @@ export declare class PrivateKey
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # utils
 

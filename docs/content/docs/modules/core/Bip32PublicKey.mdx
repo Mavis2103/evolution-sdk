@@ -15,8 +15,6 @@ parent: Modules
   - [publicKey](#publickey)
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
 - [derivation](#derivation)
   - [deriveChild](#derivechild)
 - [either](#either)
@@ -25,8 +23,6 @@ parent: Modules
   - [toBytes](#tobytes)
   - [toHex](#tohex)
   - [toRawBytes](#torawbytes)
-- [equality](#equality)
-  - [equals](#equals)
 - [errors](#errors)
   - [Bip32PublicKeyError (class)](#bip32publickeyerror-class)
 - [parsing](#parsing)
@@ -36,6 +32,9 @@ parent: Modules
   - [Bip32PublicKey (class)](#bip32publickey-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
 
@@ -81,23 +80,6 @@ export declare const arbitrary: FastCheck.Arbitrary<Bip32PublicKey>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for Bip32PublicKey that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly bytes: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => Bip32PublicKey
-```
-
-Added in v2.0.0
-
 # derivation
 
 ## deriveChild
@@ -129,7 +111,7 @@ Convert a Bip32PublicKey to raw bytes (64 bytes).
 **Signature**
 
 ```ts
-export declare const toBytes: (input: Bip32PublicKey) => Uint8Array
+export declare const toBytes: (a: Bip32PublicKey, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -141,7 +123,7 @@ Convert a Bip32PublicKey to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: Bip32PublicKey) => string
+export declare const toHex: (a: Bip32PublicKey, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -154,20 +136,6 @@ Convert a Bip32PublicKey to raw public key bytes (32 bytes only).
 
 ```ts
 export declare const toRawBytes: (bip32PublicKey: Bip32PublicKey) => Uint8Array
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two Bip32PublicKey instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Bip32PublicKey, b: Bip32PublicKey) => boolean
 ```
 
 Added in v2.0.0
@@ -195,7 +163,7 @@ Create a BIP32 public key from public key and chain code bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => Bip32PublicKey
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => Bip32PublicKey
 ```
 
 Added in v2.0.0
@@ -207,7 +175,7 @@ Parse Bip32PublicKey from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => Bip32PublicKey
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => Bip32PublicKey
 ```
 
 Added in v2.0.0
@@ -234,7 +202,7 @@ Added in v2.0.0
 **Signature**
 
 ```ts
-toJSON(): string
+toJSON()
 ```
 
 ### toString (method)
@@ -243,6 +211,30 @@ toJSON(): string
 
 ```ts
 toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 ## FromBytes

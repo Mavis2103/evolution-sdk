@@ -12,17 +12,16 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [BlockBodyHashError (class)](#blockbodyhasherror-class)
 - [model](#model)
   - [BlockBodyHash (class)](#blockbodyhash-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -31,8 +30,6 @@ parent: Modules
 - [schemas](#schemas)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
-- [utils](#utils)
-  - [Either (namespace)](#either-namespace)
 
 ---
 
@@ -50,23 +47,6 @@ export declare const arbitrary: FastCheck.Arbitrary<BlockBodyHash>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for BlockBodyHash that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly bytes: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => BlockBodyHash
-```
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -76,7 +56,7 @@ Encode BlockBodyHash to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: BlockBodyHash) => Uint8Array
+export declare const toBytes: (a: BlockBodyHash, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -88,35 +68,7 @@ Encode BlockBodyHash to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: BlockBodyHash) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two BlockBodyHash instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: BlockBodyHash, b: BlockBodyHash) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## BlockBodyHashError (class)
-
-Error class for BlockBodyHash related operations.
-
-**Signature**
-
-```ts
-export declare class BlockBodyHashError
+export declare const toHex: (a: BlockBodyHash, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -137,6 +89,46 @@ export declare class BlockBodyHash
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 # parsing
 
 ## fromBytes
@@ -146,7 +138,7 @@ Parse BlockBodyHash from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => BlockBodyHash
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => BlockBodyHash
 ```
 
 Added in v2.0.0
@@ -158,7 +150,7 @@ Parse BlockBodyHash from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => BlockBodyHash
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => BlockBodyHash
 ```
 
 Added in v2.0.0
@@ -211,7 +203,3 @@ export declare const FromHex: Schema.transform<
 ```
 
 Added in v2.0.0
-
-# utils
-
-## Either (namespace)

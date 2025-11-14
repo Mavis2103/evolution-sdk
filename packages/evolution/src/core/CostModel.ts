@@ -151,7 +151,7 @@ export class CostModels extends Schema.Class<CostModels>("CostModels")({
 
   /**
    * Hash code generation.
-   * Only hash PlutusV1 for performance - allows hash collisions to trigger [Equal.symbol]
+   * Only hash PlutusV1 for performance - allows hash collisions to trigger full equality check
    *
    * @since 2.0.0
    * @category hashing

@@ -19,15 +19,9 @@ parent: Modules
   - [makeScriptPubKey](#makescriptpubkey)
 - [conversion](#conversion)
   - [toJSON](#tojson)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [NativeScriptError (class)](#nativescripterror-class)
 - [model](#model)
   - [NativeScriptCDDL (type alias)](#nativescriptcddl-type-alias)
   - [NativeScriptEncoded (type alias)](#nativescriptencoded-type-alias)
@@ -40,6 +34,11 @@ parent: Modules
 - [schemas](#schemas)
   - [FromCDDL](#fromcddl)
   - [NativeScript (class)](#nativescript-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [NativeScriptVariants](#nativescriptvariants)
 - [testing](#testing)
   - [arbitrary](#arbitrary)
@@ -138,14 +137,6 @@ export declare const toJSON: (script: NativeScriptVariants) => any
 
 Added in v2.0.0
 
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -155,7 +146,7 @@ Convert a NativeScript to CBOR bytes
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: NativeScript, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: NativeScript, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -167,35 +158,7 @@ Convert a NativeScript to CBOR hex string
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: NativeScript, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two NativeScript instances are equal
-
-**Signature**
-
-```ts
-export declare const equals: (a: NativeScript, b: NativeScript) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## NativeScriptError (class)
-
-Error class for Native script related operations.
-
-**Signature**
-
-```ts
-export declare class NativeScriptError
+export declare const toCBORHex: (data: NativeScript, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -238,11 +201,11 @@ Native script encoded type definition (wire format)
 ```ts
 export type NativeScriptEncoded =
   | { readonly _tag: "ScriptPubKey"; readonly keyHash: string }
-  | { readonly _tag: "InvalidBefore"; readonly slot: string }
-  | { readonly _tag: "InvalidHereafter"; readonly slot: string }
+  | { readonly _tag: "InvalidBefore"; readonly slot: bigint }
+  | { readonly _tag: "InvalidHereafter"; readonly slot: bigint }
   | { readonly _tag: "ScriptAll"; readonly scripts: ReadonlyArray<NativeScriptEncoded> }
   | { readonly _tag: "ScriptAny"; readonly scripts: ReadonlyArray<NativeScriptEncoded> }
-  | { readonly _tag: "ScriptNOfK"; readonly required: string; readonly scripts: ReadonlyArray<NativeScriptEncoded> }
+  | { readonly _tag: "ScriptNOfK"; readonly required: bigint; readonly scripts: ReadonlyArray<NativeScriptEncoded> }
 ```
 
 Added in v2.0.0
@@ -331,6 +294,46 @@ export declare class NativeScript
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## NativeScriptVariants
 
 Internal Union schema for the actual native script variants
@@ -347,7 +350,7 @@ Added in v2.0.0
 
 ## arbitrary
 
-FastCheck arbitrary for generating random NativeScript instances
+Check if two NativeScript instances are equal
 
 **Signature**
 
@@ -356,6 +359,12 @@ export declare const arbitrary: FastCheck.Arbitrary<NativeScript>
 ```
 
 Added in v2.0.0
+// ============================================================================
+// FastCheck Arbitraries
+// ============================================================================
+
+/\*\*
+FastCheck arbitrary for generating random NativeScript instances
 
 # utils
 

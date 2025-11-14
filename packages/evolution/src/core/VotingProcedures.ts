@@ -69,9 +69,6 @@ const mapHash = <K, V>(map: Map<K, V>): number => {
  * @since 2.0.0
  * @category schemas
  */
-// export const ConstitutionalCommitteeVoter = Schema.TaggedStruct("ConstitutionalCommitteeVoter", {
-//   credential: Credential.Credential
-// })
 export class ConstitutionalCommitteeVoter extends Schema.TaggedClass<ConstitutionalCommitteeVoter>()(
   "ConstitutionalCommitteeVoter",
   {
@@ -171,7 +168,9 @@ export type Voter = typeof Voter.Type
 
 /**
  * CDDL schema for Voter as tuple structure.
+ * ```
  * Maps to: [voter_type, voter_data]
+ * ```
  *
  * @since 2.0.0
  * @category schemas
@@ -501,9 +500,6 @@ export class VotingProcedures extends Schema.Class<VotingProcedures>("VotingProc
   }
 
   /**
-   * Content-based hash for optimization of Equal.equals.
-   * Uses nested mapHash to handle the Map<Voter, Map<GovActionId, VotingProcedure>> structure.
-   *
    * @since 2.0.0
    * @category hashing
    */

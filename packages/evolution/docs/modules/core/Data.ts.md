@@ -505,8 +505,8 @@ export declare const FromCBORBytes: (
   Schema.transformOrFail<
     Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>,
     Schema.SchemaClass<
-      string | bigint | Constr | ReadonlyMap<Data, Data> | readonly Data[],
-      string | bigint | Constr | ReadonlyMap<Data, Data> | readonly Data[],
+      string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+      string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
       never
     >,
     never
@@ -537,8 +537,8 @@ export declare const FromCBORHex: (
     Schema.transformOrFail<
       Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>,
       Schema.SchemaClass<
-        string | bigint | Constr | ReadonlyMap<Data, Data> | readonly Data[],
-        string | bigint | Constr | ReadonlyMap<Data, Data> | readonly Data[],
+        string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+        string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
         never
       >,
       never
@@ -585,8 +585,8 @@ plutusDataToCBORValue and cborValueToPlutusData functions.
 export declare const FromCDDL: Schema.transformOrFail<
   Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>,
   Schema.SchemaClass<
-    string | bigint | Constr | ReadonlyMap<Data, Data> | readonly Data[],
-    string | bigint | Constr | ReadonlyMap<Data, Data> | readonly Data[],
+    string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+    string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
     never
   >,
   never
@@ -674,7 +674,7 @@ Decode PlutusData from CBOR bytes
 export declare const fromCBORBytes: (
   bytes: Uint8Array,
   options?: CBOR.CodecOptions
-) => string | bigint | Constr | ReadonlyMap<Data, Data> | readonly Data[]
+) => string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>
 ```
 
 Added in v2.0.0
@@ -689,7 +689,7 @@ Decode PlutusData from CBOR hex string
 export declare const fromCBORHex: (
   hex: string,
   options?: CBOR.CodecOptions
-) => string | bigint | Constr | ReadonlyMap<Data, Data> | readonly Data[]
+) => string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>
 ```
 
 Added in v2.0.0
@@ -714,7 +714,7 @@ Encode PlutusData to CBOR bytes
 
 ```ts
 export declare const toCBORBytes: (
-  input: string | bigint | Constr | ReadonlyMap<Data, Data> | readonly Data[],
+  input: string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
   options?: CBOR.CodecOptions
 ) => Uint8Array
 ```
@@ -729,7 +729,7 @@ Encode PlutusData to CBOR hex string
 
 ```ts
 export declare const toCBORHex: (
-  input: string | bigint | Constr | ReadonlyMap<Data, Data> | readonly Data[],
+  input: string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
   options?: CBOR.CodecOptions
 ) => string
 ```

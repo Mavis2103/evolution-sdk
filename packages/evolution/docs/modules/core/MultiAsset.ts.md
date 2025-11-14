@@ -200,9 +200,6 @@ Added in v2.0.0
 
 ### [Hash.symbol] (method)
 
-Content-based hash for optimization of Equal.equals.
-Uses nested mapHash to handle the Map<PolicyId, Map<AssetName, bigint>> structure.
-
 **Signature**
 
 ```ts

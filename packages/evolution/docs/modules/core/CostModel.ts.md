@@ -245,7 +245,7 @@ Added in v2.0.0
 ### [Hash.symbol] (method)
 
 Hash code generation.
-Only hash PlutusV1 for performance - allows hash collisions to trigger [Equal.symbol]
+Only hash PlutusV1 for performance - allows hash collisions to trigger full equality check
 
 **Signature**
 

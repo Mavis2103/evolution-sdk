@@ -255,7 +255,7 @@ export class ProtocolParamUpdate extends Schema.TaggedClass<ProtocolParamUpdate>
 
   [Hash.symbol](): number {
     // Only hash 1-2 most frequently changing fields for performance
-    // This allows hash collisions to trigger [Equal.symbol] for full equality check
+    // This allows hash collisions to trigger full equality check
     // Most common updates are fee-related parameters and cost models
     return Hash.cached(
       this,

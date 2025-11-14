@@ -10,15 +10,9 @@ parent: Modules
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
 - [conversion](#conversion)
   - [fromId](#fromid)
   - [toId](#toid)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [NetworkError (class)](#networkerror-class)
 - [model](#model)
   - [Network (type alias)](#network-type-alias)
 - [predicates](#predicates)
@@ -27,23 +21,6 @@ parent: Modules
   - [Network](#network)
 
 ---
-
-# constructors
-
-## make
-
-Smart constructor for Network that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (
-  i: "Mainnet" | "Preview" | "Preprod" | "Custom",
-  overrideOptions?: ParseOptions
-) => "Mainnet" | "Preview" | "Preprod" | "Custom"
-```
-
-Added in v2.0.0
 
 # conversion
 
@@ -67,34 +44,6 @@ Converts a Network type to NetworkId number.
 
 ```ts
 export declare const toId: <T extends Network>(network: T) => NetworkId.NetworkId
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two Network instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Network, b: Network) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## NetworkError (class)
-
-Error class for Network related operations.
-
-**Signature**
-
-```ts
-export declare class NetworkError
 ```
 
 Added in v2.0.0

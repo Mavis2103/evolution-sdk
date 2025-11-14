@@ -18,20 +18,20 @@ Added in v1.0.0
   - [fromBech32](#frombech32)
 - [Schema](#schema)
   - [Address (class)](#address-class)
+    - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [Transformations](#transformations)
   - [FromBech32](#frombech32-1)
   - [FromBytes](#frombytes)
   - [FromHex](#fromhex)
 - [Utils](#utils)
-  - [equals](#equals)
   - [getNetworkId](#getnetworkid)
   - [hasStakingCredential](#hasstakingcredential)
   - [isEnterprise](#isenterprise)
 - [utils](#utils-1)
-  - [AddressError (class)](#addresserror-class)
-  - [Either (namespace)](#either-namespace)
   - [fromBytes](#frombytes-1)
   - [fromHex](#fromhex-1)
   - [toBech32](#tobech32)
@@ -58,12 +58,12 @@ Added in v1.0.0
 
 ## fromBech32
 
-Sync functions using Function module utilities
+Sync functions using Schema utilities
 
 **Signature**
 
 ```ts
-export declare const fromBech32: (input: string) => Address
+export declare const fromBech32: (i: string, overrideOptions?: ParseOptions) => Address
 ```
 
 Added in v1.0.0
@@ -80,6 +80,14 @@ export declare class Address
 
 Added in v1.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
 ### toString (method)
 
 **Signature**
@@ -88,12 +96,28 @@ Added in v1.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # Transformations
@@ -152,18 +176,6 @@ Added in v1.0.0
 
 # Utils
 
-## equals
-
-Check if two AddressStructure instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Address, b: Address) => boolean
-```
-
-Added in v1.0.0
-
 ## getNetworkId
 
 Get network ID from AddressStructure
@@ -202,22 +214,12 @@ Added in v1.0.0
 
 # utils
 
-## AddressError (class)
-
-**Signature**
-
-```ts
-export declare class AddressError
-```
-
-## Either (namespace)
-
 ## fromBytes
 
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: any) => Address
+export declare const fromBytes: (i: any, overrideOptions?: ParseOptions) => Address
 ```
 
 ## fromHex
@@ -225,7 +227,7 @@ export declare const fromBytes: (input: any) => Address
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => Address
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => Address
 ```
 
 ## toBech32
@@ -233,7 +235,7 @@ export declare const fromHex: (input: string) => Address
 **Signature**
 
 ```ts
-export declare const toBech32: (input: Address) => string
+export declare const toBech32: (a: Address, overrideOptions?: ParseOptions) => string
 ```
 
 ## toBytes
@@ -241,7 +243,7 @@ export declare const toBech32: (input: Address) => string
 **Signature**
 
 ```ts
-export declare const toBytes: (input: Address) => any
+export declare const toBytes: (a: Address, overrideOptions?: ParseOptions) => any
 ```
 
 ## toHex
@@ -249,5 +251,5 @@ export declare const toBytes: (input: Address) => any
 **Signature**
 
 ```ts
-export declare const toHex: (input: Address) => string
+export declare const toHex: (a: Address, overrideOptions?: ParseOptions) => string
 ```

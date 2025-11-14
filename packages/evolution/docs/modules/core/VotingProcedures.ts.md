@@ -232,9 +232,6 @@ toString(): string
 
 ### [Hash.symbol] (method)
 
-Content-based hash for optimization of Equal.equals.
-Uses nested mapHash to handle the Map<Voter, Map<GovActionId, VotingProcedure>> structure.
-
 **Signature**
 
 ```ts
@@ -701,7 +698,10 @@ Added in v2.0.0
 ## VoterCDDL
 
 CDDL schema for Voter as tuple structure.
+
+```
 Maps to: [voter_type, voter_data]
+```
 
 **Signature**
 

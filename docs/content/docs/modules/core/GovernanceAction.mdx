@@ -12,21 +12,14 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [infoArbitrary](#infoarbitrary)
-- [constructors](#constructors)
-  - [makeHardForkInitiation](#makehardforkinitiation)
-  - [makeInfo](#makeinfo)
-  - [makeNewConstitution](#makenewconstitution)
-  - [makeNoConfidence](#makenoconfidence)
-  - [makeParameterChange](#makeparameterchange)
-  - [makeTreasuryWithdrawals](#maketreasurywithdrawals)
-  - [makeUpdateCommittee](#makeupdatecommittee)
-- [equality](#equality)
-  - [equals](#equals)
-  - [govActionIdEquals](#govactionidequals)
-- [errors](#errors)
-  - [GovernanceActionError (class)](#governanceactionerror-class)
+- [encoding](#encoding)
+  - [toCBOR](#tocbor)
+  - [toCBORHex](#tocborhex)
 - [model](#model)
   - [GovernanceAction (type alias)](#governanceaction-type-alias)
+- [parsing](#parsing)
+  - [fromCBOR](#fromcbor)
+  - [fromCBORHex](#fromcborhex)
 - [pattern matching](#pattern-matching)
   - [match](#match)
 - [predicates](#predicates)
@@ -35,36 +28,74 @@ parent: Modules
   - [CDDLSchema](#cddlschema)
   - [FromCDDL](#fromcddl)
   - [GovActionId (class)](#govactionid-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [GovActionIdCDDL](#govactionidcddl)
   - [GovActionIdFromCDDL](#govactionidfromcddl)
   - [GovernanceAction](#governanceaction)
   - [HardForkInitiationAction (class)](#hardforkinitiationaction-class)
+    - [toJSON (method)](#tojson-method-1)
+    - [toString (method)](#tostring-method-1)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-1)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
   - [HardForkInitiationActionCDDL](#hardforkinitiationactioncddl)
   - [HardForkInitiationActionFromCDDL](#hardforkinitiationactionfromcddl)
   - [InfoAction (class)](#infoaction-class)
+    - [toJSON (method)](#tojson-method-2)
+    - [toString (method)](#tostring-method-2)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-2)
+    - [[Equal.symbol] (method)](#equalsymbol-method-2)
+    - [[Hash.symbol] (method)](#hashsymbol-method-2)
   - [InfoActionCDDL](#infoactioncddl)
   - [InfoActionFromCDDL](#infoactionfromcddl)
   - [NewConstitutionAction (class)](#newconstitutionaction-class)
+    - [toJSON (method)](#tojson-method-3)
+    - [toString (method)](#tostring-method-3)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-3)
+    - [[Equal.symbol] (method)](#equalsymbol-method-3)
+    - [[Hash.symbol] (method)](#hashsymbol-method-3)
   - [NewConstitutionActionCDDL](#newconstitutionactioncddl)
   - [NewConstitutionActionFromCDDL](#newconstitutionactionfromcddl)
   - [NoConfidenceAction (class)](#noconfidenceaction-class)
+    - [toJSON (method)](#tojson-method-4)
+    - [toString (method)](#tostring-method-4)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-4)
+    - [[Equal.symbol] (method)](#equalsymbol-method-4)
+    - [[Hash.symbol] (method)](#hashsymbol-method-4)
   - [NoConfidenceActionCDDL](#noconfidenceactioncddl)
   - [NoConfidenceActionFromCDDL](#noconfidenceactionfromcddl)
   - [ParameterChangeAction (class)](#parameterchangeaction-class)
+    - [toJSON (method)](#tojson-method-5)
+    - [toString (method)](#tostring-method-5)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-5)
+    - [[Equal.symbol] (method)](#equalsymbol-method-5)
+    - [[Hash.symbol] (method)](#hashsymbol-method-5)
   - [ParameterChangeActionCDDL](#parameterchangeactioncddl)
   - [ParameterChangeActionFromCDDL](#parameterchangeactionfromcddl)
   - [TreasuryWithdrawalsAction (class)](#treasurywithdrawalsaction-class)
+    - [toJSON (method)](#tojson-method-6)
+    - [toString (method)](#tostring-method-6)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-6)
+    - [[Equal.symbol] (method)](#equalsymbol-method-6)
+    - [[Hash.symbol] (method)](#hashsymbol-method-6)
   - [TreasuryWithdrawalsActionCDDL](#treasurywithdrawalsactioncddl)
   - [TreasuryWithdrawalsActionFromCDDL](#treasurywithdrawalsactionfromcddl)
   - [UpdateCommitteeAction (class)](#updatecommitteeaction-class)
+    - [toJSON (method)](#tojson-method-7)
+    - [toString (method)](#tostring-method-7)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-7)
+    - [[Equal.symbol] (method)](#equalsymbol-method-7)
+    - [[Hash.symbol] (method)](#hashsymbol-method-7)
   - [UpdateCommitteeActionCDDL](#updatecommitteeactioncddl)
   - [UpdateCommitteeActionFromCDDL](#updatecommitteeactionfromcddl)
 - [type guards](#type-guards)
   - [isParameterChangeAction](#isparameterchangeaction)
 - [utils](#utils)
   - [arbitrary](#arbitrary-1)
-  - [fromCBOR](#fromcbor)
-  - [fromCBORHex](#fromcborhex)
   - [govActionIdArbitrary](#govactionidarbitrary)
   - [hardForkInitiationArbitrary](#hardforkinitiationarbitrary)
   - [isHardForkInitiationAction](#ishardforkinitiationaction)
@@ -76,8 +107,6 @@ parent: Modules
   - [newConstitutionArbitrary](#newconstitutionarbitrary)
   - [noConfidenceArbitrary](#noconfidencearbitrary)
   - [parameterChangeArbitrary](#parameterchangearbitrary)
-  - [toCBOR](#tocbor)
-  - [toCBORHex](#tocborhex)
   - [treasuryWithdrawalsArbitrary](#treasurywithdrawalsarbitrary)
   - [updateCommitteeArbitrary](#updatecommitteearbitrary)
 
@@ -97,146 +126,28 @@ export declare const infoArbitrary: FastCheck.Arbitrary<InfoAction>
 
 Added in v2.0.0
 
-# constructors
+# encoding
 
-## makeHardForkInitiation
+## toCBOR
 
-Create a hard fork initiation governance action.
+Encode GovernanceAction to CBOR bytes.
 
 **Signature**
 
 ```ts
-export declare const makeHardForkInitiation: (
-  govActionId: GovActionId | null,
-  protocolVersion: ProtocolVersion.ProtocolVersion
-) => HardForkInitiationAction
+export declare const toCBOR: (data: GovernanceAction, options?: CBOR.CodecOptions) => Uint8Array
 ```
 
 Added in v2.0.0
 
-## makeInfo
+## toCBORHex
 
-Create an info governance action.
-
-**Signature**
-
-```ts
-export declare const makeInfo: () => InfoAction
-```
-
-Added in v2.0.0
-
-## makeNewConstitution
-
-Create a new constitution governance action.
+Encode GovernanceAction to CBOR hex string.
 
 **Signature**
 
 ```ts
-export declare const makeNewConstitution: (
-  govActionId: GovActionId | null,
-  constitution: Constituion.Constitution
-) => NewConstitutionAction
-```
-
-Added in v2.0.0
-
-## makeNoConfidence
-
-Create a no confidence governance action.
-
-**Signature**
-
-```ts
-export declare const makeNoConfidence: (govActionId: GovActionId | null) => NoConfidenceAction
-```
-
-Added in v2.0.0
-
-## makeParameterChange
-
-Create a parameter change governance action.
-
-**Signature**
-
-```ts
-export declare const makeParameterChange: (
-  govActionId: GovActionId | null,
-  protocolParamUpdate: ProtocolParamUpdate.ProtocolParamUpdate,
-  policyHash?: ScriptHash.ScriptHash | null
-) => ParameterChangeAction
-```
-
-Added in v2.0.0
-
-## makeTreasuryWithdrawals
-
-Create a treasury withdrawals governance action.
-
-**Signature**
-
-```ts
-export declare const makeTreasuryWithdrawals: (
-  withdrawals: Map<RewardAccount.RewardAccount, Coin.Coin>,
-  policyHash?: ScriptHash.ScriptHash | null
-) => TreasuryWithdrawalsAction
-```
-
-Added in v2.0.0
-
-## makeUpdateCommittee
-
-Create an update committee governance action.
-
-**Signature**
-
-```ts
-export declare const makeUpdateCommittee: (
-  govActionId: GovActionId | null,
-  membersToRemove: ReadonlyArray<typeof CommiteeColdCredential.CommitteeColdCredential.CredentialSchema.Type>,
-  membersToAdd: Map<typeof CommiteeColdCredential.CommitteeColdCredential.CredentialSchema.Type, EpochNo.EpochNo>,
-  threshold: UnitInterval.UnitInterval
-) => UpdateCommitteeAction
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two GovernanceAction instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: GovernanceAction, b: GovernanceAction) => boolean
-```
-
-Added in v2.0.0
-
-## govActionIdEquals
-
-Check if two GovActionId instances are equal.
-
-**Signature**
-
-```ts
-export declare const govActionIdEquals: (a: GovActionId, b: GovActionId) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## GovernanceActionError (class)
-
-Error class for GovernanceAction related operations.
-
-**Signature**
-
-```ts
-export declare class GovernanceActionError
+export declare const toCBORHex: (data: GovernanceAction, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -251,6 +162,32 @@ Type alias for GovernanceAction.
 
 ```ts
 export type GovernanceAction = Schema.Schema.Type<typeof GovernanceAction>
+```
+
+Added in v2.0.0
+
+# parsing
+
+## fromCBOR
+
+Parse GovernanceAction from CBOR bytes.
+
+**Signature**
+
+```ts
+export declare const fromCBOR: (bytes: Uint8Array, options?: CBOR.CodecOptions) => GovernanceAction
+```
+
+Added in v2.0.0
+
+## fromCBORHex
+
+Parse GovernanceAction from CBOR hex string.
+
+**Signature**
+
+```ts
+export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => GovernanceAction
 ```
 
 Added in v2.0.0
@@ -528,6 +465,46 @@ export declare class GovActionId
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## GovActionIdCDDL
 
 CDDL schema for GovActionId tuple structure.
@@ -610,6 +587,46 @@ export declare class HardForkInitiationAction
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## HardForkInitiationActionCDDL
 
 CDDL schema for HardForkInitiationAction tuple structure.
@@ -670,6 +687,46 @@ export declare class InfoAction
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## InfoActionCDDL
 
 CDDL schema for InfoAction tuple structure.
@@ -712,6 +769,46 @@ export declare class NewConstitutionAction
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 ## NewConstitutionActionCDDL
 
@@ -780,6 +877,46 @@ export declare class NoConfidenceAction
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## NoConfidenceActionCDDL
 
 CDDL schema for NoConfidenceAction tuple structure.
@@ -831,6 +968,46 @@ export declare class ParameterChangeAction
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 ## ParameterChangeActionCDDL
 
@@ -892,6 +1069,46 @@ export declare class TreasuryWithdrawalsAction
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## TreasuryWithdrawalsActionCDDL
 
 CDDL schema for TreasuryWithdrawalsAction tuple structure.
@@ -952,6 +1169,46 @@ export declare class UpdateCommitteeAction
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 ## UpdateCommitteeActionCDDL
 
@@ -1070,22 +1327,6 @@ export declare const arbitrary: FastCheck.Arbitrary<
 >
 ```
 
-## fromCBOR
-
-**Signature**
-
-```ts
-export declare const fromCBOR: (bytes: Uint8Array, options?: CBOR.CodecOptions) => any
-```
-
-## fromCBORHex
-
-**Signature**
-
-```ts
-export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => any
-```
-
 ## govActionIdArbitrary
 
 **Signature**
@@ -1187,22 +1428,6 @@ export declare const noConfidenceArbitrary: FastCheck.Arbitrary<NoConfidenceActi
 
 ```ts
 export declare const parameterChangeArbitrary: FastCheck.Arbitrary<ParameterChangeAction>
-```
-
-## toCBOR
-
-**Signature**
-
-```ts
-export declare const toCBOR: (input: any, options?: CBOR.CodecOptions) => Uint8Array
-```
-
-## toCBORHex
-
-**Signature**
-
-```ts
-export declare const toCBORHex: (input: any, options?: CBOR.CodecOptions) => string
 ```
 
 ## treasuryWithdrawalsArbitrary

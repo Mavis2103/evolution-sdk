@@ -12,17 +12,6 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constants](#constants)
-  - [PORT_MIN_VALUE](#port_min_value)
-- [constructors](#constructors)
-  - [make](#make)
-- [encoding/decoding](#encodingdecoding)
-  - [Encode](#encode)
-  - [EncodeEither](#encodeeither)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [PortError (class)](#porterror-class)
 - [model](#model)
   - [Port (type alias)](#port-type-alias)
 - [predicates](#predicates)
@@ -32,10 +21,6 @@ parent: Modules
   - [isWellKnown](#iswellknown)
 - [schemas](#schemas)
   - [PortSchema](#portschema)
-- [utils](#utils)
-  - [Decode](#decode)
-  - [DecodeEither](#decodeeither)
-  - [PORT_MAX_VALUE](#port_max_value)
 
 ---
 
@@ -49,92 +34,6 @@ Generate a random Port.
 
 ```ts
 export declare const arbitrary: Arbitrary<bigint>
-```
-
-Added in v2.0.0
-
-# constants
-
-## PORT_MIN_VALUE
-
-CDDL specification:
-
-```
-port = uint .le 65535
-```
-
-**Signature**
-
-```ts
-export declare const PORT_MIN_VALUE: 0n
-```
-
-Added in v2.0.0
-
-# constructors
-
-## make
-
-Smart constructor for creating Port values.
-
-**Signature**
-
-```ts
-export declare const make: (value: bigint) => Port
-```
-
-Added in v2.0.0
-
-# encoding/decoding
-
-## Encode
-
-Synchronous encoding/decoding utilities.
-
-**Signature**
-
-```ts
-export declare const Encode: { sync: (a: bigint, overrideOptions?: ParseOptions) => string }
-```
-
-Added in v2.0.0
-
-## EncodeEither
-
-Either encoding/decoding utilities.
-
-**Signature**
-
-```ts
-export declare const EncodeEither: { either: (a: bigint, overrideOptions?: ParseOptions) => Either<string, ParseError> }
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two Port instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Port, b: Port) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## PortError (class)
-
-Error class for Port related operations.
-
-**Signature**
-
-```ts
-export declare class PortError
 ```
 
 Added in v2.0.0
@@ -217,31 +116,3 @@ export declare const PortSchema: Schema.refine<bigint, typeof Schema.BigIntFromS
 ```
 
 Added in v2.0.0
-
-# utils
-
-## Decode
-
-**Signature**
-
-```ts
-export declare const Decode: { sync: (u: unknown, overrideOptions?: ParseOptions) => bigint }
-```
-
-## DecodeEither
-
-**Signature**
-
-```ts
-export declare const DecodeEither: {
-  either: (u: unknown, overrideOptions?: ParseOptions) => Either<bigint, ParseError>
-}
-```
-
-## PORT_MAX_VALUE
-
-**Signature**
-
-```ts
-export declare const PORT_MAX_VALUE: 65535n
-```
