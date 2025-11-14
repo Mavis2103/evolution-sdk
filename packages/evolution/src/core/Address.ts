@@ -25,8 +25,8 @@ export class Address extends Schema.Class<Address>("AddressStructure")({
   toJSON() {
     return {
       networkId: this.networkId,
-      paymentCredential: this.paymentCredential,
-      stakingCredential: this.stakingCredential
+      paymentCredential: this.paymentCredential.toJSON(),
+      stakingCredential: this.stakingCredential?.toJSON()
     }
   }
 
