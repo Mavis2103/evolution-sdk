@@ -1,5 +1,5 @@
 import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
-import { FastCheck } from "effect"
+import { Equal, FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
 // diagnoseTransactionBody is optional during lint/type-check; load only on failure
@@ -24,12 +24,12 @@ describe("TransactionBody CML Compatibility", () => {
     const fee = 100000n
 
     // Create Evolution SDK TransactionBody
-    const evolutionTxHash = TransactionHash.make({ hash: txHashBytes })
+    const evolutionTxHash = TransactionHash.TransactionHash.make({ hash: txHashBytes })
     const evolutionTxInput = new TransactionInput.TransactionInput({
       transactionId: evolutionTxHash,
       index: 0n // Use number instead of bigint
     })
-    const evolutionCoin = Coin.make(fee) // Use Coin.make instead of new Coin.Coin
+    const evolutionCoin = Coin.Coin.make(fee) // Use Coin.make instead of new Coin.Coin
 
     const evolutionTxBody = new TransactionBody.TransactionBody({
       inputs: [evolutionTxInput],
@@ -64,12 +64,12 @@ describe("TransactionBody CML Compatibility", () => {
     const ttl = 1000000n
 
     // Create Evolution SDK TransactionBody with TTL
-    const evolutionTxHash = TransactionHash.make({ hash: txHashBytes })
+    const evolutionTxHash = TransactionHash.TransactionHash.make({ hash: txHashBytes })
     const evolutionTxInput = new TransactionInput.TransactionInput({
       transactionId: evolutionTxHash,
       index: 0n
     })
-    const evolutionCoin = Coin.make(fee)
+    const evolutionCoin = Coin.Coin.make(fee)
 
     const evolutionTxBody = new TransactionBody.TransactionBody({
       inputs: [evolutionTxInput],
@@ -105,8 +105,8 @@ describe("TransactionBody CML Compatibility", () => {
     const fee = 150000n
 
     // Create Evolution SDK TransactionBody with multiple inputs
-    const evolutionTxHash1 = TransactionHash.make({ hash: txHashBytes1 })
-    const evolutionTxHash2 = TransactionHash.make({ hash: txHashBytes2 })
+    const evolutionTxHash1 = TransactionHash.TransactionHash.make({ hash: txHashBytes1 })
+    const evolutionTxHash2 = TransactionHash.TransactionHash.make({ hash: txHashBytes2 })
     const evolutionTxInput1 = new TransactionInput.TransactionInput({
       transactionId: evolutionTxHash1,
       index: 0n
@@ -115,7 +115,7 @@ describe("TransactionBody CML Compatibility", () => {
       transactionId: evolutionTxHash2,
       index: 1n
     })
-    const evolutionCoin = Coin.make(fee)
+    const evolutionCoin = Coin.Coin.make(fee)
 
     const evolutionTxBody = new TransactionBody.TransactionBody({
       inputs: [evolutionTxInput1, evolutionTxInput2],
@@ -153,18 +153,18 @@ describe("TransactionBody CML Compatibility", () => {
     const networkId = 1 // Mainnet
 
     // Create Evolution SDK TransactionBody with network ID
-    const evolutionTxHash = TransactionHash.make({ hash: txHashBytes })
+    const evolutionTxHash = TransactionHash.TransactionHash.make({ hash: txHashBytes })
     const evolutionTxInput = new TransactionInput.TransactionInput({
       transactionId: evolutionTxHash,
       index: 0n
     })
-    const evolutionCoin = Coin.make(fee)
+    const evolutionCoin = Coin.Coin.make(fee)
 
     const evolutionTxBody = new TransactionBody.TransactionBody({
       inputs: [evolutionTxInput],
       outputs: [],
       fee: evolutionCoin,
-      networkId: NetworkId.make(networkId)
+      networkId: NetworkId.NetworkId.make(networkId)
     })
 
     // Create equivalent CML TransactionBody
@@ -195,19 +195,19 @@ describe("TransactionBody CML Compatibility", () => {
     const networkId = 0 // Testnet
 
     // Create Evolution SDK TransactionBody with TTL and network ID
-    const evolutionTxHash = TransactionHash.make({ hash: txHashBytes })
+    const evolutionTxHash = TransactionHash.TransactionHash.make({ hash: txHashBytes })
     const evolutionTxInput = new TransactionInput.TransactionInput({
       transactionId: evolutionTxHash,
       index: 0n
     })
-    const evolutionCoin = Coin.make(fee)
+    const evolutionCoin = Coin.Coin.make(fee)
 
     const evolutionTxBody = new TransactionBody.TransactionBody({
       inputs: [evolutionTxInput],
       outputs: [],
       fee: evolutionCoin,
       ttl,
-      networkId: NetworkId.make(networkId)
+      networkId: NetworkId.NetworkId.make(networkId)
     })
 
     // Create equivalent CML TransactionBody
@@ -237,7 +237,7 @@ describe("TransactionBody CML Compatibility", () => {
     const fee = 120000n
 
     // Create Evolution SDK TransactionBody with different input indices
-    const evolutionTxHash = TransactionHash.make({ hash: txHashBytes })
+    const evolutionTxHash = TransactionHash.TransactionHash.make({ hash: txHashBytes })
     const evolutionTxInput1 = new TransactionInput.TransactionInput({
       transactionId: evolutionTxHash,
       index: 5n
@@ -246,7 +246,7 @@ describe("TransactionBody CML Compatibility", () => {
       transactionId: evolutionTxHash,
       index: 10n
     })
-    const evolutionCoin = Coin.make(fee)
+    const evolutionCoin = Coin.Coin.make(fee)
 
     const evolutionTxBody = new TransactionBody.TransactionBody({
       inputs: [evolutionTxInput1, evolutionTxInput2],
@@ -281,12 +281,12 @@ describe("TransactionBody CML Compatibility", () => {
     const largeFee = 10000000000n // 10 billion lovelace
 
     // Create Evolution SDK TransactionBody
-    const evolutionTxHash = TransactionHash.make({ hash: txHashBytes })
+    const evolutionTxHash = TransactionHash.TransactionHash.make({ hash: txHashBytes })
     const evolutionTxInput = new TransactionInput.TransactionInput({
       transactionId: evolutionTxHash,
       index: 0n
     })
-    const evolutionCoin = Coin.make(largeFee)
+    const evolutionCoin = Coin.Coin.make(largeFee)
 
     const evolutionTxBody = new TransactionBody.TransactionBody({
       inputs: [evolutionTxInput],
@@ -325,7 +325,7 @@ describe("TransactionBody CML Compatibility", () => {
         expect(evolutionCbor).toBe(cmlCbor)
         // round trip
         const decodedEvolution = TransactionBody.fromCBORHex(cmlCbor)
-        expect(TransactionBody.equals(decodedEvolution, evolutionTxBody)).toBe(true)
+        expect(Equal.equals(decodedEvolution, evolutionTxBody)).toBe(true)
       })
     )
   })

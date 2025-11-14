@@ -14,8 +14,6 @@ parent: Modules
   - [bigNInt](#bignint)
   - [bigUInt](#biguint)
   - [int](#int)
-- [errors](#errors)
-  - [BigIntError (class)](#biginterror-class)
 - [model](#model)
   - [BigInt (type alias)](#bigint-type-alias)
   - [BigNInt (type alias)](#bignint-type-alias)
@@ -63,20 +61,6 @@ Creates an integer value
 
 ```ts
 export declare const int: (value: number) => BigInt
-```
-
-Added in v2.0.0
-
-# errors
-
-## BigIntError (class)
-
-Error class for BigInt related operations.
-
-**Signature**
-
-```ts
-export declare class BigIntError
 ```
 
 Added in v2.0.0

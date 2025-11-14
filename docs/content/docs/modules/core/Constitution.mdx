@@ -10,34 +10,76 @@ parent: Modules
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [errors](#errors)
-  - [ConstitutionError (class)](#constitutionerror-class)
-- [schemas](#schemas)
-  - [Constitution (class)](#constitution-class)
-- [utils](#utils)
-  - [CDDLSchema](#cddlschema)
-  - [FromCBORBytes](#fromcborbytes)
-  - [FromCBORHex](#fromcborhex)
-  - [FromCDDL](#fromcddl)
-  - [arbitrary](#arbitrary)
-  - [equals](#equals)
-  - [fromCBORBytes](#fromcborbytes-1)
-  - [fromCBORHex](#fromcborhex-1)
+- [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
+- [parsing](#parsing)
+  - [fromCBORBytes](#fromcborbytes)
+  - [fromCBORHex](#fromcborhex)
+- [schemas](#schemas)
+  - [Constitution (class)](#constitution-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
+- [utils](#utils)
+  - [CDDLSchema](#cddlschema)
+  - [FromCBORBytes](#fromcborbytes-1)
+  - [FromCBORHex](#fromcborhex-1)
+  - [FromCDDL](#fromcddl)
+  - [arbitrary](#arbitrary)
 
 ---
 
-# errors
+# encoding
 
-## ConstitutionError (class)
+## toCBORBytes
 
-Error class for Constitution related operations.
+Convert Constitution to CBOR bytes.
 
 **Signature**
 
 ```ts
-export declare class ConstitutionError
+export declare const toCBORBytes: (constitution: Constitution, options?: CBOR.CodecOptions) => Uint8Array
+```
+
+Added in v2.0.0
+
+## toCBORHex
+
+Convert Constitution to CBOR hex string.
+
+**Signature**
+
+```ts
+export declare const toCBORHex: (constitution: Constitution, options?: CBOR.CodecOptions) => string
+```
+
+Added in v2.0.0
+
+# parsing
+
+## fromCBORBytes
+
+Parse Constitution from CBOR bytes.
+
+**Signature**
+
+```ts
+export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => Constitution
+```
+
+Added in v2.0.0
+
+## fromCBORHex
+
+Parse Constitution from CBOR hex string.
+
+**Signature**
+
+```ts
+export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => Constitution
 ```
 
 Added in v2.0.0
@@ -56,6 +98,46 @@ export declare class Constitution
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # utils
 
@@ -155,46 +237,4 @@ Arbitrary for Constitution
 
 ```ts
 export declare const arbitrary: FastCheck.Arbitrary<Constitution>
-```
-
-## equals
-
-Equality for Constitution
-
-**Signature**
-
-```ts
-export declare const equals: (a: Constitution, b: Constitution) => boolean
-```
-
-## fromCBORBytes
-
-**Signature**
-
-```ts
-export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => Constitution
-```
-
-## fromCBORHex
-
-**Signature**
-
-```ts
-export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => Constitution
-```
-
-## toCBORBytes
-
-**Signature**
-
-```ts
-export declare const toCBORBytes: (input: Constitution, options?: CBOR.CodecOptions) => Uint8Array
-```
-
-## toCBORHex
-
-**Signature**
-
-```ts
-export declare const toCBORHex: (input: Constitution, options?: CBOR.CodecOptions) => string
 ```

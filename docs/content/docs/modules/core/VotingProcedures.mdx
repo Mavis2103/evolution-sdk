@@ -14,26 +14,18 @@ parent: Modules
   - [arbitrary](#arbitrary-1)
 - [constructors](#constructors)
   - [abstain](#abstain)
-  - [make](#make)
-  - [makeCommitteeVoter](#makecommitteevoter)
-  - [makeDRepVoter](#makedrepvoter)
-  - [makeProcedure](#makeprocedure)
-  - [makeStakePoolVoter](#makestakepoolvoter)
   - [no](#no)
   - [yes](#yes)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-  - [voteEquals](#voteequals)
-  - [voterEquals](#voterequals)
-- [errors](#errors)
-  - [VotingProceduresError (class)](#votingprocedureserror-class)
 - [model](#model)
   - [VotingProcedures (class)](#votingprocedures-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
@@ -50,10 +42,20 @@ parent: Modules
 - [schemas](#schemas)
   - [CDDLSchema](#cddlschema)
   - [ConstitutionalCommitteeVoter (class)](#constitutionalcommitteevoter-class)
+    - [toJSON (method)](#tojson-method-1)
+    - [toString (method)](#tostring-method-1)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-1)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
   - [FromCBORBytes](#fromcborbytes-1)
   - [FromCBORHex](#fromcborhex-1)
   - [FromCDDL](#fromcddl)
   - [NoVote (class)](#novote-class)
+    - [toJSON (method)](#tojson-method-2)
+    - [toString (method)](#tostring-method-2)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-2)
+    - [[Equal.symbol] (method)](#equalsymbol-method-2)
+    - [[Hash.symbol] (method)](#hashsymbol-method-2)
   - [Vote](#vote)
   - [VoteCDDL](#votecddl)
   - [VoteFromCDDL](#votefromcddl)
@@ -61,15 +63,40 @@ parent: Modules
   - [VoterCDDL](#votercddl)
   - [VoterFromCDDL](#voterfromcddl)
   - [VotingProcedure (class)](#votingprocedure-class)
+    - [toJSON (method)](#tojson-method-3)
+    - [toString (method)](#tostring-method-3)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-3)
+    - [[Equal.symbol] (method)](#equalsymbol-method-3)
+    - [[Hash.symbol] (method)](#hashsymbol-method-3)
   - [VotingProcedureCDDL](#votingprocedurecddl)
   - [VotingProcedureFromCDDL](#votingprocedurefromcddl)
 - [utils](#utils)
   - [AbstainVote (class)](#abstainvote-class)
+    - [toJSON (method)](#tojson-method-4)
+    - [toString (method)](#tostring-method-4)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-4)
+    - [[Equal.symbol] (method)](#equalsymbol-method-4)
+    - [[Hash.symbol] (method)](#hashsymbol-method-4)
   - [DRepVoter (class)](#drepvoter-class)
+    - [toJSON (method)](#tojson-method-5)
+    - [toString (method)](#tostring-method-5)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-5)
+    - [[Equal.symbol] (method)](#equalsymbol-method-5)
+    - [[Hash.symbol] (method)](#hashsymbol-method-5)
   - [StakePoolVoter (class)](#stakepoolvoter-class)
+    - [toJSON (method)](#tojson-method-6)
+    - [toString (method)](#tostring-method-6)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-6)
+    - [[Equal.symbol] (method)](#equalsymbol-method-6)
+    - [[Hash.symbol] (method)](#hashsymbol-method-6)
   - [Vote (type alias)](#vote-type-alias)
   - [Voter (type alias)](#voter-type-alias)
   - [YesVote (class)](#yesvote-class)
+    - [toJSON (method)](#tojson-method-7)
+    - [toString (method)](#tostring-method-7)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-7)
+    - [[Equal.symbol] (method)](#equalsymbol-method-7)
+    - [[Hash.symbol] (method)](#hashsymbol-method-7)
 
 ---
 
@@ -101,74 +128,6 @@ export declare const abstain: () => Vote
 
 Added in v2.0.0
 
-## make
-
-Create a VotingProcedures instance.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: {
-    readonly procedures: Map<
-      ConstitutionalCommitteeVoter | DRepVoter | StakePoolVoter,
-      Map<GovernanceAction.GovActionId, VotingProcedure>
-    >
-  },
-  options?: Schema.MakeOptions | undefined
-) => VotingProcedures
-```
-
-Added in v2.0.0
-
-## makeCommitteeVoter
-
-Create a Constitutional Committee voter.
-
-**Signature**
-
-```ts
-export declare const makeCommitteeVoter: (credential: Credential.CredentialSchema) => Voter
-```
-
-Added in v2.0.0
-
-## makeDRepVoter
-
-Create a DRep voter.
-
-**Signature**
-
-```ts
-export declare const makeDRepVoter: (drep: DRep.DRep) => DRepVoter
-```
-
-Added in v2.0.0
-
-## makeProcedure
-
-Create a VotingProcedure instance.
-
-**Signature**
-
-```ts
-export declare const makeProcedure: (vote: Vote, anchor?: Anchor.Anchor | null) => VotingProcedure
-```
-
-Added in v2.0.0
-
-## makeStakePoolVoter
-
-Create a Stake Pool voter.
-
-**Signature**
-
-```ts
-export declare const makeStakePoolVoter: (poolKeyHash: PoolKeyHash.PoolKeyHash) => StakePoolVoter
-```
-
-Added in v2.0.0
-
 ## no
 
 Create a No vote.
@@ -193,14 +152,6 @@ export declare const yes: () => Vote
 
 Added in v2.0.0
 
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -210,7 +161,7 @@ Encode VotingProcedures to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: VotingProcedures, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: VotingProcedures, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -222,59 +173,7 @@ Encode VotingProcedures to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: VotingProcedures, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two VotingProcedures are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: VotingProcedures, b: VotingProcedures) => boolean
-```
-
-Added in v2.0.0
-
-## voteEquals
-
-Check if two Votes are equal.
-
-**Signature**
-
-```ts
-export declare const voteEquals: (a: Vote, b: Vote) => boolean
-```
-
-Added in v2.0.0
-
-## voterEquals
-
-Check if two Voters are equal.
-
-**Signature**
-
-```ts
-export declare const voterEquals: (a: Voter, b: Voter) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## VotingProceduresError (class)
-
-Error class for VotingProcedures related operations.
-
-**Signature**
-
-```ts
-export declare class VotingProceduresError
+export declare const toCBORHex: (data: VotingProcedures, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -295,6 +194,48 @@ A nested map structure where voters map to their votes on specific governance ac
 
 ```ts
 export declare class VotingProcedures
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0
@@ -486,6 +427,46 @@ export declare class ConstitutionalCommitteeVoter
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## FromCBORBytes
 
 CBOR bytes transformation schema for VotingProcedures.
@@ -622,6 +603,46 @@ export declare class NoVote
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## Vote
 
 Vote union schema.
@@ -677,7 +698,10 @@ Added in v2.0.0
 ## VoterCDDL
 
 CDDL schema for Voter as tuple structure.
+
+```
 Maps to: [voter_type, voter_data]
+```
 
 **Signature**
 
@@ -739,6 +763,46 @@ export declare class VotingProcedure
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## VotingProcedureCDDL
 
 CDDL schema for VotingProcedure tuple structure.
@@ -783,6 +847,46 @@ Added in v2.0.0
 export declare class AbstainVote
 ```
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## DRepVoter (class)
 
 **Signature**
@@ -791,12 +895,92 @@ export declare class AbstainVote
 export declare class DRepVoter
 ```
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## StakePoolVoter (class)
 
 **Signature**
 
 ```ts
 export declare class StakePoolVoter
+```
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 ## Vote (type alias)
@@ -821,4 +1005,44 @@ export type Voter = typeof Voter.Type
 
 ```ts
 export declare class YesVote
+```
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```

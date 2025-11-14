@@ -10,31 +10,17 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [errors](#errors)
-  - [ByronAddressError (class)](#byronaddresserror-class)
 - [schemas](#schemas)
   - [ByronAddress (class)](#byronaddress-class)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [BytesSchema](#bytesschema)
   - [FromHex](#fromhex)
-- [utils](#utils)
-  - [equals](#equals)
 
 ---
-
-# errors
-
-## ByronAddressError (class)
-
-Error class for ByronAddress related operations.
-
-**Signature**
-
-```ts
-export declare class ByronAddressError
-```
-
-Added in v2.0.0
 
 # schemas
 
@@ -50,12 +36,44 @@ export declare class ByronAddress
 
 Added in v2.0.0
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### toJSON (method)
 
 **Signature**
 
 ```ts
-;[Symbol.for("nodejs.util.inspect.custom")]()
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 ## BytesSchema
@@ -81,20 +99,6 @@ export declare const FromHex: Schema.transform<
   Schema.transform<Schema.Schema<string, string, never>, Schema.Schema<Uint8Array, Uint8Array, never>>,
   Schema.transformOrFail<typeof Schema.Uint8ArrayFromSelf, typeof ByronAddress, never>
 >
-```
-
-Added in v2.0.0
-
-# utils
-
-## equals
-
-Checks if two Byron addresses are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: ByronAddress, b: ByronAddress) => boolean
 ```
 
 Added in v2.0.0

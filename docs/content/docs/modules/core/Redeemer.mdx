@@ -15,15 +15,20 @@ parent: Modules
   - [mint](#mint)
   - [reward](#reward)
   - [spend](#spend)
-- [errors](#errors)
-  - [RedeemerError (class)](#redeemererror-class)
 - [generators](#generators)
   - [arbitrary](#arbitrary)
   - [arbitraryExUnits](#arbitraryexunits)
   - [arbitraryRedeemerTag](#arbitraryredeemertag)
 - [model](#model)
-  - [ExUnits](#exunits)
+  - [ExUnits (class)](#exunits-class)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [Redeemer (class)](#redeemer-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
   - [RedeemerTag](#redeemertag)
 - [predicates](#predicates)
   - [isCert](#iscert)
@@ -44,7 +49,6 @@ parent: Modules
   - [integerToTag](#integertotag)
   - [tagToInteger](#tagtointeger)
 - [utils](#utils)
-  - [ExUnits (type alias)](#exunits-type-alias)
   - [RedeemerTag (type alias)](#redeemertag-type-alias)
 
 ---
@@ -99,20 +103,6 @@ export declare const spend: (index: bigint, data: PlutusData.Data, exUnits: ExUn
 
 Added in v2.0.0
 
-# errors
-
-## RedeemerError (class)
-
-Error class for Redeemer related operations.
-
-**Signature**
-
-```ts
-export declare class RedeemerError
-```
-
-Added in v2.0.0
-
 # generators
 
 ## arbitrary
@@ -134,7 +124,7 @@ FastCheck arbitrary for generating random ExUnits values.
 **Signature**
 
 ```ts
-export declare const arbitraryExUnits: FastCheck.Arbitrary<readonly [bigint, bigint]>
+export declare const arbitraryExUnits: FastCheck.Arbitrary<ExUnits>
 ```
 
 Added in v2.0.0
@@ -153,7 +143,7 @@ Added in v2.0.0
 
 # model
 
-## ExUnits
+## ExUnits (class)
 
 Execution units for Plutus script execution.
 
@@ -162,13 +152,26 @@ CDDL: ex_units = [mem: uint64, steps: uint64]
 **Signature**
 
 ```ts
-export declare const ExUnits: Schema.Tuple2<
-  Schema.refine<bigint, typeof Schema.BigInt>,
-  Schema.refine<bigint, typeof Schema.BigInt>
->
+export declare class ExUnits
 ```
 
 Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 ## Redeemer (class)
 
@@ -186,6 +189,67 @@ Where:
 
 ```ts
 export declare class Redeemer
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+Convert to JSON representation.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+Convert to string representation.
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+Hash code generation.
+Only hashes tag and index for performance (minimal structure).
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0
@@ -404,7 +468,7 @@ Encode Redeemer to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: Redeemer, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (redeemer: Redeemer, options?: CBOR.CodecOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -416,7 +480,7 @@ Encode Redeemer to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: Redeemer, options?: CBOR.CodecOptions) => string
+export declare const toCBORHex: (redeemer: Redeemer, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -448,14 +512,6 @@ export declare const tagToInteger: (tag: RedeemerTag) => bigint
 Added in v2.0.0
 
 # utils
-
-## ExUnits (type alias)
-
-**Signature**
-
-```ts
-export type ExUnits = typeof ExUnits.Type
-```
 
 ## RedeemerTag (type alias)
 

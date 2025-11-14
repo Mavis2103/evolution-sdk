@@ -17,33 +17,45 @@ parent: Modules
   - [alwaysNoConfidence](#alwaysnoconfidence)
   - [fromKeyHash](#fromkeyhash)
   - [fromScriptHash](#fromscripthash)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
-  - [toBytes](#tobytes)
-  - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [DRepError (class)](#dreperror-class)
+  - [toCBORBytes](#tocborbytes)
+  - [toCBORHex](#tocborhex)
 - [model](#model)
-  - [AlwaysAbstainDRep (type alias)](#alwaysabstaindrep-type-alias)
-  - [AlwaysNoConfidenceDRep (type alias)](#alwaysnoconfidencedrep-type-alias)
+  - [AlwaysAbstainDRep (class)](#alwaysabstaindrep-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
+  - [AlwaysNoConfidenceDRep (class)](#alwaysnoconfidencedrep-class)
+    - [toJSON (method)](#tojson-method-1)
+    - [toString (method)](#tostring-method-1)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-1)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
   - [DRep (type alias)](#drep-type-alias)
-  - [KeyHashDRep (type alias)](#keyhashdrep-type-alias)
-  - [ScriptHashDRep (type alias)](#scripthashdrep-type-alias)
+  - [KeyHashDRep (class)](#keyhashdrep-class)
+    - [toJSON (method)](#tojson-method-2)
+    - [toString (method)](#tostring-method-2)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-2)
+    - [[Equal.symbol] (method)](#equalsymbol-method-2)
+    - [[Hash.symbol] (method)](#hashsymbol-method-2)
+  - [ScriptHashDRep (class)](#scripthashdrep-class)
+    - [toJSON (method)](#tojson-method-3)
+    - [toString (method)](#tostring-method-3)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-3)
+    - [[Equal.symbol] (method)](#equalsymbol-method-3)
+    - [[Hash.symbol] (method)](#hashsymbol-method-3)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
-  - [fromHex](#fromhex)
+  - [fromCBORHex](#fromcborhex)
 - [pattern matching](#pattern-matching)
   - [match](#match)
 - [predicates](#predicates)
   - [isDRep](#isdrep)
 - [schemas](#schemas)
   - [DRep](#drep)
-  - [FromBytes](#frombytes)
   - [FromCDDL](#fromcddl)
-  - [FromHex](#fromhex-1)
 - [type guards](#type-guards)
   - [isAlwaysAbstainDRep](#isalwaysabstaindrep)
   - [isAlwaysNoConfidenceDRep](#isalwaysnoconfidencedrep)
@@ -51,6 +63,8 @@ parent: Modules
   - [isScriptHashDRep](#isscripthashdrep)
 - [utils](#utils)
   - [CDDLSchema](#cddlschema)
+  - [FromCBORBytes](#fromcborbytes-1)
+  - [FromCBORHex](#fromcborhex-1)
 
 ---
 
@@ -64,10 +78,7 @@ FastCheck arbitrary for generating random DRep instances.
 
 ```ts
 export declare const arbitrary: FastCheck.Arbitrary<
-  | { keyHash: KeyHash.KeyHash; _tag: "KeyHashDRep" }
-  | { scriptHash: ScriptHash.ScriptHash; _tag: "ScriptHashDRep" }
-  | { _tag: "AlwaysAbstainDRep" }
-  | { _tag: "AlwaysNoConfidenceDRep" }
+  KeyHashDRep | ScriptHashDRep | AlwaysAbstainDRep | AlwaysNoConfidenceDRep
 >
 ```
 
@@ -123,107 +134,139 @@ export declare const fromScriptHash: (scriptHash: ScriptHash.ScriptHash) => Scri
 
 Added in v2.0.0
 
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
-## toBytes
+## toCBORBytes
 
 Encode DRep to CBOR bytes.
 
 **Signature**
 
 ```ts
-export declare const toBytes: (
-  input:
-    | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-    | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-    | { readonly _tag: "AlwaysAbstainDRep" }
-    | { readonly _tag: "AlwaysNoConfidenceDRep" },
-  options?: CBOR.CodecOptions
-) => Uint8Array
+export declare const toCBORBytes: (drep: DRep, options?: CBOR.CodecOptions) => Uint8Array
 ```
 
 Added in v2.0.0
 
-## toHex
+## toCBORHex
 
 Encode DRep to CBOR hex string.
 
 **Signature**
 
 ```ts
-export declare const toHex: (
-  input:
-    | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-    | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-    | { readonly _tag: "AlwaysAbstainDRep" }
-    | { readonly _tag: "AlwaysNoConfidenceDRep" },
-  options?: CBOR.CodecOptions
-) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two DRep instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (self: DRep, that: DRep) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## DRepError (class)
-
-Error class for DRep related operations.
-
-**Signature**
-
-```ts
-export declare class DRepError
+export declare const toCBORHex: (drep: DRep, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
 
 # model
 
-## AlwaysAbstainDRep (type alias)
+## AlwaysAbstainDRep (class)
 
-Type alias for AlwaysAbstainDRep.
-
-**Signature**
-
-```ts
-export type AlwaysAbstainDRep = Extract<DRep, { _tag: "AlwaysAbstainDRep" }>
-```
-
-Added in v2.0.0
-
-## AlwaysNoConfidenceDRep (type alias)
-
-Type alias for AlwaysNoConfidenceDRep.
+AlwaysAbstainDRep variant of DRep.
+drep = [2]
 
 **Signature**
 
 ```ts
-export type AlwaysNoConfidenceDRep = Extract<DRep, { _tag: "AlwaysNoConfidenceDRep" }>
+export declare class AlwaysAbstainDRep
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+## AlwaysNoConfidenceDRep (class)
+
+AlwaysNoConfidenceDRep variant of DRep.
+drep = [3]
+
+**Signature**
+
+```ts
+export declare class AlwaysNoConfidenceDRep
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 ## DRep (type alias)
 
@@ -237,29 +280,111 @@ export type DRep = typeof DRep.Type
 
 Added in v2.0.0
 
-## KeyHashDRep (type alias)
+## KeyHashDRep (class)
 
-Type alias for KeyHashDRep.
-
-**Signature**
-
-```ts
-export type KeyHashDRep = Extract<DRep, { _tag: "KeyHashDRep" }>
-```
-
-Added in v2.0.0
-
-## ScriptHashDRep (type alias)
-
-Type alias for ScriptHashDRep.
+KeyHashDRep variant of DRep.
+drep = [0, addr_keyhash]
 
 **Signature**
 
 ```ts
-export type ScriptHashDRep = Extract<DRep, { _tag: "ScriptHashDRep" }>
+export declare class KeyHashDRep
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+## ScriptHashDRep (class)
+
+ScriptHashDRep variant of DRep.
+drep = [1, script_hash]
+
+**Signature**
+
+```ts
+export declare class ScriptHashDRep
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # parsing
 
@@ -270,33 +395,19 @@ Parse DRep from CBOR bytes.
 **Signature**
 
 ```ts
-export declare const fromCBORBytes: (
-  bytes: Uint8Array,
-  options?: CBOR.CodecOptions
-) =>
-  | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-  | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-  | { readonly _tag: "AlwaysAbstainDRep" }
-  | { readonly _tag: "AlwaysNoConfidenceDRep" }
+export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => DRep
 ```
 
 Added in v2.0.0
 
-## fromHex
+## fromCBORHex
 
 Parse DRep from CBOR hex string.
 
 **Signature**
 
 ```ts
-export declare const fromHex: (
-  hex: string,
-  options?: CBOR.CodecOptions
-) =>
-  | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-  | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-  | { readonly _tag: "AlwaysAbstainDRep" }
-  | { readonly _tag: "AlwaysNoConfidenceDRep" }
+export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => DRep
 ```
 
 Added in v2.0.0
@@ -332,11 +443,7 @@ Check if the given value is a valid DRep
 export declare const isDRep: (
   u: unknown,
   overrideOptions?: ParseOptions | number
-) => u is
-  | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-  | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-  | { readonly _tag: "AlwaysAbstainDRep" }
-  | { readonly _tag: "AlwaysNoConfidenceDRep" }
+) => u is KeyHashDRep | ScriptHashDRep | AlwaysAbstainDRep | AlwaysNoConfidenceDRep
 ```
 
 Added in v2.0.0
@@ -353,54 +460,7 @@ drep = [0, addr_keyhash] / [1, script_hash] / [2] / [3]
 
 ```ts
 export declare const DRep: Schema.Union<
-  [
-    Schema.TaggedStruct<"KeyHashDRep", { keyHash: typeof KeyHash.KeyHash }>,
-    Schema.TaggedStruct<"ScriptHashDRep", { scriptHash: typeof ScriptHash.ScriptHash }>,
-    Schema.TaggedStruct<"AlwaysAbstainDRep", {}>,
-    Schema.TaggedStruct<"AlwaysNoConfidenceDRep", {}>
-  ]
->
-```
-
-Added in v2.0.0
-
-## FromBytes
-
-CBOR bytes transformation schema for DRep.
-
-**Signature**
-
-```ts
-export declare const FromBytes: (
-  options?: CBOR.CodecOptions
-) => Schema.transform<
-  Schema.transformOrFail<
-    typeof Schema.Uint8ArrayFromSelf,
-    Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
-    never
-  >,
-  Schema.transformOrFail<
-    Schema.Union<
-      [
-        Schema.Tuple2<Schema.Literal<[0n]>, typeof Schema.Uint8ArrayFromSelf>,
-        Schema.Tuple2<Schema.Literal<[1n]>, typeof Schema.Uint8ArrayFromSelf>,
-        Schema.Tuple<[Schema.Literal<[2n]>]>,
-        Schema.Tuple<[Schema.Literal<[3n]>]>
-      ]
-    >,
-    Schema.SchemaClass<
-      | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-      | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-      | { readonly _tag: "AlwaysAbstainDRep" }
-      | { readonly _tag: "AlwaysNoConfidenceDRep" },
-      | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-      | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-      | { readonly _tag: "AlwaysAbstainDRep" }
-      | { readonly _tag: "AlwaysNoConfidenceDRep" },
-      never
-    >,
-    never
-  >
+  [typeof KeyHashDRep, typeof ScriptHashDRep, typeof AlwaysAbstainDRep, typeof AlwaysNoConfidenceDRep]
 >
 ```
 
@@ -424,62 +484,11 @@ export declare const FromCDDL: Schema.transformOrFail<
     ]
   >,
   Schema.SchemaClass<
-    | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-    | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-    | { readonly _tag: "AlwaysAbstainDRep" }
-    | { readonly _tag: "AlwaysNoConfidenceDRep" },
-    | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-    | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-    | { readonly _tag: "AlwaysAbstainDRep" }
-    | { readonly _tag: "AlwaysNoConfidenceDRep" },
+    KeyHashDRep | ScriptHashDRep | AlwaysAbstainDRep | AlwaysNoConfidenceDRep,
+    KeyHashDRep | ScriptHashDRep | AlwaysAbstainDRep | AlwaysNoConfidenceDRep,
     never
   >,
   never
->
-```
-
-Added in v2.0.0
-
-## FromHex
-
-CBOR hex transformation schema for DRep.
-
-**Signature**
-
-```ts
-export declare const FromHex: (
-  options?: CBOR.CodecOptions
-) => Schema.transform<
-  Schema.transform<Schema.Schema<string, string, never>, Schema.Schema<Uint8Array, Uint8Array, never>>,
-  Schema.transform<
-    Schema.transformOrFail<
-      typeof Schema.Uint8ArrayFromSelf,
-      Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
-      never
-    >,
-    Schema.transformOrFail<
-      Schema.Union<
-        [
-          Schema.Tuple2<Schema.Literal<[0n]>, typeof Schema.Uint8ArrayFromSelf>,
-          Schema.Tuple2<Schema.Literal<[1n]>, typeof Schema.Uint8ArrayFromSelf>,
-          Schema.Tuple<[Schema.Literal<[2n]>]>,
-          Schema.Tuple<[Schema.Literal<[3n]>]>
-        ]
-      >,
-      Schema.SchemaClass<
-        | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-        | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-        | { readonly _tag: "AlwaysAbstainDRep" }
-        | { readonly _tag: "AlwaysNoConfidenceDRep" },
-        | { readonly _tag: "KeyHashDRep"; readonly keyHash: KeyHash.KeyHash }
-        | { readonly _tag: "ScriptHashDRep"; readonly scriptHash: ScriptHash.ScriptHash }
-        | { readonly _tag: "AlwaysAbstainDRep" }
-        | { readonly _tag: "AlwaysNoConfidenceDRep" },
-        never
-      >,
-      never
-    >
-  >
 >
 ```
 
@@ -549,5 +558,72 @@ export declare const CDDLSchema: Schema.Union<
     Schema.Tuple<[Schema.Literal<[2n]>]>,
     Schema.Tuple<[Schema.Literal<[3n]>]>
   ]
+>
+```
+
+## FromCBORBytes
+
+**Signature**
+
+```ts
+export declare const FromCBORBytes: (
+  options?: CBOR.CodecOptions
+) => Schema.transform<
+  Schema.transformOrFail<
+    typeof Schema.Uint8ArrayFromSelf,
+    Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
+    never
+  >,
+  Schema.transformOrFail<
+    Schema.Union<
+      [
+        Schema.Tuple2<Schema.Literal<[0n]>, typeof Schema.Uint8ArrayFromSelf>,
+        Schema.Tuple2<Schema.Literal<[1n]>, typeof Schema.Uint8ArrayFromSelf>,
+        Schema.Tuple<[Schema.Literal<[2n]>]>,
+        Schema.Tuple<[Schema.Literal<[3n]>]>
+      ]
+    >,
+    Schema.SchemaClass<
+      KeyHashDRep | ScriptHashDRep | AlwaysAbstainDRep | AlwaysNoConfidenceDRep,
+      KeyHashDRep | ScriptHashDRep | AlwaysAbstainDRep | AlwaysNoConfidenceDRep,
+      never
+    >,
+    never
+  >
+>
+```
+
+## FromCBORHex
+
+**Signature**
+
+```ts
+export declare const FromCBORHex: (
+  options?: CBOR.CodecOptions
+) => Schema.transform<
+  Schema.transform<Schema.Schema<string, string, never>, Schema.Schema<Uint8Array, Uint8Array, never>>,
+  Schema.transform<
+    Schema.transformOrFail<
+      typeof Schema.Uint8ArrayFromSelf,
+      Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
+      never
+    >,
+    Schema.transformOrFail<
+      Schema.Union<
+        [
+          Schema.Tuple2<Schema.Literal<[0n]>, typeof Schema.Uint8ArrayFromSelf>,
+          Schema.Tuple2<Schema.Literal<[1n]>, typeof Schema.Uint8ArrayFromSelf>,
+          Schema.Tuple<[Schema.Literal<[2n]>]>,
+          Schema.Tuple<[Schema.Literal<[3n]>]>
+        ]
+      >,
+      Schema.SchemaClass<
+        KeyHashDRep | ScriptHashDRep | AlwaysAbstainDRep | AlwaysNoConfidenceDRep,
+        KeyHashDRep | ScriptHashDRep | AlwaysAbstainDRep | AlwaysNoConfidenceDRep,
+        never
+      >,
+      never
+    >
+  >
 >
 ```

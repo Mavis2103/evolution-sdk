@@ -210,7 +210,7 @@ export const executeEvaluation = (): Effect.Effect<
       const amount = transaction.body.collateralReturn.amount
       yield* Effect.logDebug(`[Evaluation] Collateral return amount type: ${amount._tag}`)
       if (amount._tag === "WithAssets") {
-        const assetCount = amount.assets.size
+        const assetCount = amount.assets.map.size
         yield* Effect.logDebug(`[Evaluation] Collateral return has ${assetCount} asset policies`)
       }
     }

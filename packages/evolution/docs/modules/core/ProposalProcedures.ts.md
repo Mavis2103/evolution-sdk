@@ -12,19 +12,16 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [ProposalProceduresError (class)](#proposalprocedureserror-class)
 - [model](#model)
   - [ProposalProcedures (class)](#proposalprocedures-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
@@ -50,31 +47,6 @@ export declare const arbitrary: FastCheck.Arbitrary<ProposalProcedures>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Create a ProposalProcedures instance with validation.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly procedures: readonly ProposalProcedure.ProposalProcedure[] },
-  options?: Schema.MakeOptions | undefined
-) => ProposalProcedures
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -84,7 +56,7 @@ Encode ProposalProcedures to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: ProposalProcedures, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: ProposalProcedures, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -96,35 +68,7 @@ Encode ProposalProcedures to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: ProposalProcedures, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two ProposalProcedures instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: ProposalProcedures, b: ProposalProcedures) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## ProposalProceduresError (class)
-
-Error class for ProposalProcedures related operations.
-
-**Signature**
-
-```ts
-export declare class ProposalProceduresError
+export declare const toCBORHex: (data: ProposalProcedures, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -146,6 +90,46 @@ export declare class ProposalProcedures
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # parsing
 

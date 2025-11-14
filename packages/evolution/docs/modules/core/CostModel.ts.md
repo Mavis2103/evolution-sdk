@@ -10,20 +10,87 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
+- [schemas](#schemas)
+  - [FromCBORBytes](#fromcborbytes)
+  - [FromCBORHex](#fromcborhex)
 - [utils](#utils)
   - [CDDLSchema](#cddlschema)
   - [CostModel (class)](#costmodel-class)
-  - [CostModelError (class)](#costmodelerror-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [CostModels (class)](#costmodels-class)
+    - [toJSON (method)](#tojson-method-1)
+    - [toString (method)](#tostring-method-1)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-1)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
   - [FromCDDL](#fromcddl)
   - [arbitrary](#arbitrary)
   - [fromCBOR](#fromcbor)
-  - [fromCBORHex](#fromcborhex)
+  - [fromCBORHex](#fromcborhex-1)
   - [languageViewsEncoding](#languageviewsencoding)
   - [toCBOR](#tocbor)
   - [toCBORHex](#tocborhex)
 
 ---
+
+# schemas
+
+## FromCBORBytes
+
+CBOR bytes transformation schema for CostModels.
+Transforms between Uint8Array and CostModels using CBOR encoding.
+
+**Signature**
+
+```ts
+export declare const FromCBORBytes: (
+  options?: CBOR.CodecOptions
+) => Schema.transform<
+  Schema.transformOrFail<
+    typeof Schema.Uint8ArrayFromSelf,
+    Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
+    never
+  >,
+  Schema.transform<
+    Schema.MapFromSelf<typeof Schema.BigIntFromSelf, Schema.Array$<typeof Schema.BigIntFromSelf>>,
+    Schema.SchemaClass<CostModels, CostModels, never>
+  >
+>
+```
+
+Added in v2.0.0
+
+## FromCBORHex
+
+CBOR hex transformation schema for CostModels.
+Transforms between hex string and CostModels using CBOR encoding.
+
+**Signature**
+
+```ts
+export declare const FromCBORHex: (
+  options?: CBOR.CodecOptions
+) => Schema.transform<
+  Schema.transform<Schema.Schema<string, string, never>, Schema.Schema<Uint8Array, Uint8Array, never>>,
+  Schema.transform<
+    Schema.transformOrFail<
+      typeof Schema.Uint8ArrayFromSelf,
+      Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
+      never
+    >,
+    Schema.transform<
+      Schema.MapFromSelf<typeof Schema.BigIntFromSelf, Schema.Array$<typeof Schema.BigIntFromSelf>>,
+      Schema.SchemaClass<CostModels, CostModels, never>
+    >
+  >
+>
+```
+
+Added in v2.0.0
 
 # utils
 
@@ -53,15 +120,65 @@ cost_model = [ * uint ]
 export declare class CostModel
 ```
 
-## CostModelError (class)
+### toJSON (method)
 
-Error class for CostModel related operations.
+Convert to JSON representation.
 
 **Signature**
 
 ```ts
-export declare class CostModelError
+toJSON()
 ```
+
+Added in v2.0.0
+
+### toString (method)
+
+Convert to string representation.
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+Hash code generation.
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+Added in v2.0.0
 
 ## CostModels (class)
 
@@ -76,6 +193,67 @@ Map of language versions to their corresponding cost models.
 ```ts
 export declare class CostModels
 ```
+
+### toJSON (method)
+
+Convert to JSON representation.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+Convert to string representation.
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+Hash code generation.
+Only hash PlutusV1 for performance - allows hash collisions to trigger full equality check
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+Added in v2.0.0
 
 ## FromCDDL
 
@@ -113,7 +291,7 @@ export declare const fromCBOR: (bytes: Uint8Array, options?: CBOR.CodecOptions) 
 
 ## fromCBORHex
 
-CBOR decoding for CostModels.
+CBOR hex decoding for CostModels.
 
 **Signature**
 
@@ -181,13 +359,15 @@ CBOR encoding for CostModels.
 **Signature**
 
 ```ts
-export declare const toCBOR: (input: CostModels, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBOR: (costModels: CostModels, options?: CBOR.CodecOptions) => Uint8Array
 ```
 
 ## toCBORHex
 
+CBOR hex encoding for CostModels.
+
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: CostModels, options?: CBOR.CodecOptions) => string
+export declare const toCBORHex: (costModels: CostModels, options?: CBOR.CodecOptions) => string
 ```

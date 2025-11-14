@@ -188,34 +188,6 @@ export declare const Struct: <Fields extends Schema.Struct.Fields>(
 ) => Struct<Fields>
 ```
 
-**Example**
-
-```typescript
-import { Core } from "@evolution-sdk/evolution"
-
-// Default: nested in Union, index 0
-Core.TSchema.Struct({ name: Core.TSchema.ByteArray, age: Core.TSchema.Integer })
-```
-
-**Example**
-
-```typescript
-import { Core } from "@evolution-sdk/evolution"
-
-// Flat union variants with custom indices
-Core.TSchema.Struct({ amount: Core.TSchema.Integer }, { index: 121, flat: true })
-Core.TSchema.Struct({ amount: Core.TSchema.Integer }, { index: 122, flat: true })
-```
-
-**Example**
-
-```typescript
-import { Core } from "@evolution-sdk/evolution"
-
-// Custom index but stay nested (advanced use case)
-Core.TSchema.Struct({ data: Core.TSchema.Integer }, { index: 10, flat: false })
-```
-
 Added in v2.0.0
 
 ## StructOptions (interface)
@@ -282,42 +254,6 @@ instead of being wrapped in an additional Constr layer.
 
 ```ts
 export declare const Union: <Members extends ReadonlyArray<Schema.Schema.Any>>(...members: Members) => Union<Members>
-```
-
-**Example**
-
-```typescript
-import { Core } from "@evolution-sdk/evolution"
-
-// Standard union with auto indices (nested)
-Core.TSchema.Union(Core.TSchema.Struct({ a: Core.TSchema.Integer }), Core.TSchema.Struct({ b: Core.TSchema.Integer }))
-// Encodes to: Constr(0, [Constr(0, [a])]) or Constr(1, [Constr(0, [b])])
-```
-
-**Example**
-
-```typescript
-import { Core } from "@evolution-sdk/evolution"
-
-// Union with flat Structs (single-level encoding)
-Core.TSchema.Union(
-  Core.TSchema.Struct({ amount: Core.TSchema.Integer }, { index: 121, flat: true }),
-  Core.TSchema.Struct({ amount: Core.TSchema.Integer }, { index: 122, flat: true })
-)
-// Encodes to: Constr(121, [amount]) or Constr(122, [amount]) - single level!
-```
-
-**Example**
-
-```typescript
-import { Core } from "@evolution-sdk/evolution"
-
-// Mixed union: some nested, some flat
-Core.TSchema.Union(
-  Core.TSchema.Struct({ a: Core.TSchema.Integer }), // nested, auto index 0
-  Core.TSchema.Struct({ b: Core.TSchema.Integer }, { flat: true }), // flat, auto index 1
-  Core.TSchema.Struct({ c: Core.TSchema.Integer }, { index: 100, flat: true }) // flat, custom index 100
-)
 ```
 
 Added in v2.0.0

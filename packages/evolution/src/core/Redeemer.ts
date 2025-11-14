@@ -1,21 +1,9 @@
-import { Data, Effect, FastCheck, ParseResult, Schema } from "effect"
+import { Effect, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 import * as PlutusData from "./Data.js"
-import * as Function from "./Function.js"
 import * as Numeric from "./Numeric.js"
-
-/**
- * Error class for Redeemer related operations.
- *
- * @since 2.0.0
- * @category errors
- */
-export class RedeemerError extends Data.TaggedError("RedeemerError")<{
-  message?: string
-  cause?: unknown
-}> {}
 
 /**
  * Redeemer tag enum for different script execution contexts.
@@ -41,24 +29,31 @@ export type RedeemerTag = typeof RedeemerTag.Type
  * @since 2.0.0
  * @category model
  */
-export const ExUnits = Schema.Tuple(
-  Numeric.Uint64Schema.annotations({
+export class ExUnits extends Schema.Class<ExUnits>("Redeemer.ExUnits")({
+  mem: Numeric.Uint64Schema.annotations({
     identifier: "Redeemer.ExUnits.Memory",
     title: "Memory Units",
     description: "Memory units consumed by script execution"
   }),
-  Numeric.Uint64Schema.annotations({
+  steps: Numeric.Uint64Schema.annotations({
     identifier: "Redeemer.ExUnits.Steps",
     title: "CPU Steps",
     description: "CPU steps consumed by script execution"
   })
-).annotations({
-  identifier: "Redeemer.ExUnits",
-  title: "Execution Units",
-  description: "Memory and CPU limits for Plutus script execution"
-})
+}) {
+  [Equal.symbol](that: unknown): boolean {
+    return (
+      that instanceof ExUnits &&
+      Equal.equals(this.mem, that.mem) &&
+      Equal.equals(this.steps, that.steps)
+    )
+  }
 
-export type ExUnits = typeof ExUnits.Type
+  [Hash.symbol](): number {
+    // Only hash mem for performance
+    return Hash.cached(this, Hash.hash(this.mem))
+  }
+}
 
 /**
  * Redeemer for Plutus script execution based on Conway CDDL specification.
@@ -86,7 +81,70 @@ export class Redeemer extends Schema.Class<Redeemer>("Redeemer")({
     description: "PlutusData passed to the script for validation"
   }),
   exUnits: ExUnits
-}) {}
+}) {
+  /**
+   * Convert to JSON representation.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  toJSON() {
+    return {
+      _tag: "Redeemer",
+      tag: this.tag,
+      index: this.index,
+      data: this.data,
+      exUnits: this.exUnits
+    }
+  }
+
+  /**
+   * Convert to string representation.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  /**
+   * Custom inspect for Node.js REPL.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  /**
+   * Structural equality check.
+   *
+   * @since 2.0.0
+   * @category equality
+   */
+  [Equal.symbol](that: unknown): boolean {
+    return (
+      that instanceof Redeemer &&
+      this.tag === that.tag &&
+      this.index === that.index &&
+      PlutusData.equals(this.data, that.data) &&
+      Equal.equals(this.exUnits, that.exUnits)
+    )
+  }
+
+  /**
+   * Hash code generation.
+   * Only hashes tag and index for performance (minimal structure).
+   *
+   * @since 2.0.0
+   * @category hashing
+   */
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.combine(Hash.string(this.tag))(Hash.hash(this.index)))
+  }
+}
 
 /**
  * Helper function to convert RedeemerTag string to CBOR integer.
@@ -124,9 +182,9 @@ export const integerToTag = (value: bigint): RedeemerTag => {
     case 3n:
       return "reward"
     default:
-      throw new RedeemerError({
-        message: `Invalid redeemer tag: ${value}. Must be 0 (spend), 1 (mint), 2 (cert), or 3 (reward)`
-      })
+      throw new Error(
+        `Invalid redeemer tag: ${value}. Must be 0 (spend), 1 (mint), 2 (cert), or 3 (reward)`
+      )
   }
 }
 
@@ -179,16 +237,16 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Red
     Effect.gen(function* () {
       const tagInteger = tagToInteger(redeemer.tag)
       const dataCBOR = yield* ParseResult.encode(PlutusData.FromCDDL)(redeemer.data)
-      return [tagInteger, redeemer.index, dataCBOR, redeemer.exUnits] as const
+      return [tagInteger, redeemer.index, dataCBOR, [redeemer.exUnits.mem, redeemer.exUnits.steps]] as const
     }),
-  decode: ([tagInteger, index, dataCBOR, exUnits]) =>
+  decode: ([tagInteger, index, dataCBOR, [mem, steps]]) =>
     Effect.gen(function* () {
       const tag = yield* Effect.try({
         try: () => integerToTag(tagInteger),
         catch: (error) => new ParseResult.Type(RedeemerTag.ast, tagInteger, String(error))
       })
       const data = yield* ParseResult.decode(PlutusData.FromCDDL)(dataCBOR)
-      return new Redeemer({ tag, index, data, exUnits })
+      return new Redeemer({ tag, index, data, exUnits: new ExUnits({ mem, steps }) })
     })
 })
 
@@ -312,7 +370,8 @@ export const isReward = (redeemer: Redeemer): boolean => redeemer.tag === "rewar
  * @since 2.0.0
  * @category transformation
  */
-export const toCBORBytes = Function.makeCBOREncodeSync(FromCDDL, RedeemerError, "Redeemer.toCBORBytes")
+export const toCBORBytes = (redeemer: Redeemer, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Uint8Array =>
+  Schema.encodeSync(FromCBORBytes(options))(redeemer)
 
 /**
  * Encode Redeemer to CBOR hex string.
@@ -320,7 +379,8 @@ export const toCBORBytes = Function.makeCBOREncodeSync(FromCDDL, RedeemerError, 
  * @since 2.0.0
  * @category transformation
  */
-export const toCBORHex = Function.makeCBOREncodeHexSync(FromCDDL, RedeemerError, "Redeemer.toCBORHex")
+export const toCBORHex = (redeemer: Redeemer, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): string =>
+  Schema.encodeSync(FromCBORHex(options))(redeemer)
 
 /**
  * Decode Redeemer from CBOR bytes.
@@ -328,7 +388,8 @@ export const toCBORHex = Function.makeCBOREncodeHexSync(FromCDDL, RedeemerError,
  * @since 2.0.0
  * @category transformation
  */
-export const fromCBORBytes = Function.makeCBORDecodeSync(FromCDDL, RedeemerError, "Redeemer.fromCBORBytes")
+export const fromCBORBytes = (bytes: Uint8Array, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Redeemer =>
+  Schema.decodeSync(FromCBORBytes(options))(bytes)
 
 /**
  * Decode Redeemer from CBOR hex string.
@@ -336,16 +397,8 @@ export const fromCBORBytes = Function.makeCBORDecodeSync(FromCDDL, RedeemerError
  * @since 2.0.0
  * @category transformation
  */
-export const fromCBORHex = (hex: string, options?: CBOR.CodecOptions): Redeemer => {
-  try {
-    return Schema.decodeSync(FromCBORHex(options))(hex)
-  } catch (cause) {
-    throw new RedeemerError({
-      message: "Failed to decode Redeemer from CBOR hex",
-      cause
-    })
-  }
-}
+export const fromCBORHex = (hex: string, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Redeemer =>
+  Schema.decodeSync(FromCBORHex(options))(hex)
 
 // ============================================================================
 // Generators
@@ -373,7 +426,7 @@ export const arbitraryRedeemerTag: FastCheck.Arbitrary<RedeemerTag> = FastCheck.
 export const arbitraryExUnits: FastCheck.Arbitrary<ExUnits> = FastCheck.tuple(
   FastCheck.bigInt({ min: 0n, max: 10_000_000n }), // memory
   FastCheck.bigInt({ min: 0n, max: 10_000_000n }) // steps
-)
+).map(([mem, steps]) => new ExUnits({ mem, steps }))
 
 /**
  * FastCheck arbitrary for generating random Redeemer instances.

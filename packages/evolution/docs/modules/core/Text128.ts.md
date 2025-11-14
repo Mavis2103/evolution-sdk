@@ -14,13 +14,9 @@ parent: Modules
   - [arbitrary](#arbitrary-1)
 - [constants](#constants)
   - [TEXT128_MIN_LENGTH](#text128_min_length)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [errors](#errors)
-  - [Text128Error (class)](#text128error-class)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -65,14 +61,6 @@ export declare const TEXT128_MIN_LENGTH: 0
 
 Added in v2.0.0
 
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -82,7 +70,7 @@ Encode Text128 to bytes (unsafe)
 **Signature**
 
 ```ts
-export declare const toBytes: (input: string) => Uint8Array
+export declare const toBytes: (text: Text128) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -94,21 +82,7 @@ Encode Text128 to hex string (unsafe)
 **Signature**
 
 ```ts
-export declare const toHex: (input: string) => string
-```
-
-Added in v2.0.0
-
-# errors
-
-## Text128Error (class)
-
-Error class for Text128 related operations.
-
-**Signature**
-
-```ts
-export declare class Text128Error
+export declare const toHex: (text: Text128) => string
 ```
 
 Added in v2.0.0
@@ -122,7 +96,7 @@ Parse Text128 from bytes (unsafe)
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => string
+export declare const fromBytes: (bytes: Uint8Array) => Text128
 ```
 
 Added in v2.0.0
@@ -134,7 +108,7 @@ Parse Text128 from hex string (unsafe)
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => string
+export declare const fromHex: (hex: string) => Text128
 ```
 
 Added in v2.0.0

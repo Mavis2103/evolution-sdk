@@ -10,21 +10,18 @@ parent: Modules
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
 - [conversion](#conversion)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [ProtocolVersionError (class)](#protocolversionerror-class)
 - [model](#model)
   - [ProtocolVersion (class)](#protocolversion-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [schemas](#schemas)
   - [FromCBORBytes](#fromcborbytes-1)
   - [FromCBORHex](#fromcborhex-1)
@@ -36,23 +33,6 @@ parent: Modules
 
 ---
 
-# constructors
-
-## make
-
-Smart constructor for creating ProtocolVersion instances
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly major: bigint; readonly minor: bigint },
-  options?: Schema.MakeOptions | undefined
-) => ProtocolVersion
-```
-
-Added in v2.0.0
-
 # conversion
 
 ## fromCBORBytes
@@ -62,7 +42,10 @@ Convert CBOR bytes to ProtocolVersion (unsafe)
 **Signature**
 
 ```ts
-export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => ProtocolVersion
+export declare const fromCBORBytes: {
+  (options?: CBOR.CodecOptions): (bytes: Uint8Array) => ProtocolVersion
+  (bytes: Uint8Array, options?: CBOR.CodecOptions): ProtocolVersion
+}
 ```
 
 Added in v2.0.0
@@ -74,7 +57,10 @@ Convert CBOR hex string to ProtocolVersion (unsafe)
 **Signature**
 
 ```ts
-export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => ProtocolVersion
+export declare const fromCBORHex: {
+  (options?: CBOR.CodecOptions): (hex: string) => ProtocolVersion
+  (hex: string, options?: CBOR.CodecOptions): ProtocolVersion
+}
 ```
 
 Added in v2.0.0
@@ -86,7 +72,10 @@ Convert ProtocolVersion to CBOR bytes (unsafe)
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: ProtocolVersion, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: {
+  (options?: CBOR.CodecOptions): (version: ProtocolVersion) => Uint8Array
+  (version: ProtocolVersion, options?: CBOR.CodecOptions): Uint8Array
+}
 ```
 
 Added in v2.0.0
@@ -98,43 +87,10 @@ Convert ProtocolVersion to CBOR hex string (unsafe)
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: ProtocolVersion, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# either
-
-## Either (namespace)
-
-Either namespace for ProtocolVersion operations that can fail
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two ProtocolVersion instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: ProtocolVersion, b: ProtocolVersion) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## ProtocolVersionError (class)
-
-Error class for ProtocolVersion related operations.
-
-**Signature**
-
-```ts
-export declare class ProtocolVersionError
+export declare const toCBORHex: {
+  (options?: CBOR.CodecOptions): (version: ProtocolVersion) => string
+  (version: ProtocolVersion, options?: CBOR.CodecOptions): string
+}
 ```
 
 Added in v2.0.0
@@ -154,6 +110,46 @@ export declare class ProtocolVersion
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # schemas
 

@@ -175,8 +175,8 @@ export const computeTotalExUnits = (redeemers: ReadonlyArray<Redeemer.Redeemer>)
   let mem = 0n
   let steps = 0n
   for (const r of redeemers) {
-    mem += r.exUnits[0]
-    steps += r.exUnits[1]
+    mem += r.exUnits.mem
+    steps += r.exUnits.steps
   }
-  return [mem, steps]
+  return new Redeemer.ExUnits({ mem, steps })
 }

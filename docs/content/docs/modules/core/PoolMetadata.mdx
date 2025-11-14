@@ -10,21 +10,18 @@ parent: Modules
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
 - [conversion](#conversion)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [PoolMetadataError (class)](#poolmetadataerror-class)
 - [model](#model)
   - [PoolMetadata (class)](#poolmetadata-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [schemas](#schemas)
   - [FromCBORBytes](#fromcborbytes-1)
   - [FromCBORHex](#fromcborhex-1)
@@ -33,20 +30,6 @@ parent: Modules
   - [arbitrary](#arbitrary)
 
 ---
-
-# constructors
-
-## make
-
-Smart constructor for creating PoolMetadata instances
-
-**Signature**
-
-```ts
-export declare const make: (props: { url: Url.Url; hash: Uint8Array }) => PoolMetadata
-```
-
-Added in v2.0.0
 
 # conversion
 
@@ -81,7 +64,7 @@ Convert PoolMetadata to CBOR bytes (unsafe)
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: PoolMetadata, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (poolMetadata: PoolMetadata, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -93,43 +76,7 @@ Convert PoolMetadata to CBOR hex string (unsafe)
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: PoolMetadata, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect namespace for PoolMetadata operations that can fail
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two PoolMetadata instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: PoolMetadata, b: PoolMetadata) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## PoolMetadataError (class)
-
-Error class for PoolMetadata related operations.
-
-**Signature**
-
-```ts
-export declare class PoolMetadataError
+export declare const toCBORHex: (poolMetadata: PoolMetadata, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -145,6 +92,66 @@ pool_metadata = [url, bytes]
 
 ```ts
 export declare class PoolMetadata
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+Convert to JSON-serializable object.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+Convert to string representation.
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+Hash code generation.
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0

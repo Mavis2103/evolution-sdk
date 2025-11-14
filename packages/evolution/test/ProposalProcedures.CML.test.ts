@@ -3,7 +3,7 @@ import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
 import * as Anchor from "../src/core/Anchor.js"
-import * as GovernanceAction from "../src/core/GovernanceAction.js"
+import { InfoAction } from "../src/core/GovernanceAction.js"
 import * as ProposalProcedure from "../src/core/ProposalProcedure.js"
 import * as RewardAccount from "../src/core/RewardAccount.js"
 
@@ -24,8 +24,8 @@ describe("ProposalProcedures CML Compatibility", () => {
     const anchor = generateTestAnchor(1)
 
     // Create Evolution SDK ProposalProcedure
-    const evolutionInfoAction = GovernanceAction.makeInfo()
-    const evolutionProcedure = ProposalProcedure.make({
+    const evolutionInfoAction = new InfoAction()
+    const evolutionProcedure = new ProposalProcedure.ProposalProcedure({
       deposit,
       rewardAccount,
       governanceAction: evolutionInfoAction,

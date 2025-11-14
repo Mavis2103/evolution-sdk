@@ -10,48 +10,19 @@ parent: Modules
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
-- [equality](#equality)
-  - [equals](#equals)
 - [generators](#generators)
   - [arbitrary](#arbitrary)
 - [predicates](#predicates)
   - [isPointer](#ispointer)
 - [schemas](#schemas)
   - [Pointer (class)](#pointer-class)
+    - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 
 ---
-
-# constructors
-
-## make
-
-Create a new Pointer instance
-
-**Signature**
-
-```ts
-export declare const make: (slot: Natural.Natural, txIndex: Natural.Natural, certIndex: Natural.Natural) => Pointer
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two Pointer instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Pointer, b: Pointer) => boolean
-```
-
-Added in v2.0.0
 
 # generators
 
@@ -96,6 +67,14 @@ export declare class Pointer
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
 ### toString (method)
 
 **Signature**
@@ -104,10 +83,26 @@ Added in v2.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```

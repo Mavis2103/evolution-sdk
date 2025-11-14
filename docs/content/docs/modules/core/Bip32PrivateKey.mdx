@@ -35,14 +35,15 @@ parent: Modules
   - [Bip32PrivateKey (class)](#bip32privatekey-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
 - [utils](#utils)
   - [CardanoPath](#cardanopath)
   - [Either (namespace)](#either-namespace)
   - [arbitrary](#arbitrary)
-  - [equals](#equals)
-  - [make](#make)
 
 ---
 
@@ -163,7 +164,7 @@ Convert a Bip32PrivateKey to raw bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: Bip32PrivateKey) => any
+export declare const toBytes: (a: Bip32PrivateKey, overrideOptions?: ParseOptions) => any
 ```
 
 Added in v2.0.0
@@ -175,7 +176,7 @@ Convert a Bip32PrivateKey to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: Bip32PrivateKey) => string
+export declare const toHex: (a: Bip32PrivateKey, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -203,7 +204,7 @@ Parse a Bip32PrivateKey from raw bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: any) => Bip32PrivateKey
+export declare const fromBytes: (i: any, overrideOptions?: ParseOptions) => Bip32PrivateKey
 ```
 
 Added in v2.0.0
@@ -215,7 +216,7 @@ Parse a Bip32PrivateKey from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => Bip32PrivateKey
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => Bip32PrivateKey
 ```
 
 Added in v2.0.0
@@ -241,7 +242,7 @@ Added in v2.0.0
 **Signature**
 
 ```ts
-toJSON(): string
+toJSON()
 ```
 
 ### toString (method)
@@ -250,6 +251,30 @@ toJSON(): string
 
 ```ts
 toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 ## FromBytes
@@ -308,20 +333,4 @@ export declare const CardanoPath: {
 
 ```ts
 export declare const arbitrary: FastCheck.Arbitrary<Bip32PrivateKey>
-```
-
-## equals
-
-**Signature**
-
-```ts
-export declare const equals: (a: Bip32PrivateKey, b: Bip32PrivateKey) => boolean
-```
-
-## make
-
-**Signature**
-
-```ts
-export declare const make: (props: { readonly bytes: any }, options?: Schema.MakeOptions | undefined) => Bip32PrivateKey
 ```

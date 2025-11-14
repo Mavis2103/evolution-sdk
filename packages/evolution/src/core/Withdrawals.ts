@@ -1,21 +1,45 @@
-import { Data, Effect as Eff, FastCheck, ParseResult, Schema } from "effect"
+import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 import * as Coin from "./Coin.js"
-import * as Function from "./Function.js"
 import * as RewardAccount from "./RewardAccount.js"
 
 /**
- * Error class for Withdrawals related operations.
+ * Helper function for content-based Map equality using Equal.equals.
  *
  * @since 2.0.0
- * @category errors
+ * @category equality
  */
-export class WithdrawalsError extends Data.TaggedError("WithdrawalsError")<{
-  message?: string
-  cause?: unknown
-}> {}
+const mapEquals = <K, V>(a: Map<K, V>, b: Map<K, V>): boolean => {
+  if (a.size !== b.size) return false
+  for (const [aKey, aValue] of a.entries()) {
+    let found = false
+    for (const [bKey, bValue] of b.entries()) {
+      if (Equal.equals(aKey, bKey) && Equal.equals(aValue, bValue)) {
+        found = true
+        break
+      }
+    }
+    if (!found) return false
+  }
+  return true
+}
+
+/**
+ * Helper function for content-based Map hashing.
+ * Computes hash by XORing hashes of all entries for order-independence.
+ *
+ * @since 2.0.0
+ * @category hashing
+ */
+const mapHash = <K, V>(map: Map<K, V>): number => {
+  let hash = Hash.hash(map.size)
+  for (const [key, value] of map.entries()) {
+    hash ^= Hash.hash(key) ^ Hash.hash(value)
+  }
+  return hash
+}
 
 /**
  * Schema for Withdrawals representing a map of reward accounts to coin amounts.
@@ -32,7 +56,36 @@ export class Withdrawals extends Schema.TaggedClass<Withdrawals>()("Withdrawals"
     key: RewardAccount.FromBech32,
     value: Coin.Coin
   })
-}) {}
+}) {
+  toJSON() {
+    return {
+      _tag: "Withdrawals" as const,
+      withdrawals: Array.from(this.withdrawals.entries()).map(([account, coin]) => [account, coin])
+    }
+  }
+
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  [Equal.symbol](that: unknown): boolean {
+    return that instanceof Withdrawals && mapEquals(this.withdrawals, that.withdrawals)
+  }
+
+  /**
+   * Content-based hash for optimization of Equal.equals.
+   *
+   * @since 2.0.0
+   * @category hashing
+   */
+  [Hash.symbol](): number {
+    return Hash.cached(this, mapHash(this.withdrawals))
+  }
+}
 
 /**
  * Check if the given value is a valid Withdrawals
@@ -73,10 +126,10 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Wit
       const decodedWithdrawals = new Map<RewardAccount.RewardAccount, Coin.Coin>()
       for (const [accountBytes, coinAmount] of fromA.entries()) {
         const rewardAccount = yield* ParseResult.decode(RewardAccount.FromBytes)(accountBytes)
-        const coin = Coin.make(coinAmount)
+        const coin = yield* ParseResult.decode(Coin.Coin)(coinAmount)
         decodedWithdrawals.set(rewardAccount, coin)
       }
-      return Withdrawals.make({ withdrawals: decodedWithdrawals }, { disableValidation: true })
+      return new Withdrawals({ withdrawals: decodedWithdrawals })
     })
 })
 
@@ -103,31 +156,6 @@ export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTION
     Bytes.FromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → Withdrawals
   )
-
-/**
- * Check if two Withdrawals instances are equal.
- *
- * @since 2.0.0
- * @category equality
- */
-export const equals = (self: Withdrawals, that: Withdrawals): boolean => {
-  if (self.withdrawals.size !== that.withdrawals.size) return false
-
-  // Map keys are RewardAccount instances which may be different object
-  // identities after decoding; compare keys structurally using RewardAccount.equals
-  for (const [account, coin] of self.withdrawals) {
-    let found = false
-    for (const [otherAccount, otherCoin] of that.withdrawals) {
-      if (RewardAccount.equals(account, otherAccount) && Coin.equals(coin, otherCoin)) {
-        found = true
-        break
-      }
-    }
-    if (!found) return false
-  }
-
-  return true
-}
 
 /**
  * FastCheck arbitrary for Withdrawals instances.
@@ -247,7 +275,8 @@ export const entries = (withdrawals: Withdrawals): Array<[RewardAccount.RewardAc
  * @since 2.0.0
  * @category parsing
  */
-export const fromCBORBytes = Function.makeCBORDecodeSync(FromCDDL, WithdrawalsError, "Withdrawals.fromCBORBytes")
+export const fromCBORBytes = (bytes: Uint8Array, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.decodeSync(FromCBORBytes(options))(bytes)
 
 /**
  * Parse a Withdrawals from CBOR hex string.
@@ -255,7 +284,8 @@ export const fromCBORBytes = Function.makeCBORDecodeSync(FromCDDL, WithdrawalsEr
  * @since 2.0.0
  * @category parsing
  */
-export const fromCBORHex = Function.makeCBORDecodeHexSync(FromCDDL, WithdrawalsError, "Withdrawals.fromCBORHex")
+export const fromCBORHex = (hex: string, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.decodeSync(FromCBORHex(options))(hex)
 
 // ============================================================================
 // Encoding Functions
@@ -267,7 +297,8 @@ export const fromCBORHex = Function.makeCBORDecodeHexSync(FromCDDL, WithdrawalsE
  * @since 2.0.0
  * @category encoding
  */
-export const toCBORBytes = Function.makeCBOREncodeSync(FromCDDL, WithdrawalsError, "Withdrawals.toCBORBytes")
+export const toCBORBytes = (data: Withdrawals, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.encodeSync(FromCBORBytes(options))(data)
 
 /**
  * Convert a Withdrawals to CBOR hex string.
@@ -275,48 +306,5 @@ export const toCBORBytes = Function.makeCBOREncodeSync(FromCDDL, WithdrawalsErro
  * @since 2.0.0
  * @category encoding
  */
-export const toCBORHex = Function.makeCBOREncodeHexSync(FromCDDL, WithdrawalsError, "Withdrawals.toCBORHex")
-
-// ============================================================================
-// Either Namespace - Either-based Error Handling
-// ============================================================================
-
-/**
- * Either-based error handling variants for functions that can fail.
- *
- * @since 2.0.0
- * @category either
- */
-export namespace Either {
-  /**
-   * Parse a Withdrawals from CBOR bytes.
-   *
-   * @since 2.0.0
-   * @category parsing
-   */
-  export const fromCBORBytes = Function.makeCBORDecodeEither(FromCDDL, WithdrawalsError)
-
-  /**
-   * Parse a Withdrawals from CBOR hex string.
-   *
-   * @since 2.0.0
-   * @category parsing
-   */
-  export const fromCBORHex = Function.makeCBORDecodeHexEither(FromCDDL, WithdrawalsError)
-
-  /**
-   * Convert a Withdrawals to CBOR bytes.
-   *
-   * @since 2.0.0
-   * @category encoding
-   */
-  export const toCBORBytes = Function.makeCBOREncodeEither(FromCDDL, WithdrawalsError)
-
-  /**
-   * Convert a Withdrawals to CBOR hex string.
-   *
-   * @since 2.0.0
-   * @category encoding
-   */
-  export const toCBORHex = Function.makeCBOREncodeHexEither(FromCDDL, WithdrawalsError)
-}
+export const toCBORHex = (data: Withdrawals, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.encodeSync(FromCBORHex(options))(data)

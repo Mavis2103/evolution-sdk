@@ -10,19 +10,16 @@ parent: Modules
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [ProposalProcedureError (class)](#proposalprocedureerror-class)
 - [model](#model)
   - [ProposalProcedure (class)](#proposalprocedure-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
@@ -34,43 +31,6 @@ parent: Modules
 
 ---
 
-# constructors
-
-## make
-
-Create a single ProposalProcedure.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: {
-    readonly anchor: Anchor.Anchor | null
-    readonly rewardAccount: RewardAccount.RewardAccount
-    readonly deposit: bigint
-    readonly governanceAction:
-      | GovernanceAction.ParameterChangeAction
-      | GovernanceAction.HardForkInitiationAction
-      | GovernanceAction.TreasuryWithdrawalsAction
-      | GovernanceAction.NoConfidenceAction
-      | GovernanceAction.UpdateCommitteeAction
-      | GovernanceAction.NewConstitutionAction
-      | GovernanceAction.InfoAction
-  },
-  options?: Schema.MakeOptions | undefined
-) => ProposalProcedure
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -80,7 +40,7 @@ Encode individual ProposalProcedure to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: ProposalProcedure, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (procedure: ProposalProcedure, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -92,35 +52,7 @@ Encode individual ProposalProcedure to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: ProposalProcedure, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two ProposalProcedure instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: ProposalProcedure, b: ProposalProcedure) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## ProposalProcedureError (class)
-
-Error class for ProposalProcedure related operations.
-
-**Signature**
-
-```ts
-export declare class ProposalProcedureError
+export declare const toCBORHex: (procedure: ProposalProcedure, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -146,6 +78,66 @@ governance_action = [action_type, action_data]
 
 ```ts
 export declare class ProposalProcedure
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+Convert to JSON representation.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+Convert to string representation.
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+Custom inspect for Node.js REPL.
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+Structural equality check.
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+Hash code generation.
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0

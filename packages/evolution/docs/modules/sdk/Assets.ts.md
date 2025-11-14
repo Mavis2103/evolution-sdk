@@ -55,7 +55,7 @@ Convert Core Mint to SDK Assets format (without lovelace).
 
 ```ts
 export declare const fromMint: (
-  a: Map<CorePolicyId.PolicyId, Map<AssetName.AssetName, bigint>>,
+  a: CoreMint.Mint,
   overrideOptions?: ParseOptions
 ) => { readonly lovelace?: bigint | undefined } & { readonly [x: string]: bigint }
 ```
@@ -87,7 +87,7 @@ Convert SDK Assets to Core Mint (lovelace key will be rejected).
 export declare const toMint: (
   i: { readonly lovelace?: bigint | undefined } & { readonly [x: string]: bigint },
   overrideOptions?: ParseOptions
-) => Map<CorePolicyId.PolicyId, Map<AssetName.AssetName, bigint>>
+) => CoreMint.Mint
 ```
 
 Added in v2.0.0
@@ -171,11 +171,7 @@ export declare const MintFromAssets: Schema.transformOrFail<
     Schema.Struct<{ lovelace: Schema.optional<typeof Schema.BigIntFromSelf> }>,
     Schema.Record$<typeof Schema.String, typeof Schema.BigIntFromSelf>
   >,
-  Schema.SchemaClass<
-    Map<CorePolicyId.PolicyId, Map<AssetName.AssetName, bigint>>,
-    Map<CorePolicyId.PolicyId, Map<AssetName.AssetName, bigint>>,
-    never
-  >,
+  Schema.SchemaClass<CoreMint.Mint, CoreMint.Mint, never>,
   never
 >
 ```

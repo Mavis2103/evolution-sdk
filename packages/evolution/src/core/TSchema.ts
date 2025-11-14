@@ -102,7 +102,7 @@ export const Array = <S extends Schema.Schema.Any>(items: S): Array<S> => Schema
 
 interface Map<K extends Schema.Schema.Any, V extends Schema.Schema.Any>
   extends Schema.transform<
-    Schema.SchemaClass<globalThis.Map<Data.Data, Data.Data>, globalThis.Map<Data.Data, Data.Data>, never>,
+    Schema.SchemaClass<ReadonlyMap<Data.Data, Data.Data>, ReadonlyMap<Data.Data, Data.Data>, never>,
     Schema.MapFromSelf<K, V>
   > {}
 
@@ -119,7 +119,7 @@ export const Map = <K extends Schema.Schema.Any, V extends Schema.Schema.Any>(ke
     encode: (tsMap) => {
       // Transform TypeScript Map<K_TS, V_TS> to Data Map<K_Data, V_Data>
       // The individual key/value transformations are handled by the schema framework
-      return new globalThis.Map([...tsMap])
+      return new globalThis.Map([...tsMap]) as ReadonlyMap<Data.Data, Data.Data>
     },
     decode: (dataMap) => {
       // Transform Data Map<K_Data, V_Data> to TypeScript Map<K_TS, V_TS>
@@ -227,31 +227,6 @@ export interface StructOptions {
  * Creates a schema for struct types using Plutus Data Constructor
  * Objects are represented as a constructor with index (default 0) and fields as an array
  *
- * @example
- * ```typescript
- * import { Core } from "@evolution-sdk/evolution"
- * 
- * // Default: nested in Union, index 0
- * Core.TSchema.Struct({ name: Core.TSchema.ByteArray, age: Core.TSchema.Integer })
- * ```
- *
- * @example
- * ```typescript
- * import { Core } from "@evolution-sdk/evolution"
- * 
- * // Flat union variants with custom indices
- * Core.TSchema.Struct({ amount: Core.TSchema.Integer }, { index: 121, flat: true })
- * Core.TSchema.Struct({ amount: Core.TSchema.Integer }, { index: 122, flat: true })
- * ```
- * 
- * @example
- * ```typescript
- * import { Core } from "@evolution-sdk/evolution"
- * 
- * // Custom index but stay nested (advanced use case)
- * Core.TSchema.Struct({ data: Core.TSchema.Integer }, { index: 10, flat: false })
- * ```
- *
  * @since 2.0.0
  */
 export const Struct = <Fields extends Schema.Struct.Fields>(
@@ -303,42 +278,6 @@ interface Union<Members extends ReadonlyArray<Schema.Schema.Any>>
  *
  * Members marked with flat: true will be encoded directly using their index
  * instead of being wrapped in an additional Constr layer.
- *
- * @example
- * ```typescript
- * import { Core } from "@evolution-sdk/evolution"
- * 
- * // Standard union with auto indices (nested)
- * Core.TSchema.Union(
- *   Core.TSchema.Struct({ a: Core.TSchema.Integer }),
- *   Core.TSchema.Struct({ b: Core.TSchema.Integer })
- * )
- * // Encodes to: Constr(0, [Constr(0, [a])]) or Constr(1, [Constr(0, [b])])
- * ```
- *
- * @example
- * ```typescript
- * import { Core } from "@evolution-sdk/evolution"
- * 
- * // Union with flat Structs (single-level encoding)
- * Core.TSchema.Union(
- *   Core.TSchema.Struct({ amount: Core.TSchema.Integer }, { index: 121, flat: true }),
- *   Core.TSchema.Struct({ amount: Core.TSchema.Integer }, { index: 122, flat: true })
- * )
- * // Encodes to: Constr(121, [amount]) or Constr(122, [amount]) - single level!
- * ```
- * 
- * @example
- * ```typescript
- * import { Core } from "@evolution-sdk/evolution"
- * 
- * // Mixed union: some nested, some flat
- * Core.TSchema.Union(
- *   Core.TSchema.Struct({ a: Core.TSchema.Integer }),  // nested, auto index 0
- *   Core.TSchema.Struct({ b: Core.TSchema.Integer }, { flat: true }),  // flat, auto index 1
- *   Core.TSchema.Struct({ c: Core.TSchema.Integer }, { index: 100, flat: true })  // flat, custom index 100
- * )
- * ```
  *
  * @since 2.0.0
  */

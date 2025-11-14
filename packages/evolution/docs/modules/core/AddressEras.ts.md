@@ -12,8 +12,6 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBech32](#tobech32)
   - [toBytes](#tobytes)
@@ -21,7 +19,6 @@ parent: Modules
 - [model](#model)
   - [AddressEras](#addresseras)
   - [AddressEras (type alias)](#addresseras-type-alias)
-  - [AddressErasError (class)](#addresseraserror-class)
 - [parsing](#parsing)
   - [fromBech32](#frombech32)
   - [fromBytes](#frombytes)
@@ -31,7 +28,6 @@ parent: Modules
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
 - [utils](#utils)
-  - [equals](#equals)
   - [isAddress](#isaddress)
 
 ---
@@ -55,14 +51,6 @@ export declare const arbitrary: FastCheck.Arbitrary<
 
 Added in v2.0.0
 
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBech32
@@ -73,12 +61,13 @@ Convert an Address to Bech32 string.
 
 ```ts
 export declare const toBech32: (
-  input:
+  a:
     | RewardAccount.RewardAccount
     | BaseAddress.BaseAddress
     | EnterpriseAddress.EnterpriseAddress
     | PointerAddress.PointerAddress
-    | ByronAddress.ByronAddress
+    | ByronAddress.ByronAddress,
+  overrideOptions?: ParseOptions
 ) => string
 ```
 
@@ -92,12 +81,13 @@ Convert an Address to bytes.
 
 ```ts
 export declare const toBytes: (
-  input:
+  a:
     | RewardAccount.RewardAccount
     | BaseAddress.BaseAddress
     | EnterpriseAddress.EnterpriseAddress
     | PointerAddress.PointerAddress
-    | ByronAddress.ByronAddress
+    | ByronAddress.ByronAddress,
+  overrideOptions?: ParseOptions
 ) => any
 ```
 
@@ -111,12 +101,13 @@ Convert an Address to hex string.
 
 ```ts
 export declare const toHex: (
-  input:
+  a:
     | RewardAccount.RewardAccount
     | BaseAddress.BaseAddress
     | EnterpriseAddress.EnterpriseAddress
     | PointerAddress.PointerAddress
-    | ByronAddress.ByronAddress
+    | ByronAddress.ByronAddress,
+  overrideOptions?: ParseOptions
 ) => string
 ```
 
@@ -156,18 +147,6 @@ export type AddressEras = typeof AddressEras.Type
 
 Added in v2.0.0
 
-## AddressErasError (class)
-
-Error thrown when address operations fail
-
-**Signature**
-
-```ts
-export declare class AddressErasError
-```
-
-Added in v2.0.0
-
 # parsing
 
 ## fromBech32
@@ -178,7 +157,8 @@ Parse an Address from Bech32 string.
 
 ```ts
 export declare const fromBech32: (
-  input: string
+  i: string,
+  overrideOptions?: ParseOptions
 ) =>
   | RewardAccount.RewardAccount
   | BaseAddress.BaseAddress
@@ -197,7 +177,8 @@ Parse an Address from bytes.
 
 ```ts
 export declare const fromBytes: (
-  input: any
+  i: any,
+  overrideOptions?: ParseOptions
 ) =>
   | RewardAccount.RewardAccount
   | BaseAddress.BaseAddress
@@ -216,7 +197,8 @@ Parse an Address from hex string.
 
 ```ts
 export declare const fromHex: (
-  input: string
+  i: string,
+  overrideOptions?: ParseOptions
 ) =>
   | RewardAccount.RewardAccount
   | BaseAddress.BaseAddress
@@ -317,18 +299,6 @@ export declare const FromHex: Schema.transform<
 Added in v2.0.0
 
 # utils
-
-## equals
-
-Checks if two addresses are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: AddressEras, b: AddressEras) => boolean
-```
-
-Added in v2.0.0
 
 ## isAddress
 

@@ -12,27 +12,22 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
 - [encoding/decoding](#encodingdecoding)
   - [decodeVariableLength](#decodevariablelength)
   - [encodeVariableLength](#encodevariablelength)
-- [equality](#equality)
-  - [equals](#equals)
-- [model](#model)
-  - [PointerAddressError (class)](#pointeraddresserror-class)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
 - [schemas](#schemas)
   - [PointerAddress (class)](#pointeraddress-class)
+    - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [utils](#utils)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
@@ -43,6 +38,9 @@ parent: Modules
 
 ## arbitrary
 
+Smart constructor for creating PointerAddress instances
+
+/\*\*
 FastCheck arbitrary for generating random PointerAddress instances
 
 **Signature**
@@ -50,32 +48,6 @@ FastCheck arbitrary for generating random PointerAddress instances
 ```ts
 export declare const arbitrary: FastCheck.Arbitrary<PointerAddress>
 ```
-
-Added in v2.0.0
-
-# constructors
-
-## make
-
-Smart constructor for creating PointerAddress instances
-
-**Signature**
-
-```ts
-export declare const make: (props: {
-  networkId: NetworkId.NetworkId
-  paymentCredential: Credential.CredentialSchema
-  pointer: Pointer.Pointer
-}) => PointerAddress
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
 
 Added in v2.0.0
 
@@ -88,7 +60,7 @@ Convert a PointerAddress to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: PointerAddress) => any
+export declare const toBytes: (data: PointerAddress) => any
 ```
 
 Added in v2.0.0
@@ -100,7 +72,7 @@ Convert a PointerAddress to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: PointerAddress) => string
+export declare const toHex: (data: PointerAddress) => string
 ```
 
 Added in v2.0.0
@@ -140,34 +112,6 @@ export declare const encodeVariableLength: (
 
 Added in v2.0.0
 
-# equality
-
-## equals
-
-Check if two PointerAddress instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: PointerAddress, b: PointerAddress) => boolean
-```
-
-Added in v2.0.0
-
-# model
-
-## PointerAddressError (class)
-
-Error thrown when address operations fail
-
-**Signature**
-
-```ts
-export declare class PointerAddressError
-```
-
-Added in v2.0.0
-
 # parsing
 
 ## fromBytes
@@ -177,7 +121,7 @@ Parse a PointerAddress from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: any) => PointerAddress
+export declare const fromBytes: (bytes: Uint8Array) => PointerAddress
 ```
 
 Added in v2.0.0
@@ -189,7 +133,7 @@ Parse a PointerAddress from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => PointerAddress
+export declare const fromHex: (hex: string) => PointerAddress
 ```
 
 Added in v2.0.0
@@ -208,6 +152,14 @@ export declare class PointerAddress
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
 ### toString (method)
 
 **Signature**
@@ -216,12 +168,28 @@ Added in v2.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # utils

@@ -12,17 +12,9 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [TransactionHashError (class)](#transactionhasherror-class)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -31,8 +23,11 @@ parent: Modules
 - [schemas](#schemas)
   - [FromBytes](#frombytes-1)
   - [TransactionHash (class)](#transactionhash-class)
+    - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [utils](#utils)
   - [FromHex](#fromhex-1)
 
@@ -52,31 +47,6 @@ export declare const arbitrary: FastCheck.Arbitrary<TransactionHash>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for TransactionHash that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly hash: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => TransactionHash
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -86,7 +56,7 @@ Encode TransactionHash to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: TransactionHash) => Uint8Array
+export declare const toBytes: (a: TransactionHash, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -98,35 +68,7 @@ Encode TransactionHash to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: TransactionHash) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two TransactionHash instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: TransactionHash, b: TransactionHash) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## TransactionHashError (class)
-
-Error class for TransactionHash related operations.
-
-**Signature**
-
-```ts
-export declare class TransactionHashError
+export declare const toHex: (a: TransactionHash, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -140,7 +82,7 @@ Parse TransactionHash from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => TransactionHash
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => TransactionHash
 ```
 
 Added in v2.0.0
@@ -152,7 +94,7 @@ Parse TransactionHash from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => TransactionHash
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => TransactionHash
 ```
 
 Added in v2.0.0
@@ -201,6 +143,14 @@ export declare class TransactionHash
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
 ### toString (method)
 
 **Signature**
@@ -209,12 +159,28 @@ Added in v2.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # utils

@@ -10,24 +10,21 @@ parent: Modules
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [Either](#either)
-  - [Either (namespace)](#either-namespace)
 - [FastCheck](#fastcheck)
   - [arbitrary](#arbitrary)
-- [constructors](#constructors)
-  - [make](#make)
 - [decoding](#decoding)
-  - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
 - [encoding](#encoding)
+  - [fromCBORBytes](#fromcborbytes)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [VrfCertError (class)](#vrfcerterror-class)
 - [model](#model)
   - [VrfCert (class)](#vrfcert-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [predicates](#predicates)
   - [isVrfCert](#isvrfcert)
 - [schemas](#schemas)
@@ -35,23 +32,25 @@ parent: Modules
   - [FromCBORHex](#fromcborhex-1)
   - [FromCDDL](#fromcddl)
   - [VRFOutput (class)](#vrfoutput-class)
+    - [toJSON (method)](#tojson-method-1)
+    - [toString (method)](#tostring-method-1)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-1)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
   - [VRFOutputFromBytes](#vrfoutputfrombytes)
   - [VRFOutputHexSchema](#vrfoutputhexschema)
   - [VRFProof (class)](#vrfproof-class)
+    - [toJSON (method)](#tojson-method-2)
+    - [toString (method)](#tostring-method-2)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-2)
+    - [[Equal.symbol] (method)](#equalsymbol-method-2)
+    - [[Hash.symbol] (method)](#hashsymbol-method-2)
   - [VRFProofFromBytes](#vrfprooffrombytes)
   - [VRFProofHexSchema](#vrfproofhexschema)
 - [utils](#utils)
   - [CDDLSchema](#cddlschema)
 
 ---
-
-# Either
-
-## Either (namespace)
-
-Either namespace containing schema decode and encode operations.
-
-Added in v2.0.0
 
 # FastCheck
 
@@ -65,37 +64,11 @@ export declare const arbitrary: FastCheck.Arbitrary<VrfCert>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Create a VrfCert from output and proof.
-
-**Signature**
-
-```ts
-export declare const make: (output: VRFOutput, proof: VRFProof) => VrfCert
-```
-
-Added in v2.0.0
-
 # decoding
-
-## fromCBORBytes
-
-Parse VrfCert from CBOR bytes (unsafe).
-
-**Signature**
-
-```ts
-export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => VrfCert
-```
-
-Added in v2.0.0
 
 ## fromCBORHex
 
-Parse VrfCert from CBOR hex (unsafe).
+Convert CBOR hex to VrfCert (unsafe).
 
 **Signature**
 
@@ -107,6 +80,18 @@ Added in v2.0.0
 
 # encoding
 
+## fromCBORBytes
+
+Convert CBOR bytes to VrfCert (unsafe).
+
+**Signature**
+
+```ts
+export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => VrfCert
+```
+
+Added in v2.0.0
+
 ## toCBORBytes
 
 Convert VrfCert to CBOR bytes (unsafe).
@@ -114,7 +99,7 @@ Convert VrfCert to CBOR bytes (unsafe).
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: VrfCert, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (vrfCert: VrfCert, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -126,35 +111,7 @@ Convert VrfCert to CBOR hex (unsafe).
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: VrfCert, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two VrfCert instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: VrfCert, b: VrfCert) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## VrfCertError (class)
-
-Error class for VrfCert related operations.
-
-**Signature**
-
-```ts
-export declare class VrfCertError
+export declare const toCBORHex: (vrfCert: VrfCert, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -173,6 +130,46 @@ export declare class VrfCert
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # predicates
 
@@ -275,6 +272,46 @@ export declare class VRFOutput
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
 ## VRFOutputFromBytes
 
 Schema for VRF output as a byte array.
@@ -319,6 +356,46 @@ export declare class VRFProof
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 ## VRFProofFromBytes
 

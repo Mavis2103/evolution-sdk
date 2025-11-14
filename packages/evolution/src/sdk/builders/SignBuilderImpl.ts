@@ -17,7 +17,7 @@
 import { Effect } from "effect"
 
 import * as Transaction from "../../core/Transaction.js"
-import type * as TransactionWitnessSet from "../../core/TransactionWitnessSet.js"
+import * as TransactionWitnessSet from "../../core/TransactionWitnessSet.js"
 import type * as Provider from "../provider/Provider.js"
 import type * as UTxO from "../UTxO.js"
 import type * as WalletNew from "../wallet/WalletNew.js"
@@ -138,7 +138,7 @@ export const makeSignBuilder = (params: {
 
         // Merge all witness sets
         const mergedWitnessSet = witnesses.reduce(
-          (acc, ws) => ({
+          (acc, ws) => new TransactionWitnessSet.TransactionWitnessSet({
             vkeyWitnesses: [...(acc.vkeyWitnesses ?? []), ...(ws.vkeyWitnesses ?? [])],
             nativeScripts: [...(acc.nativeScripts ?? []), ...(ws.nativeScripts ?? [])],
             bootstrapWitnesses: [...(acc.bootstrapWitnesses ?? []), ...(ws.bootstrapWitnesses ?? [])],
@@ -146,9 +146,9 @@ export const makeSignBuilder = (params: {
             plutusV2Scripts: [...(acc.plutusV2Scripts ?? []), ...(ws.plutusV2Scripts ?? [])],
             plutusV3Scripts: [...(acc.plutusV3Scripts ?? []), ...(ws.plutusV3Scripts ?? [])],
             plutusData: [...(acc.plutusData ?? []), ...(ws.plutusData ?? [])],
-            redeemers: [...(acc.redeemers ?? []), ...(ws.redeemers ?? [])]
+            redeemers: [...(acc.redeemers ?? [])]
           }),
-          {
+          new TransactionWitnessSet.TransactionWitnessSet({
             vkeyWitnesses: [],
             nativeScripts: [],
             bootstrapWitnesses: [],
@@ -157,7 +157,7 @@ export const makeSignBuilder = (params: {
             plutusV3Scripts: [],
             plutusData: [],
             redeemers: []
-          } as TransactionWitnessSet.TransactionWitnessSet
+          })
         )
 
         yield* Effect.logDebug(`Merged witness set contains ${mergedWitnessSet.vkeyWitnesses?.length ?? 0} VKey witnesses`)

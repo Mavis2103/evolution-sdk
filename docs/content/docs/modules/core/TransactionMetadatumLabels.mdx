@@ -13,10 +13,13 @@ parent: Modules
 - [model](#model)
   - [TransactionMetadatumLabel](#transactionmetadatumlabel)
   - [TransactionMetadatumLabel (type alias)](#transactionmetadatumlabel-type-alias)
-  - [TransactionMetadatumLabelsError (class)](#transactionmetadatumlabelserror-class)
 - [schemas](#schemas)
   - [TransactionMetadatumLabels (class)](#transactionmetadatumlabels-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
     - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
     - [size (method)](#size-method)
     - [get (method)](#get-method)
     - [set (method)](#set-method)
@@ -61,18 +64,6 @@ export type TransactionMetadatumLabel = typeof TransactionMetadatumLabel.Type
 
 Added in v2.0.0
 
-## TransactionMetadatumLabelsError (class)
-
-Error thrown when transaction metadatum labels operations fail
-
-**Signature**
-
-```ts
-export declare class TransactionMetadatumLabelsError
-```
-
-Added in v2.0.0
-
 # schemas
 
 ## TransactionMetadatumLabels (class)
@@ -87,12 +78,44 @@ export declare class TransactionMetadatumLabels
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
 ### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
 ;[Inspectable.NodeInspectSymbol]()
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 ### size (method)

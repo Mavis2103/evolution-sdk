@@ -10,39 +10,25 @@ parent: Modules
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [errors](#errors)
-  - [TransactionError (class)](#transactionerror-class)
 - [model](#model)
   - [Transaction (class)](#transaction-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [utils](#utils)
   - [CDDLSchema](#cddlschema)
-  - [Either (namespace)](#either-namespace)
   - [FromCBORBytes](#fromcborbytes)
   - [FromCBORHex](#fromcborhex)
   - [FromCDDL](#fromcddl)
   - [arbitrary](#arbitrary)
-  - [equals](#equals)
   - [fromCBORBytes](#fromcborbytes-1)
   - [fromCBORHex](#fromcborhex-1)
-  - [make](#make)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
 
 ---
-
-# errors
-
-## TransactionError (class)
-
-Error class for Transaction related operations.
-
-**Signature**
-
-```ts
-export declare class TransactionError
-```
-
-Added in v2.0.0
 
 # model
 
@@ -60,6 +46,46 @@ export declare class Transaction
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # utils
 
@@ -81,8 +107,6 @@ export declare const CDDLSchema: Schema.Tuple<
   ]
 >
 ```
-
-## Either (namespace)
 
 ## FromCBORBytes
 
@@ -176,14 +200,6 @@ export declare const FromCDDL: Schema.transformOrFail<
 export declare const arbitrary: FastCheck.Arbitrary<Transaction>
 ```
 
-## equals
-
-**Signature**
-
-```ts
-export declare const equals: (a: Transaction, b: Transaction) => boolean
-```
-
 ## fromCBORBytes
 
 **Signature**
@@ -200,32 +216,12 @@ export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOpti
 export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => Transaction
 ```
 
-## make
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: {
-    readonly body: TransactionBody.TransactionBody
-    readonly witnessSet: TransactionWitnessSet.TransactionWitnessSet
-    readonly isValid: boolean
-    readonly auxiliaryData:
-      | AuxiliaryData.ConwayAuxiliaryData
-      | AuxiliaryData.ShelleyMAAuxiliaryData
-      | AuxiliaryData.ShelleyAuxiliaryData
-      | null
-  },
-  options?: Schema.MakeOptions | undefined
-) => Transaction
-```
-
 ## toCBORBytes
 
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: Transaction, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: Transaction, options?: CBOR.CodecOptions) => any
 ```
 
 ## toCBORHex
@@ -233,5 +229,5 @@ export declare const toCBORBytes: (input: Transaction, options?: CBOR.CodecOptio
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: Transaction, options?: CBOR.CodecOptions) => string
+export declare const toCBORHex: (data: Transaction, options?: CBOR.CodecOptions) => string
 ```

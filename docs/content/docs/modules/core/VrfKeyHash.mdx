@@ -12,15 +12,9 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [VrfKeyHashError (class)](#vrfkeyhasherror-class)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -28,10 +22,12 @@ parent: Modules
   - [VrfKeyHash (class)](#vrfkeyhash-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [utils](#utils)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
-  - [make](#make)
 
 ---
 
@@ -49,14 +45,6 @@ export declare const arbitrary: FastCheck.Arbitrary<VrfKeyHash>
 
 Added in v2.0.0
 
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -66,7 +54,7 @@ Encode VrfKeyHash to raw bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: VrfKeyHash) => Uint8Array
+export declare const toBytes: (a: VrfKeyHash, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -78,35 +66,7 @@ Encode VrfKeyHash to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: VrfKeyHash) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two VrfKeyHash instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: VrfKeyHash, b: VrfKeyHash) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## VrfKeyHashError (class)
-
-Error class for VrfKeyHash related operations.
-
-**Signature**
-
-```ts
-export declare class VrfKeyHashError
+export declare const toHex: (a: VrfKeyHash, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -120,7 +80,7 @@ Parse VrfKeyHash from raw bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => VrfKeyHash
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => VrfKeyHash
 ```
 
 Added in v2.0.0
@@ -132,7 +92,7 @@ Parse VrfKeyHash from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => VrfKeyHash
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => VrfKeyHash
 ```
 
 Added in v2.0.0
@@ -157,7 +117,7 @@ Added in v2.0.0
 **Signature**
 
 ```ts
-toJSON(): string
+toJSON()
 ```
 
 ### toString (method)
@@ -166,6 +126,30 @@ toJSON(): string
 
 ```ts
 toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # utils
@@ -190,15 +174,4 @@ export declare const FromHex: Schema.transform<
   Schema.filter<Schema.Schema<Uint8Array, string, never>>,
   Schema.transform<Schema.SchemaClass<Uint8Array, Uint8Array, never>, Schema.SchemaClass<VrfKeyHash, VrfKeyHash, never>>
 >
-```
-
-## make
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly hash: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => VrfKeyHash
 ```

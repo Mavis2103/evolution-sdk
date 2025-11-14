@@ -72,28 +72,26 @@ export const walletFromSeed = (
       addressType === "Base"
         ? yield* Effect.try({
             try: () => {
-              const result = AddressEras.Either.toBech32(
+              const result = AddressEras.toBech32(
                 new BaseAddress.BaseAddress({
                   networkId,
                   paymentCredential: paymentKeyHash,
                   stakeCredential: stakeKeyHash
                 })
               )
-              if (result._tag === "Left") throw result.left
-              return result.right
+              return result
             },
             catch: (cause) => new DerivationError({ message: (cause as Error).message, cause: cause as Error })
           })
         : yield* Effect.try({
             try: () => {
-              const result = AddressEras.Either.toBech32(
+              const result = AddressEras.toBech32(
                 new EnterpriseAddress.EnterpriseAddress({
                   networkId,
                   paymentCredential: paymentKeyHash
                 })
               )
-              if (result._tag === "Left") throw result.left
-              return result.right
+              return result
             },
             catch: (cause) => new DerivationError({ message: (cause as Error).message, cause: cause as Error })
           })
@@ -102,14 +100,13 @@ export const walletFromSeed = (
       addressType === "Base"
         ? yield* Effect.try({
             try: () => {
-              const result = AddressEras.Either.toBech32(
+              const result = AddressEras.toBech32(
                 new RewardAccount.RewardAccount({
                   networkId,
                   stakeCredential: stakeKeyHash
                 })
               )
-              if (result._tag === "Left") throw result.left
-              return result.right
+              return result
             },
             catch: (cause) => new DerivationError({ message: (cause as Error).message, cause: cause as Error })
           })
@@ -313,8 +310,8 @@ export function walletFromPrivateKey(
         return yield* Effect.fail(new DerivationError({ message: "stakeKeyBech32 required for Base address" }))
       }
       stakeKey = yield* Effect.mapError(
-        PrivateKey.Either.fromBech32(stakeKeyBech32),
-        (cause) => new DerivationError({ message: cause.message, cause })
+        Schema.decode(PrivateKey.FromBech32)(stakeKeyBech32),
+        (error) => new DerivationError({ message: String(error), cause: error })
       )
       stakeKeyHash = KeyHash.fromPrivateKey(stakeKey)
       address = AddressEras.toBech32(

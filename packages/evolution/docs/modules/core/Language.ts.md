@@ -10,33 +10,16 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [errors](#errors)
-  - [LanguageError (class)](#languageerror-class)
 - [utils](#utils)
   - [CDDLSchema](#cddlschema)
   - [FromCDDL](#fromcddl)
   - [Language](#language)
   - [Language (type alias)](#language-type-alias)
   - [arbitrary](#arbitrary)
-  - [equals](#equals)
   - [fromCDDL](#fromcddl-1)
   - [toCDDL](#tocddl)
 
 ---
-
-# errors
-
-## LanguageError (class)
-
-Error class for Language related operations.
-
-**Signature**
-
-```ts
-export declare class LanguageError
-```
-
-Added in v2.0.0
 
 # utils
 
@@ -87,14 +70,6 @@ export type Language = typeof Language.Type
 
 ```ts
 export declare const arbitrary: FastCheck.Arbitrary<"PlutusV1" | "PlutusV2" | "PlutusV3">
-```
-
-## equals
-
-**Signature**
-
-```ts
-export declare const equals: (a: Language, b: Language) => boolean
 ```
 
 ## fromCDDL

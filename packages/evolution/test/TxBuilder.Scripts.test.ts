@@ -185,8 +185,8 @@ describe("TxBuilder Script Handling", () => {
 
     const redeemer = tx.witnessSet.redeemers![0]
     expect(redeemer.tag).toBe("spend")
-    expect(redeemer.exUnits[0]).toBeGreaterThan(0n) // mem > 0
-    expect(redeemer.exUnits[1]).toBeGreaterThan(0n) // steps > 0
+    expect(redeemer.exUnits.mem).toBeGreaterThan(0n) // mem > 0
+    expect(redeemer.exUnits.steps).toBeGreaterThan(0n) // steps > 0
 
     // Verify datum is included
     expect(tx.witnessSet.plutusData).toBeDefined()
@@ -273,7 +273,7 @@ describe("TxBuilder Script Handling", () => {
       
       // Count total number of tokens across all policies
       let totalTokens = 0
-      for (const [_policyId, assetMap] of collateralReturn.amount.assets.entries()) {
+      for (const [_policyId, assetMap] of collateralReturn.amount.assets.map.entries()) {
         totalTokens += assetMap.size
       }
       
@@ -640,7 +640,7 @@ describe("TxBuilder Script Handling", () => {
     } else if (collateralReturn.amount._tag === "WithAssets") {
       expect(collateralReturn.amount.coin).toBe(5_000_000n)
       // Should be pure ADA (no tokens)
-      expect(collateralReturn.amount.assets.size).toBe(0)
+      expect(collateralReturn.amount.assets.map.size).toBe(0)
     }
 
     // Verify collateral return address is the change address

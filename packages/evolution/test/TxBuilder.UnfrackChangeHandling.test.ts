@@ -101,7 +101,7 @@ describe("TxBuilder: Unfrack Change Handling Integration", () => {
         // Check if this output has native assets (WithAssets type)
         if (output.amount._tag === "WithAssets") {
           // MultiAsset is a Map<PolicyId, Map<AssetName, Amount>>
-          for (const [_policyId, assetMap] of output.amount.assets) {
+          for (const [_policyId, assetMap] of output.amount.assets.map) {
             totalTokenTypes += assetMap.size
           }
         }
@@ -169,7 +169,7 @@ describe("TxBuilder: Unfrack Change Handling Integration", () => {
       // Verify all 3 tokens are in the single change output
       let totalTokenTypes = 0
       if (changeOutput.amount._tag === "WithAssets") {
-        for (const [_policyId, assetMap] of changeOutput.amount.assets) {
+        for (const [_policyId, assetMap] of changeOutput.amount.assets.map) {
           totalTokenTypes += assetMap.size
         }
       }

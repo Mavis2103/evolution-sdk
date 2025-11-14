@@ -1,0 +1,101 @@
+import { Equal, ParseResult } from "effect"
+import { describe, expect, test } from "vitest"
+
+import type * as Coin from "../src/core/Coin.js"
+import * as Credential from "../src/core/Credential.js"
+import type * as EpochNo from "../src/core/EpochNo.js"
+import * as GovernanceAction from "../src/core/GovernanceAction.js"
+import * as KeyHash from "../src/core/KeyHash.js"
+import * as RewardAccount from "../src/core/RewardAccount.js"
+import * as ScriptHash from "../src/core/ScriptHash.js"
+import * as TransactionHash from "../src/core/TransactionHash.js"
+import * as UnitInterval from "../src/core/UnitInterval.js"
+
+describe("GovernanceAction Map types CBOR round-trip", () => {
+  test("TreasuryWithdrawalsAction with Map<RewardAccount, Coin> should round-trip correctly", () => {
+    const iterations = 100
+
+    for (let i = 0; i < iterations; i++) {
+      // Create a TreasuryWithdrawalsAction with withdrawals Map
+      const withdrawals = new Map<RewardAccount.RewardAccount, Coin.Coin>([
+        [
+          RewardAccount.RewardAccount.make({
+            networkId: 0, // Testnet
+            stakeCredential: KeyHash.fromBytes(new Uint8Array(28).fill(i % 256))
+          }),
+          BigInt(1000000 + i)
+        ],
+        [
+          RewardAccount.RewardAccount.make({
+            networkId: 0, // Testnet
+            stakeCredential: KeyHash.fromBytes(new Uint8Array(28).fill((i + 1) % 256))
+          }),
+          BigInt(2000000 + i)
+        ]
+      ])
+
+      const policyHash =
+        i % 2 === 0 ? new ScriptHash.ScriptHash({ hash: new Uint8Array(28).fill(i % 256) }) : null
+
+      const original = new GovernanceAction.TreasuryWithdrawalsAction({
+        withdrawals,
+        policyHash
+      })
+
+      // Encode to CBOR
+      const encoded = ParseResult.encodeSync(GovernanceAction.TreasuryWithdrawalsActionFromCDDL)(original)
+
+      // Decode back
+      const decoded = ParseResult.decodeSync(GovernanceAction.TreasuryWithdrawalsActionFromCDDL)(encoded)
+
+      // Check equality using Effect's Equal
+      expect(Equal.equals(original, decoded)).toBe(true)
+    }
+  })
+
+  test("UpdateCommitteeAction with Map<Credential, EpochNo> should round-trip correctly", () => {
+    const iterations = 100
+
+    for (let i = 0; i < iterations; i++) {
+      // Create membersToAdd Map
+      const membersToAdd = new Map<Credential.CredentialSchema, EpochNo.EpochNo>([
+        [Credential.makeKeyHash(new Uint8Array(28).fill(i % 256)), BigInt(100 + i)],
+        [Credential.makeKeyHash(new Uint8Array(28).fill((i + 1) % 256)), BigInt(200 + i)]
+      ])
+
+      const membersToRemove = [Credential.makeKeyHash(new Uint8Array(28).fill((i + 2) % 256))]
+
+      const threshold = new UnitInterval.UnitInterval({
+        numerator: BigInt(2),
+        denominator: BigInt(3)
+      })
+
+      const govActionId =
+        i % 2 === 0
+          ? null
+          : new GovernanceAction.GovActionId({
+              transactionId: new TransactionHash.TransactionHash({
+                hash: new Uint8Array(32).fill(i % 256)
+              }),
+              govActionIndex: BigInt(i % 65536)
+            })
+
+      const original = new GovernanceAction.UpdateCommitteeAction({
+        govActionId,
+        membersToRemove,
+        membersToAdd,
+        threshold
+      })
+
+      // Encode to CBOR
+      const encoded = ParseResult.encodeSync(GovernanceAction.UpdateCommitteeActionFromCDDL)(original)
+
+      // Decode back
+      const decoded = ParseResult.decodeSync(GovernanceAction.UpdateCommitteeActionFromCDDL)(encoded)
+
+      // Check equality using Effect's Equal
+      expect(Equal.equals(original, decoded)).toBe(true)
+    }
+  })
+})
+

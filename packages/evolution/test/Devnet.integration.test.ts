@@ -30,17 +30,11 @@ describe("Devnet Integration Tests", () => {
   const createdClusters: Array<Devnet.DevNetCluster> = []
 
   afterAll(async () => {
-    // eslint-disable-next-line no-console
-    console.log(`[Cleanup] Removing ${createdClusters.length} test clusters...`)
-    
     for (const cluster of createdClusters) {
       try {
         await Devnet.Cluster.remove(cluster)
-        // eslint-disable-next-line no-console
-        console.log(`[Cleanup] ✓ Removed cluster: ${cluster.cardanoNode.name}`)
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.warn(`[Cleanup] Failed to remove cluster ${cluster.cardanoNode.name}:`, error)
+      } catch {
+        // Silently ignore cleanup errors
       }
     }
   }, 120_000)
@@ -74,7 +68,7 @@ describe("Devnet Integration Tests", () => {
 
     it("should create cluster with custom initial funds", { timeout: 120_000 }, async () => {
       const privateKeyBytes = PrivateKey.generate()
-      const privateKey = PrivateKey.make({ key: privateKeyBytes })
+      const privateKey = PrivateKey.fromBytes(privateKeyBytes)
       const publicKey = VKey.fromPrivateKey(privateKey)
       const keyHash = KeyHash.fromVKey(publicKey)
       const addressHex = KeyHash.toHex(keyHash)
@@ -417,7 +411,7 @@ describe("Devnet Integration Tests", () => {
   describe("Real-World Scenarios", () => {
     it("should create funded devnet cluster and query UTxOs", { timeout: 240_000 }, async () => {
       const privateKeyBytes = PrivateKey.generate()
-      const privateKey = PrivateKey.make({ key: privateKeyBytes })
+      const privateKey = PrivateKey.fromBytes(privateKeyBytes)
       const publicKey = VKey.fromPrivateKey(privateKey)
       const keyHash = KeyHash.fromVKey(publicKey)
 

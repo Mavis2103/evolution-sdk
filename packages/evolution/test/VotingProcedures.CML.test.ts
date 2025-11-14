@@ -1,5 +1,5 @@
 import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
-import { FastCheck } from "effect"
+import { Equal, FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
 import * as Anchor from "../src/core/Anchor.js"
@@ -34,16 +34,19 @@ describe("VotingProcedures CML Compatibility", () => {
     const anchor = generateTestAnchor(1)
 
     // Create Evolution SDK VotingProcedures
-    const drepVoter = VotingProcedures.makeDRepVoter(drep)
+    const drepVoter = new VotingProcedures.DRepVoter({ drep })
     const govActionId = new GovernanceAction.GovActionId({
-      transactionId: TransactionHash.make({
+      transactionId: new TransactionHash.TransactionHash({
         hash: new Uint8Array(32).fill(1) // Deterministic test data
       }),
       govActionIndex: 0n
     })
-    const votingProcedure = VotingProcedures.makeProcedure(VotingProcedures.yes(), anchor)
+    const votingProcedure = new VotingProcedures.VotingProcedure({
+      vote: VotingProcedures.yes(),
+      anchor
+    })
 
-    const evolutionVotingProcedures = VotingProcedures.make({
+    const evolutionVotingProcedures = new VotingProcedures.VotingProcedures({
       procedures: new Map([[drepVoter, new Map([[govActionId, votingProcedure]])]])
     })
 
@@ -68,7 +71,7 @@ describe("VotingProcedures CML Compatibility", () => {
 
     // Test that Evolution SDK can parse its own CBOR
     const evolutionRoundTrip = VotingProcedures.fromCBORHex(evolutionCborHex)
-    expect(VotingProcedures.equals(evolutionRoundTrip, evolutionVotingProcedures)).toBe(true)
+    expect(Equal.equals(evolutionRoundTrip, evolutionVotingProcedures)).toBe(true)
   })
 
   it("validates CBOR hex compatibility with anchor: Evolution SDK vs CML serialization", () => {
@@ -77,16 +80,19 @@ describe("VotingProcedures CML Compatibility", () => {
     const anchor = generateTestAnchor(2)
 
     // Create Evolution SDK VotingProcedures with anchor
-    const drepVoter = VotingProcedures.makeDRepVoter(drep)
+    const drepVoter = new VotingProcedures.DRepVoter({ drep })
     const govActionId = new GovernanceAction.GovActionId({
-      transactionId: TransactionHash.make({
+      transactionId: new TransactionHash.TransactionHash({
         hash: new Uint8Array(32).fill(1) // Deterministic test data
       }),
       govActionIndex: 1n
     })
-    const votingProcedure = VotingProcedures.makeProcedure(VotingProcedures.no(), anchor)
+    const votingProcedure = new VotingProcedures.VotingProcedure({
+      vote: VotingProcedures.no(),
+      anchor
+    })
 
-    const evolutionVotingProcedures = VotingProcedures.make({
+    const evolutionVotingProcedures = new VotingProcedures.VotingProcedures({
       procedures: new Map([[drepVoter, new Map([[govActionId, votingProcedure]])]])
     })
 
@@ -118,7 +124,7 @@ describe("VotingProcedures CML Compatibility", () => {
 
     // Test that Evolution SDK can parse its own CBOR
     const evolutionRoundTrip = VotingProcedures.fromCBORHex(evolutionCborHex)
-    expect(VotingProcedures.equals(evolutionRoundTrip, evolutionVotingProcedures)).toBe(true)
+    expect(Equal.equals(evolutionRoundTrip, evolutionVotingProcedures)).toBe(true)
 
     // Verify the anchor is preserved
     const roundTripEntries = Array.from(evolutionRoundTrip.procedures.values())[0]

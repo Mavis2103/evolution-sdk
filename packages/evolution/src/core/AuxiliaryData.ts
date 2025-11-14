@@ -1,24 +1,73 @@
-import { Data, Either as E, FastCheck, ParseResult, Schema } from "effect"
+import { Either as E, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
-import * as Function from "./Function.js"
 import * as Metadata from "./Metadata.js"
 import * as NativeScripts from "./NativeScripts.js"
 import * as PlutusV1 from "./PlutusV1.js"
 import * as PlutusV2 from "./PlutusV2.js"
 import * as PlutusV3 from "./PlutusV3.js"
 
+// ============================================================================
+// Helper functions for Equal/Hash implementations
+// ============================================================================
+
 /**
- * Error class for AuxiliaryData related operations.
- *
- * @since 2.0.0
- * @category errors
+ * Compare two optional arrays for equality using Equal.equals on elements
  */
-export class AuxiliaryDataError extends Data.TaggedError("AuxiliaryDataError")<{
-  message?: string
-  cause?: unknown
-}> {}
+const arrayEquals = <T>(x: ReadonlyArray<T> | undefined, y: ReadonlyArray<T> | undefined): boolean => {
+  if (x === undefined && y === undefined) return true
+  if (x === undefined || y === undefined) return false
+  if (x.length !== y.length) return false
+  for (let i = 0; i < x.length; i++) {
+    if (!Equal.equals(x[i], y[i])) return false
+  }
+  return true
+}
+
+/**
+ * Compare two optional metadata Maps for equality
+ */
+const metadataMapEquals = (x: Metadata.Metadata | undefined, y: Metadata.Metadata | undefined): boolean => {
+  if (x === undefined && y === undefined) return true
+  if (x === undefined || y === undefined) return false
+  if (x.size !== y.size) return false
+  for (const [key, value] of x) {
+    if (!y.has(key)) return false
+    if (!Equal.equals(value, y.get(key))) return false
+  }
+  return true
+}
+
+/**
+ * Hash an optional metadata Map with stable key ordering
+ */
+const hashMetadataMap = (m: Metadata.Metadata | undefined): number => {
+  if (!m) return Hash.hash(undefined)
+  let h = Hash.hash(m.size)
+  const sortedKeys = Array.from(m.keys()).sort((a, b) => Number(a - b))
+  for (const key of sortedKeys) {
+    const value = m.get(key)!
+    h = Hash.combine(h)(Hash.combine(Hash.hash(key))(Hash.hash(value)))
+  }
+  return h
+}
+
+/**
+ * Hash an optional array by hashing each element
+ */
+const hashArray = <T>(arr: ReadonlyArray<T> | undefined): number => {
+  if (!arr) return Hash.hash(undefined)
+  let h = Hash.hash(arr.length)
+  for (const item of arr) {
+    h = Hash.combine(h)(Hash.hash(item))
+  }
+  return h
+}
+
+// ============================================================================
+// AuxiliaryData Classes
+// ============================================================================
 
 /**
  * AuxiliaryData based on Conway CDDL specification.
@@ -48,7 +97,68 @@ export class ConwayAuxiliaryData extends Schema.TaggedClass<ConwayAuxiliaryData>
     plutusV2Scripts: Schema.optional(Schema.Array(PlutusV2.PlutusV2)),
     plutusV3Scripts: Schema.optional(Schema.Array(PlutusV3.PlutusV3))
   }
-) {}
+) {
+  /**
+   * @since 2.0.0
+   * @category json
+   */
+  toJSON() {
+    return {
+      _tag: "ConwayAuxiliaryData" as const,
+      metadata: this.metadata,
+      nativeScripts: this.nativeScripts,
+      plutusV1Scripts: this.plutusV1Scripts,
+      plutusV2Scripts: this.plutusV2Scripts,
+      plutusV3Scripts: this.plutusV3Scripts
+    }
+  }
+
+  /**
+   * @since 2.0.0
+   * @category string
+   */
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  /**
+   * @since 2.0.0
+   * @category inspect
+   */
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  /**
+   * @since 2.0.0
+   * @category equality
+   */
+  [Equal.symbol](that: unknown): boolean {
+    if (!(that instanceof ConwayAuxiliaryData)) return false
+    return metadataMapEquals(this.metadata, that.metadata) &&
+           arrayEquals(this.nativeScripts, that.nativeScripts) &&
+           arrayEquals(this.plutusV1Scripts, that.plutusV1Scripts) &&
+           arrayEquals(this.plutusV2Scripts, that.plutusV2Scripts) &&
+           arrayEquals(this.plutusV3Scripts, that.plutusV3Scripts)
+  }
+
+  /**
+   * @since 2.0.0
+   * @category hash
+   */
+  [Hash.symbol](): number {
+    return Hash.cached(
+      this,
+      Hash.combine(
+        Hash.combine(
+          Hash.combine(
+            Hash.combine(hashMetadataMap(this.metadata))(hashArray(this.nativeScripts))
+          )(hashArray(this.plutusV1Scripts))
+        )(hashArray(this.plutusV2Scripts))
+      )(hashArray(this.plutusV3Scripts))
+    )
+  }
+}
 
 /**
  * AuxiliaryData for ShelleyMA era (array format).
@@ -67,7 +177,49 @@ export class ShelleyMAAuxiliaryData extends Schema.TaggedClass<ShelleyMAAuxiliar
     metadata: Schema.optional(Metadata.Metadata),
     nativeScripts: Schema.optional(Schema.Array(NativeScripts.NativeScript))
   }
-) {}
+) {
+  /**
+   * @since 2.0.0
+   * @category json
+   */
+  toJSON() {
+    return { _tag: "ShelleyMAAuxiliaryData" as const, metadata: this.metadata, nativeScripts: this.nativeScripts }
+  }
+
+  /**
+   * @since 2.0.0
+   * @category string
+   */
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  /**
+   * @since 2.0.0
+   * @category inspect
+   */
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  /**
+   * @since 2.0.0
+   * @category equality
+   */
+  [Equal.symbol](that: unknown): boolean {
+    if (!(that instanceof ShelleyMAAuxiliaryData)) return false
+    return metadataMapEquals(this.metadata, that.metadata) &&
+           arrayEquals(this.nativeScripts, that.nativeScripts)
+  }
+
+  /**
+   * @since 2.0.0
+   * @category hash
+   */
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.combine(hashMetadataMap(this.metadata))(hashArray(this.nativeScripts)))
+  }
+}
 
 /**
  * AuxiliaryData for Shelley era (direct metadata).
@@ -85,7 +237,48 @@ export class ShelleyAuxiliaryData extends Schema.TaggedClass<ShelleyAuxiliaryDat
   {
     metadata: Metadata.Metadata
   }
-) {}
+) {
+  /**
+   * @since 2.0.0
+   * @category json
+   */
+  toJSON() {
+    return { _tag: "ShelleyAuxiliaryData" as const, metadata: this.metadata }
+  }
+
+  /**
+   * @since 2.0.0
+   * @category string
+   */
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  /**
+   * @since 2.0.0
+   * @category inspect
+   */
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  /**
+   * @since 2.0.0
+   * @category equality
+   */
+  [Equal.symbol](that: unknown): boolean {
+    if (!(that instanceof ShelleyAuxiliaryData)) return false
+    return metadataMapEquals(this.metadata, that.metadata)
+  }
+
+  /**
+   * @since 2.0.0
+   * @category hash
+   */
+  [Hash.symbol](): number {
+    return Hash.cached(this, hashMetadataMap(this.metadata))
+  }
+}
 
 /**
  * Union of all AuxiliaryData era formats.
@@ -352,46 +545,6 @@ export const shelley = (input: { metadata: Metadata.Metadata }): AuxiliaryData =
   new ShelleyAuxiliaryData({ metadata: input.metadata })
 
 /**
- * Check if two AuxiliaryData instances are equal (deep comparison).
- *
- * @since 2.0.0
- * @category equality
- */
-export const equals = (a: AuxiliaryData, b: AuxiliaryData): boolean => {
-  // Different eras are never equal
-  if (a._tag !== b._tag) return false
-
-  const arrEq = <T>(x?: ReadonlyArray<T>, y?: ReadonlyArray<T>, cmp: (a: T, b: T) => boolean = (u, v) => u === v) => {
-    if (x === undefined && y === undefined) return true
-    if (x === undefined || y === undefined) return false
-    if (x.length !== y.length) return false
-    for (let i = 0; i < x.length; i++) if (!cmp(x[i], y[i])) return false
-    return true
-  }
-
-  // Compare metadata if both have it
-  if (a.metadata && b.metadata) {
-    if (!Metadata.equals(a.metadata, b.metadata)) return false
-  } else if (a.metadata || b.metadata) return false
-
-  // Conway-specific comparisons
-  if (a._tag === "ConwayAuxiliaryData" && b._tag === "ConwayAuxiliaryData") {
-    if (!arrEq(a.nativeScripts as any, b.nativeScripts as any, NativeScripts.equals)) return false
-    if (!arrEq(a.plutusV1Scripts as any, b.plutusV1Scripts as any, PlutusV1.equals)) return false
-    if (!arrEq(a.plutusV2Scripts as any, b.plutusV2Scripts as any, PlutusV2.equals)) return false
-    if (!arrEq(a.plutusV3Scripts as any, b.plutusV3Scripts as any, PlutusV3.equals)) return false
-  }
-
-  // ShelleyMA-specific comparisons
-  if (a._tag === "ShelleyMAAuxiliaryData" && b._tag === "ShelleyMAAuxiliaryData") {
-    if (!arrEq(a.nativeScripts as any, b.nativeScripts as any, NativeScripts.equals)) return false
-  }
-
-  // Shelley has only metadata, already compared above
-  return true
-}
-
-/**
  * FastCheck arbitrary for generating Conway-era AuxiliaryData instances.
  * Conway era supports all features: metadata, native scripts, and all Plutus script versions.
  *
@@ -450,12 +603,8 @@ export const arbitrary: FastCheck.Arbitrary<AuxiliaryData> = FastCheck.oneof(
  * @since 2.0.0
  * @category parsing
  */
-export const fromCBORBytes = Function.makeCBORDecodeSync(
-  FromCDDL,
-  AuxiliaryDataError,
-  "AuxiliaryData.fromCBORBytes",
-  CBOR.CML_DEFAULT_OPTIONS
-)
+export const fromCBORBytes = (bytes: Uint8Array, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.decodeSync(FromCBORBytes(options))(bytes)
 
 /**
  * Decode AuxiliaryData from CBOR hex string.
@@ -463,12 +612,8 @@ export const fromCBORBytes = Function.makeCBORDecodeSync(
  * @since 2.0.0
  * @category parsing
  */
-export const fromCBORHex = Function.makeCBORDecodeHexSync(
-  FromCDDL,
-  AuxiliaryDataError,
-  "AuxiliaryData.fromCBORHex",
-  CBOR.CML_DEFAULT_OPTIONS
-)
+export const fromCBORHex = (hex: string, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.decodeSync(FromCBORHex(options))(hex)
 
 /**
  * Encode AuxiliaryData to CBOR bytes.
@@ -476,12 +621,8 @@ export const fromCBORHex = Function.makeCBORDecodeHexSync(
  * @since 2.0.0
  * @category encoding
  */
-export const toCBORBytes = Function.makeCBOREncodeSync(
-  FromCDDL,
-  AuxiliaryDataError,
-  "AuxiliaryData.toCBORBytes",
-  CBOR.CML_DEFAULT_OPTIONS
-)
+export const toCBORBytes = (data: AuxiliaryData, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.encodeSync(FromCBORBytes(options))(data)
 
 /**
  * Encode AuxiliaryData to CBOR hex string.
@@ -489,53 +630,6 @@ export const toCBORBytes = Function.makeCBOREncodeSync(
  * @since 2.0.0
  * @category encoding
  */
-export const toCBORHex = Function.makeCBOREncodeHexSync(
-  FromCDDL,
-  AuxiliaryDataError,
-  "AuxiliaryData.toCBORHex",
-  CBOR.CML_DEFAULT_OPTIONS
-)
+export const toCBORHex = (data: AuxiliaryData, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.encodeSync(FromCBORHex(options))(data)
 
-// ============================================================================
-// Either Namespace - Either-based Error Handling
-// ============================================================================
-
-/**
- * Either-based error handling variants for functions that can fail.
- *
- * @since 2.0.0
- * @category either
- */
-export namespace Either {
-  /**
-   * Decode AuxiliaryData from CBOR bytes with Either error handling.
-   *
-   * @since 2.0.0
-   * @category parsing
-   */
-  export const fromCBORBytes = Function.makeCBORDecodeEither(FromCDDL, AuxiliaryDataError, CBOR.CML_DEFAULT_OPTIONS)
-
-  /**
-   * Decode AuxiliaryData from CBOR hex string with Either error handling.
-   *
-   * @since 2.0.0
-   * @category parsing
-   */
-  export const fromCBORHex = Function.makeCBORDecodeHexEither(FromCDDL, AuxiliaryDataError, CBOR.CML_DEFAULT_OPTIONS)
-
-  /**
-   * Encode AuxiliaryData to CBOR bytes with Either error handling.
-   *
-   * @since 2.0.0
-   * @category encoding
-   */
-  export const toCBORBytes = Function.makeCBOREncodeEither(FromCDDL, AuxiliaryDataError, CBOR.CML_DEFAULT_OPTIONS)
-
-  /**
-   * Encode AuxiliaryData to CBOR hex string with Either error handling.
-   *
-   * @since 2.0.0
-   * @category encoding
-   */
-  export const toCBORHex = Function.makeCBOREncodeHexEither(FromCDDL, AuxiliaryDataError, CBOR.CML_DEFAULT_OPTIONS)
-}

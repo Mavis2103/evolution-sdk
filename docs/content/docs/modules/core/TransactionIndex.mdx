@@ -12,12 +12,6 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [TransactionIndexError (class)](#transactionindexerror-class)
 - [predicates](#predicates)
   - [is](#is)
 - [schemas](#schemas)
@@ -37,48 +31,6 @@ FastCheck arbitrary for generating random TransactionIndex instances.
 
 ```ts
 export declare const arbitrary: FastCheck.Arbitrary<bigint>
-```
-
-Added in v2.0.0
-
-# constructors
-
-## make
-
-Smart constructor for TransactionIndex that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (a: bigint, options?: Schema.MakeOptions) => bigint
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two TransactionIndex instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: TransactionIndex, b: TransactionIndex) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## TransactionIndexError (class)
-
-Error class for TransactionIndex related operations.
-
-**Signature**
-
-```ts
-export declare class TransactionIndexError
 ```
 
 Added in v2.0.0
@@ -107,7 +59,7 @@ CDDL: transaction_index = uint .size 2
 **Signature**
 
 ```ts
-export declare const TransactionIndex: Schema.refine<bigint, typeof Schema.BigInt>
+export declare const TransactionIndex: Schema.refine<bigint, typeof Schema.BigIntFromSelf>
 ```
 
 Added in v2.0.0

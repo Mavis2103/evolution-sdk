@@ -11,23 +11,24 @@ parent: Modules
 <h2 className="text-delta">Table of contents</h2>
 
 - [constructors](#constructors)
-  - [make](#make)
   - [withBothIPs](#withbothips)
   - [withIPv4](#withipv4)
   - [withIPv6](#withipv6)
-- [conversion](#conversion)
-  - [fromCBORBytes](#fromcborbytes)
-  - [fromCBORHex](#fromcborhex)
+- [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [SingleHostAddrError (class)](#singlehostaddrerror-class)
 - [model](#model)
   - [SingleHostAddr (class)](#singlehostaddr-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
+    - [toCBORBytes (method)](#tocborbytes-method)
+    - [toCBORHex (method)](#tocborhex-method)
+- [parsing](#parsing)
+  - [fromCBORBytes](#fromcborbytes)
+  - [fromCBORHex](#fromcborhex)
 - [predicates](#predicates)
   - [hasIPv4](#hasipv4)
   - [hasIPv6](#hasipv6)
@@ -43,22 +44,6 @@ parent: Modules
 
 # constructors
 
-## make
-
-Smart constructor for creating SingleHostAddr instances
-
-**Signature**
-
-```ts
-export declare const make: (props: {
-  port: Option.Option<Port.Port>
-  ipv4: Option.Option<IPv4.IPv4>
-  ipv6: Option.Option<IPv6.IPv6>
-}) => SingleHostAddr
-```
-
-Added in v2.0.0
-
 ## withBothIPs
 
 Create a SingleHostAddr with both IPv4 and IPv6 addresses.
@@ -66,7 +51,7 @@ Create a SingleHostAddr with both IPv4 and IPv6 addresses.
 **Signature**
 
 ```ts
-export declare const withBothIPs: (port: Option.Option<Port.Port>, ipv4: IPv4.IPv4, ipv6: IPv6.IPv6) => SingleHostAddr
+export declare const withBothIPs: (port: Port.Port, ipv4: IPv4.IPv4, ipv6: IPv6.IPv6) => SingleHostAddr
 ```
 
 Added in v2.0.0
@@ -78,7 +63,7 @@ Create a SingleHostAddr with IPv4 address.
 **Signature**
 
 ```ts
-export declare const withIPv4: (port: Option.Option<Port.Port>, ipv4: IPv4.IPv4) => SingleHostAddr
+export declare const withIPv4: (port: Port.Port, ipv4: IPv4.IPv4) => SingleHostAddr
 ```
 
 Added in v2.0.0
@@ -90,93 +75,33 @@ Create a SingleHostAddr with IPv6 address.
 **Signature**
 
 ```ts
-export declare const withIPv6: (port: Option.Option<Port.Port>, ipv6: IPv6.IPv6) => SingleHostAddr
+export declare const withIPv6: (port: Port.Port, ipv6: IPv6.IPv6) => SingleHostAddr
 ```
 
 Added in v2.0.0
 
-# conversion
-
-## fromCBORBytes
-
-Convert CBOR bytes to SingleHostAddr (unsafe)
-
-**Signature**
-
-```ts
-export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => SingleHostAddr
-```
-
-Added in v2.0.0
-
-## fromCBORHex
-
-Convert CBOR hex string to SingleHostAddr (unsafe)
-
-**Signature**
-
-```ts
-export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => SingleHostAddr
-```
-
-Added in v2.0.0
+# encoding
 
 ## toCBORBytes
 
-Convert SingleHostAddr to CBOR bytes (unsafe)
+Encode SingleHostAddr to CBOR bytes.
 
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: SingleHostAddr, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: SingleHostAddr, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
 
 ## toCBORHex
 
-Convert SingleHostAddr to CBOR hex string (unsafe)
+Encode SingleHostAddr to CBOR hex string.
 
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: SingleHostAddr, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# either
-
-## Either (namespace)
-
-Either namespace for SingleHostAddr operations that can fail
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two SingleHostAddr instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: SingleHostAddr, b: SingleHostAddr) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## SingleHostAddrError (class)
-
-Error class for SingleHostAddr related operations.
-
-**Signature**
-
-```ts
-export declare class SingleHostAddrError
+export declare const toCBORHex: (data: SingleHostAddr, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -192,6 +117,101 @@ single_host_addr = (0, port/ nil, ipv4/ nil, ipv6/ nil)
 
 ```ts
 export declare class SingleHostAddr
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+Convert to JSON-serializable format.
+Converts bigint port values to strings for JSON compatibility.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+### toCBORBytes (method)
+
+Convert to CBOR bytes.
+
+**Signature**
+
+```ts
+toCBORBytes(): Uint8Array
+```
+
+Added in v2.0.0
+
+### toCBORHex (method)
+
+Convert to CBOR hex string.
+
+**Signature**
+
+```ts
+toCBORHex(): string
+```
+
+Added in v2.0.0
+
+# parsing
+
+## fromCBORBytes
+
+Parse SingleHostAddr from CBOR bytes.
+
+**Signature**
+
+```ts
+export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => SingleHostAddr
+```
+
+Added in v2.0.0
+
+## fromCBORHex
+
+Parse SingleHostAddr from CBOR hex string.
+
+**Signature**
+
+```ts
+export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => SingleHostAddr
 ```
 
 Added in v2.0.0

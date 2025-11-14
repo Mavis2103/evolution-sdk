@@ -1,15 +1,26 @@
-import { Data, FastCheck, Schema } from "effect"
+import { Equal, FastCheck, Hash, Inspectable, Schema } from "effect"
 
+import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
-import * as Function from "./Function.js"
 
-/**
- * Error class for CostModel related operations.
- */
-export class CostModelError extends Data.TaggedError("CostModelError")<{
-  message?: string
-  cause?: unknown
-}> {}
+// Helper for array equality - Equal.equals compares arrays by instance, not content
+const arrayEquals = <A>(a: ReadonlyArray<A>, b: ReadonlyArray<A>): boolean => {
+  if (a === b) return true
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (!Equal.equals(a[i], b[i])) return false
+  }
+  return true
+}
+
+// Helper for array hashing - cannot use Hash.array for object arrays
+const arrayHash = <A>(arr: ReadonlyArray<A>): number => {
+  let hash = Hash.number(arr.length)
+  for (const item of arr) {
+    hash = Hash.combine(hash)(Hash.hash(item))
+  }
+  return hash
+}
 
 /**
  * Individual cost model for a specific Plutus language version.
@@ -20,8 +31,61 @@ export class CostModelError extends Data.TaggedError("CostModelError")<{
  * ```
  */
 export class CostModel extends Schema.Class<CostModel>("CostModel")({
-  costs: Schema.Array(Schema.BigInt)
-}) {}
+  costs: Schema.Array(Schema.BigIntFromSelf)
+}) {
+  /**
+   * Convert to JSON representation.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  toJSON() {
+    return {
+      _tag: "CostModel",
+      costs: this.costs
+    }
+  }
+
+  /**
+   * Convert to string representation.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  /**
+   * Custom inspect for Node.js REPL.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  /**
+   * Structural equality check.
+   *
+   * @since 2.0.0
+   * @category equality
+   */
+  [Equal.symbol](that: unknown): boolean {
+    return that instanceof CostModel && arrayEquals(this.costs, that.costs)
+  }
+
+  /**
+   * Hash code generation.
+   *
+   * @since 2.0.0
+   * @category hashing
+   */
+  [Hash.symbol](): number {
+    return Hash.cached(this, arrayHash(this.costs))
+  }
+}
 
 /**
  * Map of language versions to their corresponding cost models.
@@ -34,7 +98,68 @@ export class CostModels extends Schema.Class<CostModels>("CostModels")({
   PlutusV1: CostModel,
   PlutusV2: CostModel,
   PlutusV3: CostModel
-}) {}
+}) {
+  /**
+   * Convert to JSON representation.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  toJSON() {
+    return {
+      _tag: "CostModels",
+      PlutusV1: this.PlutusV1,
+      PlutusV2: this.PlutusV2,
+      PlutusV3: this.PlutusV3
+    }
+  }
+
+  /**
+   * Convert to string representation.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  /**
+   * Custom inspect for Node.js REPL.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  /**
+   * Structural equality check.
+   *
+   * @since 2.0.0
+   * @category equality
+   */
+  [Equal.symbol](that: unknown): boolean {
+    return (
+      that instanceof CostModels &&
+      Equal.equals(this.PlutusV1, that.PlutusV1) &&
+      Equal.equals(this.PlutusV2, that.PlutusV2) &&
+      Equal.equals(this.PlutusV3, that.PlutusV3)
+    )
+  }
+
+  /**
+   * Hash code generation.
+   * Only hash PlutusV1 for performance - allows hash collisions to trigger full equality check
+   *
+   * @since 2.0.0
+   * @category hashing
+   */
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.hash(this.PlutusV1))
+  }
+}
 
 export const CDDLSchema = Schema.MapFromSelf({
   key: CBOR.Integer,
@@ -69,6 +194,40 @@ export const FromCDDL = Schema.transform(CDDLSchema, Schema.typeSchema(CostModel
 })
 
 /**
+ * CBOR bytes transformation schema for CostModels.
+ * Transforms between Uint8Array and CostModels using CBOR encoding.
+ *
+ * @since 2.0.0
+ * @category schemas
+ */
+export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.compose(
+    CBOR.FromBytes(options), // Uint8Array → CBOR
+    FromCDDL // CBOR → CostModels
+  ).annotations({
+    identifier: "CostModels.FromCBORBytes",
+    title: "CostModels from CBOR Bytes",
+    description: "Transforms CBOR bytes to CostModels"
+  })
+
+/**
+ * CBOR hex transformation schema for CostModels.
+ * Transforms between hex string and CostModels using CBOR encoding.
+ *
+ * @since 2.0.0
+ * @category schemas
+ */
+export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.compose(
+    Bytes.FromHex, // string → Uint8Array
+    FromCBORBytes(options) // Uint8Array → CostModels
+  ).annotations({
+    identifier: "CostModels.FromCBORHex",
+    title: "CostModels from CBOR Hex",
+    description: "Transforms CBOR hex string to CostModels"
+  })
+
+/**
  * FastCheck arbitrary for CostModel instances.
  */
 export const arbitrary: FastCheck.Arbitrary<CostModel> = FastCheck.array(
@@ -81,39 +240,26 @@ export const arbitrary: FastCheck.Arbitrary<CostModel> = FastCheck.array(
 /**
  * CBOR encoding for CostModels.
  */
-export const toCBOR = Function.makeCBOREncodeSync(
-  FromCDDL,
-  CostModelError,
-  "CostModels.toCBORHex",
-  CBOR.CML_DEFAULT_OPTIONS
-)
+export const toCBOR = (costModels: CostModels, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Uint8Array =>
+  Schema.encodeSync(FromCBORBytes(options))(costModels)
 
 /**
  * CBOR decoding for CostModels.
  */
-export const fromCBOR = Function.makeCBORDecodeSync(
-  FromCDDL,
-  CostModelError,
-  "CostModels.fromCBORHex",
-  CBOR.CML_DEFAULT_OPTIONS
-)
-
-export const toCBORHex = Function.makeCBOREncodeHexSync(
-  FromCDDL,
-  CostModelError,
-  "CostModels.toCBORHex",
-  CBOR.CML_DEFAULT_OPTIONS
-)
+export const fromCBOR = (bytes: Uint8Array, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): CostModels =>
+  Schema.decodeSync(FromCBORBytes(options))(bytes)
 
 /**
- * CBOR decoding for CostModels.
+ * CBOR hex encoding for CostModels.
  */
-export const fromCBORHex = Function.makeCBORDecodeHexSync(
-  FromCDDL,
-  CostModelError,
-  "CostModels.fromCBORHex",
-  CBOR.CML_DEFAULT_OPTIONS
-)
+export const toCBORHex = (costModels: CostModels, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): string =>
+  Schema.encodeSync(FromCBORHex(options))(costModels)
+
+/**
+ * CBOR hex decoding for CostModels.
+ */
+export const fromCBORHex = (hex: string, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): CostModels =>
+  Schema.decodeSync(FromCBORHex(options))(hex)
 
 /**
  * Encode cost models as language_views for script data hash.

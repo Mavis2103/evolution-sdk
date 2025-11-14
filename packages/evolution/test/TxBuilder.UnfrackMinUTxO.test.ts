@@ -111,7 +111,7 @@ describe.concurrent("TxBuilder - Unfrack MinUTxO", () => {
     
     // Verify at least one change output has native assets
     const hasNativeAssets = changeOutputs.some((out) => 
-      "assets" in out.amount && out.amount.assets && out.amount.assets.size > 0
+      "assets" in out.amount && out.amount.assets && out.amount.assets.map.size > 0
     )
     expect(hasNativeAssets).toBe(true)
     
@@ -119,7 +119,7 @@ describe.concurrent("TxBuilder - Unfrack MinUTxO", () => {
     let totalTokens = 0
     for (const out of changeOutputs) {
       if ("assets" in out.amount && out.amount.assets) {
-        for (const [_policyId, assetNames] of out.amount.assets) {
+        for (const [_policyId, assetNames] of out.amount.assets.map) {
           totalTokens += assetNames.size
         }
       }
@@ -214,7 +214,7 @@ describe.concurrent("TxBuilder - Unfrack MinUTxO", () => {
       totalLovelace += out.amount.coin
       
       if ("assets" in out.amount && out.amount.assets) {
-        for (const [_policyId, assetNames] of out.amount.assets) {
+        for (const [_policyId, assetNames] of out.amount.assets.map) {
           totalTokens += assetNames.size
         }
       }

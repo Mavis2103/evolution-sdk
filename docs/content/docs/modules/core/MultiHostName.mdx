@@ -10,21 +10,21 @@ parent: Modules
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
-- [conversion](#conversion)
-  - [fromCBORBytes](#fromcborbytes)
-  - [fromCBORHex](#fromcborhex)
+- [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [MultiHostNameError (class)](#multihostnameerror-class)
 - [model](#model)
   - [MultiHostName (class)](#multihostname-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
+    - [toCBORBytes (method)](#tocborbytes-method)
+    - [toCBORHex (method)](#tocborhex-method)
+- [parsing](#parsing)
+  - [fromCBORBytes](#fromcborbytes)
+  - [fromCBORHex](#fromcborhex)
 - [schemas](#schemas)
   - [FromCBORBytes](#fromcborbytes-1)
   - [FromCBORHex](#fromcborhex-1)
@@ -34,102 +34,28 @@ parent: Modules
 
 ---
 
-# constructors
-
-## make
-
-Create a MultiHostName instance.
-
-**Signature**
-
-```ts
-export declare const make: (dnsName: DnsName.DnsName) => MultiHostName
-```
-
-Added in v2.0.0
-
-# conversion
-
-## fromCBORBytes
-
-Convert CBOR bytes to MultiHostName (unsafe)
-
-**Signature**
-
-```ts
-export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => MultiHostName
-```
-
-Added in v2.0.0
-
-## fromCBORHex
-
-Convert CBOR hex string to MultiHostName (unsafe)
-
-**Signature**
-
-```ts
-export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => MultiHostName
-```
-
-Added in v2.0.0
+# encoding
 
 ## toCBORBytes
 
-Convert MultiHostName to CBOR bytes (unsafe)
+Encode MultiHostName to CBOR bytes.
 
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: MultiHostName, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: MultiHostName, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
 
 ## toCBORHex
 
-Convert MultiHostName to CBOR hex string (unsafe)
+Encode MultiHostName to CBOR hex string.
 
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: MultiHostName, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect namespace for MultiHostName operations that can fail
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two MultiHostName instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (self: MultiHostName, that: MultiHostName) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## MultiHostNameError (class)
-
-Error class for MultiHostName related operations.
-
-**Signature**
-
-```ts
-export declare class MultiHostNameError
+export declare const toCBORHex: (data: MultiHostName, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -145,6 +71,100 @@ multi_host_name = (2, dns_name)
 
 ```ts
 export declare class MultiHostName
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+Convert to JSON-serializable format.
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+### toCBORBytes (method)
+
+Convert to CBOR bytes.
+
+**Signature**
+
+```ts
+toCBORBytes(): Uint8Array
+```
+
+Added in v2.0.0
+
+### toCBORHex (method)
+
+Convert to CBOR hex string.
+
+**Signature**
+
+```ts
+toCBORHex(): string
+```
+
+Added in v2.0.0
+
+# parsing
+
+## fromCBORBytes
+
+Parse MultiHostName from CBOR bytes.
+
+**Signature**
+
+```ts
+export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => MultiHostName
+```
+
+Added in v2.0.0
+
+## fromCBORHex
+
+Parse MultiHostName from CBOR hex string.
+
+**Signature**
+
+```ts
+export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => MultiHostName
 ```
 
 Added in v2.0.0

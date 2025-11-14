@@ -12,17 +12,9 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [DnsNameError (class)](#dnsnameerror-class)
 - [model](#model)
   - [DnsName](#dnsname)
   - [DnsName (type alias)](#dnsname-type-alias)
@@ -51,28 +43,6 @@ export declare const arbitrary: Arbitrary<string & Brand<"DnsName">>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Create a DnsName from a string.
-
-**Signature**
-
-```ts
-export declare const make: (a: string, options?: Schema.MakeOptions) => string & Brand<"DnsName">
-```
-
-Added in v2.0.0
-
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -82,7 +52,7 @@ Encode DnsName to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: string & Brand<"DnsName">) => Uint8Array
+export declare const toBytes: (dnsName: DnsName) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -94,35 +64,7 @@ Encode DnsName to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: string & Brand<"DnsName">) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two DnsName instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: DnsName, b: DnsName) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## DnsNameError (class)
-
-Error class for DnsName related operations.
-
-**Signature**
-
-```ts
-export declare class DnsNameError
+export declare const toHex: (dnsName: DnsName) => string
 ```
 
 Added in v2.0.0
@@ -169,7 +111,7 @@ Parse DnsName from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => string & Brand<"DnsName">
+export declare const fromBytes: (bytes: Uint8Array) => DnsName
 ```
 
 Added in v2.0.0
@@ -181,7 +123,7 @@ Parse DnsName from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => string & Brand<"DnsName">
+export declare const fromHex: (hex: string) => DnsName
 ```
 
 Added in v2.0.0

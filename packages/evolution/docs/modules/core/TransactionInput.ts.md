@@ -10,23 +10,18 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
 - [conversion](#conversion)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [TransactionInputError (class)](#transactioninputerror-class)
 - [model](#model)
   - [TransactionInput (class)](#transactioninput-class)
+    - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [predicates](#predicates)
   - [isTransactionInput](#istransactioninput)
 - [schemas](#schemas)
@@ -40,28 +35,11 @@ parent: Modules
 
 ---
 
-# constructors
-
-## make
-
-Smart constructor for creating TransactionInput instances
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly index: bigint; readonly transactionId: TransactionHash.TransactionHash },
-  options?: Schema.MakeOptions | undefined
-) => TransactionInput
-```
-
-Added in v2.0.0
-
 # conversion
 
 ## fromCBORBytes
 
-Convert CBOR bytes to TransactionInput (unsafe)
+Convert CBOR bytes to TransactionInput.
 
 **Signature**
 
@@ -73,7 +51,7 @@ Added in v2.0.0
 
 ## fromCBORHex
 
-Convert CBOR hex string to TransactionInput (unsafe)
+Convert CBOR hex string to TransactionInput.
 
 **Signature**
 
@@ -85,60 +63,24 @@ Added in v2.0.0
 
 ## toCBORBytes
 
-Convert TransactionInput to CBOR bytes (unsafe)
+Convert TransactionInput to CBOR bytes.
 
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: TransactionInput, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: TransactionInput, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
 
 ## toCBORHex
 
-Convert TransactionInput to CBOR hex string (unsafe)
+Convert TransactionInput to CBOR hex string.
 
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: TransactionInput, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect namespace for TransactionInput operations that can fail
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two TransactionInput instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: TransactionInput, b: TransactionInput) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## TransactionInputError (class)
-
-Error class for TransactionInput related operations.
-
-**Signature**
-
-```ts
-export declare class TransactionInputError
+export declare const toCBORHex: (data: TransactionInput, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -161,6 +103,14 @@ export declare class TransactionInput
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
 ### toString (method)
 
 **Signature**
@@ -169,12 +119,28 @@ Added in v2.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # predicates

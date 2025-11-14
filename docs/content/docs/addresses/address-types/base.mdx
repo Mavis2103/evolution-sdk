@@ -36,7 +36,7 @@ const address = new Core.BaseAddress.BaseAddress({
 });
 
 // Convert to Bech32 string
-const bech32 = Core.Address.toBech32(address);
+const bech32 = Core.AddressEras.toBech32(address);
 console.log(bech32); // "addr1..."
 ```
 
@@ -49,7 +49,7 @@ import { Core } from "@evolution-sdk/evolution";
 
 const bech32 = "addr1qx2kd28nq8ac5prwg32hhvudlwggpgfp8utlyqxu6wqgz62f79qsdmm5dsknt9ecr5w468r9ey0fxwkdrwh08ly3tu9sy0f4qd";
 
-const address = Core.Address.fromBech32(bech32) as Core.BaseAddress.BaseAddress;
+const address = Core.AddressEras.fromBech32(bech32) as Core.BaseAddress.BaseAddress;
 
 console.log("Network ID:", address.networkId);
 console.log("Payment:", address.paymentCredential);
@@ -74,7 +74,7 @@ const scriptAddress = new Core.BaseAddress.BaseAddress({
   })
 });
 
-const bech32 = Core.Address.toBech32(scriptAddress);
+const bech32 = Core.AddressEras.toBech32(scriptAddress);
 console.log("Script-based address:", bech32);
 ```
 

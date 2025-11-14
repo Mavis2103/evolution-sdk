@@ -1,17 +1,6 @@
-import { Data, FastCheck, Schema } from "effect"
+import { Equal, FastCheck, Hash, Inspectable, Schema } from "effect"
 
 import * as CBOR from "./CBOR.js"
-
-/**
- * Error class for PlutusV3 related operations.
- *
- * @since 2.0.0
- * @category errors
- */
-export class PlutusV3Error extends Data.TaggedError("PlutusV3Error")<{
-  message?: string
-  cause?: unknown
-}> {}
 
 /**
  * Plutus V3 script wrapper (raw bytes).
@@ -21,7 +10,71 @@ export class PlutusV3Error extends Data.TaggedError("PlutusV3Error")<{
  */
 export class PlutusV3 extends Schema.TaggedClass<PlutusV3>("PlutusV3")("PlutusV3", {
   bytes: Schema.Uint8ArrayFromHex
-}) {}
+}) {
+  /**
+   * Convert to JSON representation.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  toJSON() {
+    return {
+      _tag: "PlutusV3",
+      bytes: this.bytes
+    }
+  }
+
+  /**
+   * Convert to string representation.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  /**
+   * Custom inspect for Node.js REPL.
+   *
+   * @since 2.0.0
+   * @category conversions
+   */
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  /**
+   * Structural equality check.
+   *
+   * @since 2.0.0
+   * @category equality
+   */
+  [Equal.symbol](that: unknown): boolean {
+    if (!(that instanceof PlutusV3)) return false
+    // Compare Uint8Array content byte by byte
+    if (this.bytes.length !== that.bytes.length) return false
+    for (let i = 0; i < this.bytes.length; i++) {
+      if (this.bytes[i] !== that.bytes[i]) return false
+    }
+    return true
+  }
+
+  /**
+   * Hash code generation.
+   *
+   * @since 2.0.0
+   * @category hashing
+   */
+  [Hash.symbol](): number {
+    // Hash Uint8Array content byte by byte
+    let h = Hash.hash(this.bytes.length)
+    for (const byte of this.bytes) {
+      h = Hash.combine(h)(Hash.hash(byte))
+    }
+    return Hash.cached(this, h)
+  }
+}
 
 /**
  * CDDL schema for PlutusV3 scripts as raw bytes.
@@ -42,27 +95,6 @@ export const FromCDDL = Schema.transform(CDDLSchema, Schema.typeSchema(PlutusV3)
   encode: (toI) => toI.bytes,
   decode: (fromA) => new PlutusV3({ bytes: fromA })
 })
-
-/**
- * Smart constructor for PlutusV3.
- *
- * @since 2.0.0
- * @category constructors
- */
-export const make = PlutusV3.make
-
-/**
- * Check equality of two raw script byte arrays.
- */
-const eqBytes = (a: Uint8Array, b: Uint8Array): boolean => a.length === b.length && a.every((v, i) => v === b[i])
-
-/**
- * Check if two PlutusV3 instances are equal.
- *
- * @since 2.0.0
- * @category equality
- */
-export const equals = (a: PlutusV3, b: PlutusV3): boolean => eqBytes(a.bytes, b.bytes)
 
 /**
  * FastCheck arbitrary for PlutusV3.

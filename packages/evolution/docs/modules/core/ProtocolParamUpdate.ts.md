@@ -13,21 +13,34 @@ parent: Modules
 - [utils](#utils)
   - [CDDLSchema](#cddlschema)
   - [CDDLSchema (type alias)](#cddlschema-type-alias)
-  - [DRepVotingThresholds](#drepvotingthresholds)
-  - [DRepVotingThresholds (type alias)](#drepvotingthresholds-type-alias)
-  - [ExUnitPrices](#exunitprices)
-  - [ExUnitPrices (type alias)](#exunitprices-type-alias)
-  - [ExUnits](#exunits)
-  - [ExUnits (type alias)](#exunits-type-alias)
+  - [DRepVotingThresholds (class)](#drepvotingthresholds-class)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
+  - [ExUnitPrices (class)](#exunitprices-class)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
+  - [ExUnitPricesCDDL](#exunitpricescddl)
+  - [ExUnits (class)](#exunits-class)
+    - [[Equal.symbol] (method)](#equalsymbol-method-2)
+    - [[Hash.symbol] (method)](#hashsymbol-method-2)
+  - [ExUnitsCDDL](#exunitscddl)
+  - [FromCBORBytes](#fromcborbytes)
+  - [FromCBORHex](#fromcborhex)
   - [FromCDDL](#fromcddl)
-  - [PoolVotingThresholds](#poolvotingthresholds)
-  - [PoolVotingThresholds (type alias)](#poolvotingthresholds-type-alias)
+  - [PoolVotingThresholds (class)](#poolvotingthresholds-class)
+    - [[Equal.symbol] (method)](#equalsymbol-method-3)
+    - [[Hash.symbol] (method)](#hashsymbol-method-3)
+  - [PoolVotingThresholdsCDDL](#poolvotingthresholdscddl)
   - [ProtocolParamUpdate (class)](#protocolparamupdate-class)
-  - [ProtocolParamUpdateError (class)](#protocolparamupdateerror-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method-4)
+    - [[Hash.symbol] (method)](#hashsymbol-method-4)
   - [arbitrary](#arbitrary)
   - [fromCBOR](#fromcbor)
-  - [fromCBORBytes](#fromcborbytes)
-  - [fromCBORHex](#fromcborhex)
+  - [fromCBORBytes](#fromcborbytes-1)
+  - [fromCBORHex](#fromcborhex-1)
   - [toCBOR](#tocbor)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
@@ -58,149 +71,149 @@ export declare const CDDLSchema: Schema.MapFromSelf<
 export type CDDLSchema = typeof CDDLSchema.Type
 ```
 
-## DRepVotingThresholds
+## DRepVotingThresholds (class)
 
 drep_voting_thresholds (domain) = [10 unit_intervals]
 
 **Signature**
 
 ```ts
-export declare const DRepVotingThresholds: Schema.Tuple<
-  [
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >
-  ]
->
+export declare class DRepVotingThresholds
 ```
 
-## DRepVotingThresholds (type alias)
+### [Equal.symbol] (method)
 
 **Signature**
 
 ```ts
-export type DRepVotingThresholds = typeof DRepVotingThresholds.Type
+[Equal.symbol](that: unknown): boolean
 ```
 
-## ExUnitPrices
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+## ExUnitPrices (class)
 
 ex_unit_prices (domain) = [mem_price : NonnegativeInterval, step_price : NonnegativeInterval]
 
 **Signature**
 
 ```ts
-export declare const ExUnitPrices: Schema.Tuple2<
-  Schema.refine<
-    { readonly numerator: bigint; readonly denominator: bigint },
-    Schema.Struct<{
-      numerator: Schema.refine<bigint, typeof Schema.BigInt>
-      denominator: Schema.refine<bigint, typeof Schema.BigInt>
-    }>
-  >,
-  Schema.refine<
-    { readonly numerator: bigint; readonly denominator: bigint },
-    Schema.Struct<{
-      numerator: Schema.refine<bigint, typeof Schema.BigInt>
-      denominator: Schema.refine<bigint, typeof Schema.BigInt>
-    }>
-  >
->
+export declare class ExUnitPrices
 ```
 
-## ExUnitPrices (type alias)
+### [Equal.symbol] (method)
 
 **Signature**
 
 ```ts
-export type ExUnitPrices = typeof ExUnitPrices.Type
+[Equal.symbol](that: unknown): boolean
 ```
 
-## ExUnits
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+## ExUnitPricesCDDL
+
+**Signature**
+
+```ts
+export declare const ExUnitPricesCDDL: Schema.Tuple2<
+  typeof NonnegativeInterval.NonnegativeInterval,
+  typeof NonnegativeInterval.NonnegativeInterval
+>
+```
+
+## ExUnits (class)
 
 ex_units = [mem : uint, steps : uint]
 
 **Signature**
 
 ```ts
-export declare const ExUnits: Schema.Tuple2<
-  Schema.refine<bigint, typeof Schema.BigInt>,
-  Schema.refine<bigint, typeof Schema.BigInt>
->
+export declare class ExUnits
 ```
 
-## ExUnits (type alias)
+### [Equal.symbol] (method)
 
 **Signature**
 
 ```ts
-export type ExUnits = typeof ExUnits.Type
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+## ExUnitsCDDL
+
+**Signature**
+
+```ts
+export declare const ExUnitsCDDL: Schema.Tuple2<
+  Schema.refine<bigint, typeof Schema.BigIntFromSelf>,
+  Schema.refine<bigint, typeof Schema.BigIntFromSelf>
+>
+```
+
+## FromCBORBytes
+
+**Signature**
+
+```ts
+export declare const FromCBORBytes: (
+  options?: CBOR.CodecOptions
+) => Schema.transform<
+  Schema.transformOrFail<
+    typeof Schema.Uint8ArrayFromSelf,
+    Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
+    never
+  >,
+  Schema.transformOrFail<
+    Schema.MapFromSelf<typeof Schema.BigIntFromSelf, Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>>,
+    Schema.SchemaClass<ProtocolParamUpdate, ProtocolParamUpdate, never>,
+    never
+  >
+>
+```
+
+## FromCBORHex
+
+**Signature**
+
+```ts
+export declare const FromCBORHex: (
+  options?: CBOR.CodecOptions
+) => Schema.transform<
+  Schema.transform<Schema.Schema<string, string, never>, Schema.Schema<Uint8Array, Uint8Array, never>>,
+  Schema.transform<
+    Schema.transformOrFail<
+      typeof Schema.Uint8ArrayFromSelf,
+      Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
+      never
+    >,
+    Schema.transformOrFail<
+      Schema.MapFromSelf<typeof Schema.BigIntFromSelf, Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>>,
+      Schema.SchemaClass<ProtocolParamUpdate, ProtocolParamUpdate, never>,
+      never
+    >
+  >
+>
 ```
 
 ## FromCDDL
@@ -215,60 +228,46 @@ export declare const FromCDDL: Schema.transformOrFail<
 >
 ```
 
-## PoolVotingThresholds
+## PoolVotingThresholds (class)
 
 pool_voting_thresholds (domain) = [u,u,u,u,u] (5 unit_intervals)
 
 **Signature**
 
 ```ts
-export declare const PoolVotingThresholds: Schema.Tuple<
-  [
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >,
-    Schema.refine<
-      { readonly numerator: bigint; readonly denominator: bigint },
-      Schema.Struct<{
-        numerator: Schema.refine<bigint, typeof Schema.BigInt>
-        denominator: Schema.refine<bigint, typeof Schema.BigInt>
-      }>
-    >
-  ]
->
+export declare class PoolVotingThresholds
 ```
 
-## PoolVotingThresholds (type alias)
+### [Equal.symbol] (method)
 
 **Signature**
 
 ```ts
-export type PoolVotingThresholds = typeof PoolVotingThresholds.Type
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+## PoolVotingThresholdsCDDL
+
+**Signature**
+
+```ts
+export declare const PoolVotingThresholdsCDDL: Schema.Tuple<
+  [
+    typeof UnitInterval.UnitInterval,
+    typeof UnitInterval.UnitInterval,
+    typeof UnitInterval.UnitInterval,
+    typeof UnitInterval.UnitInterval,
+    typeof UnitInterval.UnitInterval
+  ]
+>
 ```
 
 ## ProtocolParamUpdate (class)
@@ -281,14 +280,44 @@ Convenience domain class mirroring the same structure.
 export declare class ProtocolParamUpdate
 ```
 
-## ProtocolParamUpdateError (class)
-
-Error class for ProtocolParamUpdate related operations.
+### toJSON (method)
 
 **Signature**
 
 ```ts
-export declare class ProtocolParamUpdateError
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 ## arbitrary
@@ -328,7 +357,7 @@ export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => 
 **Signature**
 
 ```ts
-export declare const toCBOR: (input: ProtocolParamUpdate, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBOR: (data: ProtocolParamUpdate, options?: CBOR.CodecOptions) => any
 ```
 
 ## toCBORBytes
@@ -336,7 +365,7 @@ export declare const toCBOR: (input: ProtocolParamUpdate, options?: CBOR.CodecOp
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: ProtocolParamUpdate, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: ProtocolParamUpdate, options?: CBOR.CodecOptions) => any
 ```
 
 ## toCBORHex
@@ -344,5 +373,5 @@ export declare const toCBORBytes: (input: ProtocolParamUpdate, options?: CBOR.Co
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: ProtocolParamUpdate, options?: CBOR.CodecOptions) => string
+export declare const toCBORHex: (data: ProtocolParamUpdate, options?: CBOR.CodecOptions) => string
 ```

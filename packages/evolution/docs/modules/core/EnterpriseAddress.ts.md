@@ -10,61 +10,26 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [make](#make)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
 - [schemas](#schemas)
   - [EnterpriseAddress (class)](#enterpriseaddress-class)
+    - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [testing](#testing)
   - [arbitrary](#arbitrary)
 - [utils](#utils)
-  - [EnterpriseAddressError (class)](#enterpriseaddresserror-class)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
 
 ---
-
-# constructors
-
-## make
-
-Smart constructor for EnterpriseAddress.
-
-**Signature**
-
-```ts
-export declare const make: (
-  i: {
-    readonly _tag: "EnterpriseAddress"
-    readonly networkId: number
-    readonly paymentCredential:
-      | { readonly _tag: "KeyHash"; readonly hash: string }
-      | { readonly _tag: "ScriptHash"; readonly hash: string }
-  },
-  overrideOptions?: ParseOptions
-) => EnterpriseAddress
-```
-
-Added in v2.0.0
-
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
 
 # encoding
 
@@ -75,7 +40,7 @@ Convert a EnterpriseAddress to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: EnterpriseAddress) => any
+export declare const toBytes: (data: EnterpriseAddress) => any
 ```
 
 Added in v2.0.0
@@ -87,21 +52,7 @@ Convert a EnterpriseAddress to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: EnterpriseAddress) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two EnterpriseAddress instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: EnterpriseAddress, b: EnterpriseAddress) => boolean
+export declare const toHex: (data: EnterpriseAddress) => string
 ```
 
 Added in v2.0.0
@@ -115,7 +66,7 @@ Parse a EnterpriseAddress from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: any) => EnterpriseAddress
+export declare const fromBytes: (bytes: Uint8Array) => EnterpriseAddress
 ```
 
 Added in v2.0.0
@@ -127,7 +78,7 @@ Parse a EnterpriseAddress from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => EnterpriseAddress
+export declare const fromHex: (hex: string) => EnterpriseAddress
 ```
 
 Added in v2.0.0
@@ -146,6 +97,14 @@ export declare class EnterpriseAddress
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
 ### toString (method)
 
 **Signature**
@@ -154,12 +113,28 @@ Added in v2.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # testing
@@ -177,14 +152,6 @@ export declare const arbitrary: FastCheck.Arbitrary<EnterpriseAddress>
 Added in v2.0.0
 
 # utils
-
-## EnterpriseAddressError (class)
-
-**Signature**
-
-```ts
-export declare class EnterpriseAddressError
-```
 
 ## FromBytes
 

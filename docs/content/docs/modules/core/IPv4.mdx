@@ -12,15 +12,9 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [IPv4Error (class)](#ipv4error-class)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -28,6 +22,11 @@ parent: Modules
   - [isIPv4](#isipv4)
 - [schemas](#schemas)
   - [IPv4 (class)](#ipv4-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [utils](#utils)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
@@ -48,14 +47,6 @@ export declare const arbitrary: FastCheck.Arbitrary<IPv4>
 
 Added in v2.0.0
 
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -65,7 +56,7 @@ Encode IPv4 to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: IPv4) => Uint8Array
+export declare const toBytes: (a: IPv4, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -77,35 +68,7 @@ Encode IPv4 to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: IPv4) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Equality on bytes
-
-**Signature**
-
-```ts
-export declare const equals: (a: IPv4, b: IPv4) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## IPv4Error (class)
-
-Error class for IPv4 related operations.
-
-**Signature**
-
-```ts
-export declare class IPv4Error
+export declare const toHex: (a: IPv4, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -119,7 +82,7 @@ Parse IPv4 from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => IPv4
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => IPv4
 ```
 
 Added in v2.0.0
@@ -131,7 +94,7 @@ Parse IPv4 from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => IPv4
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => IPv4
 ```
 
 Added in v2.0.0
@@ -163,6 +126,46 @@ export declare class IPv4
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # utils
 

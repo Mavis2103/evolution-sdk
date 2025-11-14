@@ -22,16 +22,9 @@ Added in v2.0.0
 - [encoding](#encoding)
   - [toHex](#tohex)
   - [toVariableHex](#tovariablehex)
-- [errors](#errors)
-  - [Bytes16Error (class)](#bytes16error-class)
-- [schemas](#schemas)
-  - [FromHex](#fromhex-1)
-  - [VariableBytesFromHex](#variablebytesfromhex)
 - [utils](#utils)
-  - [BytesSchema](#bytesschema)
-  - [Either (namespace)](#either-namespace)
-  - [HexSchema](#hexschema)
-  - [VariableBytes](#variablebytes)
+  - [BytesFromHex](#bytesfromhex)
+  - [VariableBytesFromHex](#variablebytesfromhex)
   - [equals](#equals)
 
 ---
@@ -59,7 +52,7 @@ Decode fixed-length hex into bytes.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => Uint8Array
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -71,7 +64,7 @@ Decode variable-length hex (0..BYTES_LENGTH) into bytes.
 **Signature**
 
 ```ts
-export declare const fromVariableHex: (input: string) => Uint8Array
+export declare const fromVariableHex: (i: string, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -85,7 +78,7 @@ Encode fixed-length bytes to hex.
 **Signature**
 
 ```ts
-export declare const toHex: (input: Uint8Array) => string
+export declare const toHex: (a: Uint8Array, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -97,83 +90,27 @@ Encode variable-length bytes (0..BYTES_LENGTH) to hex.
 **Signature**
 
 ```ts
-export declare const toVariableHex: (input: Uint8Array) => string
-```
-
-Added in v2.0.0
-
-# errors
-
-## Bytes16Error (class)
-
-Error type for this module.
-
-**Signature**
-
-```ts
-export declare class Bytes16Error
-```
-
-Added in v2.0.0
-
-# schemas
-
-## FromHex
-
-Schema transformation for fixed-length bytes
-
-**Signature**
-
-```ts
-export declare const FromHex: Schema.transform<
-  Schema.Schema<string, string, never>,
-  Schema.Schema<Uint8Array, Uint8Array, never>
->
-```
-
-Added in v2.0.0
-
-## VariableBytesFromHex
-
-Schema transformation for variable-length bytes (0..BYTES_LENGTH).
-
-**Signature**
-
-```ts
-export declare const VariableBytesFromHex: Schema.transform<
-  Schema.Schema<string, string, never>,
-  Schema.Schema<Uint8Array, Uint8Array, never>
->
+export declare const toVariableHex: (a: Uint8Array, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
 
 # utils
 
-## BytesSchema
+## BytesFromHex
 
 **Signature**
 
 ```ts
-export declare const BytesSchema: Schema.filter<typeof Schema.Uint8ArrayFromSelf>
+export declare const BytesFromHex: Schema.filter<Schema.Schema<Uint8Array, string, never>>
 ```
 
-## Either (namespace)
-
-## HexSchema
+## VariableBytesFromHex
 
 **Signature**
 
 ```ts
-export declare const HexSchema: Schema.filter<Schema.refine<string, typeof Schema.String>>
-```
-
-## VariableBytes
-
-**Signature**
-
-```ts
-export declare const VariableBytes: Schema.filter<typeof Schema.Uint8ArrayFromSelf>
+export declare const VariableBytesFromHex: Schema.filter<Schema.Schema<Uint8Array, string, never>>
 ```
 
 ## equals

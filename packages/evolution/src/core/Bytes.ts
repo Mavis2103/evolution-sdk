@@ -5,6 +5,23 @@ export class BytesError extends Data.TaggedError("BytesError")<{
   cause?: unknown
 }> {}
 
+/**
+ * Compare two Uint8Array instances for equality.
+ * Returns true if both arrays have the same length and same byte values.
+ *
+ * @since 2.0.0
+ * @category equality
+ */
+export const bytesEquals = (a: Uint8Array | undefined, b: Uint8Array | undefined): boolean => {
+  if (a === b) return true
+  if (a === undefined || b === undefined) return false
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
 export const isHex = (input: string): boolean => {
   const len = input.length
   if (len === 0) return false

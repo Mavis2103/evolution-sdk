@@ -22,6 +22,9 @@ parent: Modules
   - [map](#map)
 - [either](#either)
   - [Either (namespace)](#either-namespace)
+- [equality](#equality)
+  - [equals](#equals)
+  - [hash](#hash)
 - [errors](#errors)
   - [DataError (class)](#dataerror-class)
 - [generators](#generators)
@@ -34,7 +37,6 @@ parent: Modules
   - [arbitraryPlutusMap](#arbitraryplutusmap)
 - [model](#model)
   - [Data (type alias)](#data-type-alias)
-  - [DataEncoded (type alias)](#dataencoded-type-alias)
   - [List (type alias)](#list-type-alias)
   - [Map (type alias)](#map-type-alias)
 - [predicates](#predicates)
@@ -51,6 +53,7 @@ parent: Modules
   - [FromCBORHex](#fromcborhex)
   - [FromCDDL](#fromcddl)
   - [IntSchema](#intschema)
+  - [ListSchema](#listschema)
   - [MapSchema](#mapschema)
 - [transformation](#transformation)
   - [cborValueToPlutusData](#cborvaluetoplutusdata)
@@ -66,8 +69,6 @@ parent: Modules
   - [ByteArray (type alias)](#bytearray-type-alias)
   - [CDDLSchema](#cddlschema)
   - [Int (type alias)](#int-type-alias)
-  - [ListSchema](#listschema)
-  - [equals](#equals)
 
 ---
 
@@ -176,6 +177,34 @@ Added in v2.0.0
 ## Either (namespace)
 
 Either-based variants for functions that can fail.
+
+Added in v2.0.0
+
+# equality
+
+## equals
+
+Deep structural equality for Plutus Data values.
+Handles maps, lists, ints, bytes, and constrs.
+
+**Signature**
+
+```ts
+export declare const equals: (a: Data, b: Data) => boolean
+```
+
+Added in v2.0.0
+
+## hash
+
+Deep structural hash for Plutus Data values.
+Handles maps, lists, ints, bytes, and constrs.
+
+**Signature**
+
+```ts
+export declare const hash: (data: Data) => number
+```
 
 Added in v2.0.0
 
@@ -320,48 +349,14 @@ Constructor Index Limits:
 **Signature**
 
 ```ts
-export type Data =
-  // Constr (runtime with bigint index)
-  | Constr
-  // { readonly index: bigint; readonly fields: ReadonlyArray<Data> } |
-  // Map (using standard Map since Schema.Map produces Map<K,V>)
-  | globalThis.Map<Data, Data>
-  // List
-  | ReadonlyArray<Data>
-  // Int (runtime as bigint)
-  | bigint
-  // ByteArray (runtime as hex string)
-  | string
-```
-
-Added in v2.0.0
-
-## DataEncoded (type alias)
-
-PlutusData encoded type definition (wire format)
-Used for serialization/deserialization from JSON/CBOR
-
-**Signature**
-
-```ts
-export type DataEncoded =
-  // Constr (encoded with string index)
-  | { readonly index: string; readonly fields: ReadonlyArray<DataEncoded> }
-  // Map (encoded as array of [key, value] pairs)
-  | ReadonlyArray<readonly [DataEncoded, DataEncoded]>
-  // List
-  | ReadonlyArray<DataEncoded>
-  // Int (encoded as string)
-  | string
-  // ByteArray (encoded as hex string)
-  | string
+export type Data = Constr | ReadonlyMap<Data, Data> | ReadonlyArray<Data> | bigint | string
 ```
 
 Added in v2.0.0
 
 ## List (type alias)
 
-PlutusList type for plutus data lists
+PlutusList type alias
 
 **Signature**
 
@@ -373,30 +368,12 @@ Added in v2.0.0
 
 ## Map (type alias)
 
-Constr type for constructor alternatives based on Conway CDDL specification
-
-```
-CDDL: constr<a0> =
-  #6.121([* a0])    // index 0
-  / #6.122([* a0])  // index 1
-  / #6.123([* a0])  // index 2
-  / #6.124([* a0])  // index 3
-  / #6.125([* a0])  // index 4
-  / #6.126([* a0])  // index 5
-  / #6.127([* a0])  // index 6
-  / #6.102([uint, [* a0]])  // general constructor with custom index
-```
-
-Constructor Index Range:
-
-- Minimum: 0
-- Maximum: 2^64 - 1 (18,446,744,073,709,551,615)
-  as per CBOR RFC 8949 specification for unsigned integers
+PlutusMap type alias
 
 **Signature**
 
 ```ts
-export type Map = globalThis.Map<Data, Data>
+export type Map = ReadonlyMap<Data, Data>
 ```
 
 Added in v2.0.0
@@ -458,7 +435,7 @@ Type guard to check if a value is a PlutusMap
 **Signature**
 
 ```ts
-export declare const isMap: (u: unknown, overrideOptions?: ParseOptions | number) => u is globalThis.Map<Data, Data>
+export declare const isMap: (u: unknown, overrideOptions?: ParseOptions | number) => u is ReadonlyMap<Data, Data>
 ```
 
 Added in v2.0.0
@@ -479,7 +456,7 @@ Added in v2.0.0
 
 ## Constr (class)
 
-Schema for Constr data type
+Constr schema for constructor alternatives
 
 **Signature**
 
@@ -496,7 +473,15 @@ Combined schema for PlutusData type with proper recursion
 **Signature**
 
 ```ts
-export declare const DataSchema: Schema.Schema<Data, DataEncoded, never>
+export declare const DataSchema: Schema.Union<
+  [
+    Schema.ReadonlyMapFromSelf<Schema.suspend<Data, Data, never>, Schema.suspend<Data, Data, never>>,
+    Schema.Array$<Schema.suspend<Data, Data, never>>,
+    Schema.SchemaClass<bigint, bigint, never>,
+    Schema.refine<string, typeof Schema.String>,
+    typeof Constr
+  ]
+>
 ```
 
 Added in v2.0.0
@@ -517,7 +502,15 @@ export declare const FromCBORBytes: (
     Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
     never
   >,
-  Schema.transformOrFail<Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>, Schema.SchemaClass<Data, Data, never>, never>
+  Schema.transformOrFail<
+    Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>,
+    Schema.SchemaClass<
+      string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+      string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+      never
+    >,
+    never
+  >
 >
 ```
 
@@ -541,7 +534,15 @@ export declare const FromCBORHex: (
       Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
       never
     >,
-    Schema.transformOrFail<Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>, Schema.SchemaClass<Data, Data, never>, never>
+    Schema.transformOrFail<
+      Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>,
+      Schema.SchemaClass<
+        string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+        string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+        never
+      >,
+      never
+    >
   >
 >
 ```
@@ -583,7 +584,11 @@ plutusDataToCBORValue and cborValueToPlutusData functions.
 ```ts
 export declare const FromCDDL: Schema.transformOrFail<
   Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>,
-  Schema.SchemaClass<Data, Data, never>,
+  Schema.SchemaClass<
+    string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+    string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+    never
+  >,
   never
 >
 ```
@@ -613,11 +618,19 @@ Note: JavaScript's Number.MAX_SAFE_INTEGER (2^53-1) is much smaller than CBOR's 
 **Signature**
 
 ```ts
-export declare const IntSchema: Schema.transformOrFail<
-  Schema.SchemaClass<string, string, never>,
-  typeof Schema.BigIntFromSelf,
-  never
->
+export declare const IntSchema: Schema.SchemaClass<bigint, bigint, never>
+```
+
+Added in v2.0.0
+
+## ListSchema
+
+Schema for PlutusList data type
+
+**Signature**
+
+```ts
+export declare const ListSchema: Schema.Array$<Schema.suspend<Data, Data, never>>
 ```
 
 Added in v2.0.0
@@ -629,9 +642,9 @@ Schema for PlutusMap data type
 **Signature**
 
 ```ts
-export declare const MapSchema: Schema.transform<
-  Schema.Array$<Schema.Tuple2<Schema.suspend<Data, DataEncoded, never>, Schema.suspend<Data, DataEncoded, never>>>,
-  Schema.MapFromSelf<Schema.SchemaClass<Data, Data, never>, Schema.SchemaClass<Data, Data, never>>
+export declare const MapSchema: Schema.ReadonlyMapFromSelf<
+  Schema.suspend<Data, Data, never>,
+  Schema.suspend<Data, Data, never>
 >
 ```
 
@@ -658,7 +671,10 @@ Decode PlutusData from CBOR bytes
 **Signature**
 
 ```ts
-export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => Data
+export declare const fromCBORBytes: (
+  bytes: Uint8Array,
+  options?: CBOR.CodecOptions
+) => string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>
 ```
 
 Added in v2.0.0
@@ -670,7 +686,10 @@ Decode PlutusData from CBOR hex string
 **Signature**
 
 ```ts
-export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => Data
+export declare const fromCBORHex: (
+  hex: string,
+  options?: CBOR.CodecOptions
+) => string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>
 ```
 
 Added in v2.0.0
@@ -694,7 +713,10 @@ Encode PlutusData to CBOR bytes
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: Data, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (
+  input: string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+  options?: CBOR.CodecOptions
+) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -706,7 +728,10 @@ Encode PlutusData to CBOR hex string
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: Data, options?: CBOR.CodecOptions) => string
+export declare const toCBORHex: (
+  input: string | bigint | Constr | readonly Data[] | ReadonlyMap<Data, Data>,
+  options?: CBOR.CodecOptions
+) => string
 ```
 
 Added in v2.0.0
@@ -773,23 +798,4 @@ export declare const CDDLSchema: Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>
 
 ```ts
 export type Int = typeof IntSchema.Type
-```
-
-## ListSchema
-
-**Signature**
-
-```ts
-export declare const ListSchema: Schema.Array$<Schema.suspend<Data, DataEncoded, never>>
-```
-
-## equals
-
-Deep structural equality for Plutus Data values.
-Handles maps, lists, ints, bytes, and constrs.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Data, b: Data) => boolean
 ```

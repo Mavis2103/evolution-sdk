@@ -10,21 +10,12 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [makeDatumHash](#makedatumhash)
-  - [makeInlineDatum](#makeinlinedatum)
 - [conversion](#conversion)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [DatumOptionError (class)](#datumoptionerror-class)
 - [model](#model)
   - [DatumOption (type alias)](#datumoption-type-alias)
 - [predicates](#predicates)
@@ -32,13 +23,21 @@ parent: Modules
   - [isInlineDatum](#isinlinedatum)
 - [schemas](#schemas)
   - [DatumHash (class)](#datumhash-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [DatumOptionSchema](#datumoptionschema)
   - [FromCBORBytes](#fromcborbytes-1)
   - [FromCBORHex](#fromcborhex-1)
   - [FromCDDL](#fromcddl)
   - [InlineDatum (class)](#inlinedatum-class)
-    - [toString (method)](#tostring-method)
-    - [[Symbol.for("nodejs.util.inspect.custom")] (method)](#symbolfornodejsutilinspectcustom-method)
+    - [toJSON (method)](#tojson-method-1)
+    - [toString (method)](#tostring-method-1)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method-1)
+    - [[Equal.symbol] (method)](#equalsymbol-method-1)
+    - [[Hash.symbol] (method)](#hashsymbol-method-1)
 - [testing](#testing)
   - [arbitrary](#arbitrary)
 - [utils](#utils)
@@ -49,43 +48,11 @@ parent: Modules
 
 ---
 
-# constructors
-
-## makeDatumHash
-
-Create a DatumOption with a datum hash.
-
-**Signature**
-
-```ts
-export declare const makeDatumHash: (
-  props: { readonly hash: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => DatumHash
-```
-
-Added in v2.0.0
-
-## makeInlineDatum
-
-Create a DatumOption with inline data.
-
-**Signature**
-
-```ts
-export declare const makeInlineDatum: (
-  props: { readonly data: PlutusData.Data },
-  options?: Schema.MakeOptions | undefined
-) => InlineDatum
-```
-
-Added in v2.0.0
-
 # conversion
 
 ## fromCBORBytes
 
-Convert CBOR bytes to DatumOption (unsafe)
+Convert CBOR bytes to DatumOption.
 
 **Signature**
 
@@ -97,7 +64,7 @@ Added in v2.0.0
 
 ## fromCBORHex
 
-Convert CBOR hex string to DatumOption (unsafe)
+Convert CBOR hex string to DatumOption.
 
 **Signature**
 
@@ -107,64 +74,28 @@ export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => 
 
 Added in v2.0.0
 
-# either
-
-## Either (namespace)
-
-Either namespace for DatumOption operations that can fail
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
 
-Convert DatumOption to CBOR bytes (unsafe).
+Convert DatumOption to CBOR bytes.
 
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: DatumHash | InlineDatum, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: DatumOption, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
 
 ## toCBORHex
 
-Convert DatumOption to CBOR hex (unsafe).
+Convert DatumOption to CBOR hex.
 
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: DatumHash | InlineDatum, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two DatumOption instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: DatumOption, b: DatumOption) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## DatumOptionError (class)
-
-Error class for DatumOption related operations.
-
-**Signature**
-
-```ts
-export declare class DatumOptionError
+export declare const toCBORHex: (data: DatumOption, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -221,6 +152,56 @@ Represents a reference to datum data stored elsewhere via its hash.
 
 ```ts
 export declare class DatumHash
+```
+
+Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0
@@ -358,6 +339,16 @@ export declare class InlineDatum
 
 Added in v2.0.0
 
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+Added in v2.0.0
+
 ### toString (method)
 
 **Signature**
@@ -366,13 +357,37 @@ Added in v2.0.0
 toString(): string
 ```
 
-### [Symbol.for("nodejs.util.inspect.custom")] (method)
+Added in v2.0.0
+
+### [Inspectable.NodeInspectSymbol] (method)
 
 **Signature**
 
 ```ts
-[Symbol.for("nodejs.util.inspect.custom")](): string
+[Inspectable.NodeInspectSymbol](): unknown
 ```
+
+Added in v2.0.0
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+Added in v2.0.0
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
+
+Added in v2.0.0
 
 # testing
 

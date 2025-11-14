@@ -37,12 +37,13 @@ parent: Modules
   - [IntMetadatum (class)](#intmetadatum-class)
   - [MetadatumMap (class)](#metadatummap-class)
   - [TextMetadatum (class)](#textmetadatum-class)
-  - [TransactionMetadatum](#transactionmetadatum)
+  - [TransactionMetadatumVariants](#transactionmetadatumvariants)
 - [utilities](#utilities)
   - [equals](#equals)
 - [utils](#utils)
   - [FromCDDL](#fromcddl)
-  - [TransactionMetadatum (type alias)](#transactionmetadatum-type-alias)
+  - [TransactionMetadatum (class)](#transactionmetadatum-class)
+  - [TransactionMetadatumVariants (type alias)](#transactionmetadatumvariants-type-alias)
   - [arbitrary](#arbitrary)
 
 ---
@@ -56,7 +57,7 @@ Create an ArrayMetadatum from an array of TransactionMetadatum values.
 **Signature**
 
 ```ts
-export declare const array: (value: Array<TransactionMetadatum>) => ArrayMetadatum
+export declare const array: (value: Array<TransactionMetadatumVariants>) => ArrayMetadatum
 ```
 
 Added in v2.0.0
@@ -92,7 +93,7 @@ Create a MetadatumMap from a Map of TransactionMetadatum key-value pairs.
 **Signature**
 
 ```ts
-export declare const map: (value: Map<TransactionMetadatum, TransactionMetadatum>) => MetadatumMap
+export declare const map: (value: Map<TransactionMetadatumVariants, TransactionMetadatumVariants>) => MetadatumMap
 ```
 
 Added in v2.0.0
@@ -349,14 +350,14 @@ export declare class TextMetadatum
 
 Added in v2.0.0
 
-## TransactionMetadatum
+## TransactionMetadatumVariants
 
 Union schema for all types of transaction metadata.
 
 **Signature**
 
 ```ts
-export declare const TransactionMetadatum: Schema.Union<
+export declare const TransactionMetadatumVariants: Schema.Union<
   [typeof TextMetadatum, typeof IntMetadatum, typeof BytesMetadatum, typeof ArrayMetadatum, typeof MetadatumMap]
 >
 ```
@@ -372,7 +373,7 @@ Check if two TransactionMetadatum instances are equal.
 **Signature**
 
 ```ts
-export declare const equals: (a: TransactionMetadatum, b: TransactionMetadatum) => boolean
+export declare const equals: (a: TransactionMetadatumVariants, b: TransactionMetadatumVariants) => boolean
 ```
 
 Added in v2.0.0
@@ -394,12 +395,20 @@ export declare const FromCDDL: Schema.transform<
 >
 ```
 
-## TransactionMetadatum (type alias)
+## TransactionMetadatum (class)
 
 **Signature**
 
 ```ts
-export type TransactionMetadatum = TextMetadatum | IntMetadatum | BytesMetadatum | MetadatumMap | ArrayMetadatum
+export declare class TransactionMetadatum
+```
+
+## TransactionMetadatumVariants (type alias)
+
+**Signature**
+
+```ts
+export type TransactionMetadatumVariants = TextMetadatum | IntMetadatum | BytesMetadatum | MetadatumMap | ArrayMetadatum
 ```
 
 ## arbitrary
@@ -407,5 +416,5 @@ export type TransactionMetadatum = TextMetadatum | IntMetadatum | BytesMetadatum
 **Signature**
 
 ```ts
-export declare const arbitrary: FastCheck.Arbitrary<TransactionMetadatum>
+export declare const arbitrary: FastCheck.Arbitrary<TransactionMetadatumVariants>
 ```

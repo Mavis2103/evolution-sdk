@@ -12,22 +12,19 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [AnchorError (class)](#anchorerror-class)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
 - [schemas](#schemas)
   - [Anchor (class)](#anchor-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
   - [FromCBORBytes](#fromcborbytes-1)
   - [FromCBORHex](#fromcborhex-1)
   - [FromCDDL](#fromcddl)
@@ -50,31 +47,6 @@ export declare const arbitrary: FastCheck.Arbitrary<Anchor>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Create an Anchor from a URL string and hash string.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly anchorUrl: Url.Url; readonly anchorDataHash: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => Anchor
-```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -84,7 +56,7 @@ Convert an Anchor to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: Anchor, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (anchor: Anchor, options?: CBOR.CodecOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -96,35 +68,7 @@ Convert an Anchor to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: Anchor, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two Anchor instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (self: Anchor, that: Anchor) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## AnchorError (class)
-
-Error class for Anchor related operations.
-
-**Signature**
-
-```ts
-export declare class AnchorError
+export declare const toCBORHex: (anchor: Anchor, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -172,6 +116,46 @@ export declare class Anchor
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 ## FromCBORBytes
 

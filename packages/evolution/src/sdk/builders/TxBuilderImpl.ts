@@ -190,13 +190,13 @@ export const makeDatumOption = (datum: Datum.Datum): Effect.Effect<DatumOption.D
     if (datum.type === "inlineDatum") {
       // Parse PlutusData from CBOR hex using Schema
       const plutusData = yield* Schema.decodeUnknown(PlutusData.FromCBORHex())(datum.inline)
-      return DatumOption.makeInlineDatum({ data: plutusData })
+      return new DatumOption.InlineDatum({ data: plutusData })
     }
 
     if (datum.type === "datumHash") {
       // Parse datum hash from hex string to Uint8Array using Schema
       const hashBytes = yield* Schema.decodeUnknown(Bytes32.BytesFromHex)(datum.hash)
-      return DatumOption.makeDatumHash({ hash: hashBytes })
+      return new DatumOption.DatumHash({ hash: hashBytes })
     }
 
     return yield* Effect.fail(
@@ -617,12 +617,12 @@ export const assembleTransaction = (
         index: BigInt(inputIndex), // Use actual input index
         data: plutusData,
         exUnits: redeemerData.exUnits
-          ? ([redeemerData.exUnits.mem, redeemerData.exUnits.steps] as const)
-          : ([0n, 0n] as const) // [memory, steps] - will be updated by script evaluation
+          ? new Redeemer.ExUnits({ mem: redeemerData.exUnits.mem, steps: redeemerData.exUnits.steps })
+          : new Redeemer.ExUnits({ mem: 0n, steps: 0n }) // will be updated by script evaluation
       })
 
       yield* Effect.logDebug(
-        `[Assembly] Created redeemer: tag=${redeemer.tag}, index=${redeemer.index}, exUnits=[${redeemer.exUnits[0]}, ${redeemer.exUnits[1]}]`
+        `[Assembly] Created redeemer: tag=${redeemer.tag}, index=${redeemer.index}, exUnits=[${redeemer.exUnits.mem}, ${redeemer.exUnits.steps}]`
       )
 
       redeemers.push(redeemer)
@@ -778,7 +778,7 @@ const buildFakeVKeyWitness = (
     const signatureBytes = new Uint8Array(64)
 
     const vkey = yield* Effect.try({
-      try: () => VKey.make({ bytes: vkeyBytes }),
+      try: () => new VKey.VKey({ bytes: vkeyBytes }),
       catch: (error) =>
         new TransactionBuilderError({
           message: "Failed to create fake VKey",
@@ -787,7 +787,7 @@ const buildFakeVKeyWitness = (
     })
 
     const signature = yield* Effect.try({
-      try: () => Ed25519Signature.make({ bytes: signatureBytes }),
+      try: () => new Ed25519Signature.Ed25519Signature({ bytes: signatureBytes }),
       catch: (error) =>
         new TransactionBuilderError({
           message: "Failed to create fake signature",

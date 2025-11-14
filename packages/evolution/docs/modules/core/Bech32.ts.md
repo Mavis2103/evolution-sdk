@@ -10,8 +10,6 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [model](#model)
-  - [Bech32Error (class)](#bech32error-class)
 - [utils](#utils)
   - [Bech32 (type alias)](#bech32-type-alias)
   - [Bech32Schema](#bech32schema)
@@ -19,18 +17,6 @@ parent: Modules
   - [FromHex](#fromhex)
 
 ---
-
-# model
-
-## Bech32Error (class)
-
-**Signature**
-
-```ts
-export declare class Bech32Error
-```
-
-Added in v2.0.0
 
 # utils
 

@@ -6,13 +6,17 @@ parent: Modules
 
 ## AddressTag overview
 
+Address header kind - used to determine the type of address from its header
+Following CIP-0019 address types
+
+Added in v2.0.0
+
 ---
 
 <h2 class="text-delta">Table of contents</h2>
 
 - [model](#model)
   - [AddressTag (type alias)](#addresstag-type-alias)
-  - [AddressTagError (class)](#addresstagerror-class)
 
 ---
 
@@ -27,16 +31,6 @@ Following CIP-0019 address types
 
 ```ts
 export type AddressTag = "Base" | "Enterprise" | "Pointer" | "Reward" | "Byron"
-```
-
-Added in v2.0.0
-
-## AddressTagError (class)
-
-**Signature**
-
-```ts
-export declare class AddressTagError
 ```
 
 Added in v2.0.0

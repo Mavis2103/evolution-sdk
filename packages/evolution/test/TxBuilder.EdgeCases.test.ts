@@ -22,8 +22,7 @@ const TESTNET_ADDRESSES = [
 const CHANGE_ADDRESS = TESTNET_ADDRESSES[0]
 const RECEIVER_ADDRESS = TESTNET_ADDRESSES[1]
 
-const baseConfig: TxBuilderConfig = {
-}
+const baseConfig: TxBuilderConfig = {}
 
 describe("TxBuilder P0 Edge Cases - Reselection Loop Boundaries", () => {
   it("hit max reselection attempts with insufficient funds", async () => {
@@ -227,7 +226,7 @@ describe("TxBuilder P0 Edge Cases - MinUTxO Boundary Precision", () => {
     expect(changeOutput.amount._tag).toBe("WithAssets")
     if (changeOutput.amount._tag === "WithAssets") {
       let totalTokens = 0n
-      for (const [_, assetMap] of changeOutput.amount.assets) {
+      for (const [_, assetMap] of changeOutput.amount.assets.map) {
         for (const [_, qty] of assetMap) {
           totalTokens += qty
         }
@@ -310,7 +309,7 @@ describe("TxBuilder P0 Edge Cases - MinUTxO Boundary Precision", () => {
       // Count total assets and verify quantity (don't assume specific policy grouping)
       let totalAssets = 0
       let totalQuantity = 0n
-      for (const [_, innerMap] of assetMap) {
+      for (const [_, innerMap] of assetMap.map) {
         totalAssets += innerMap.size
         for (const [_, qty] of innerMap) {
           totalQuantity += qty
@@ -406,7 +405,7 @@ describe("TxBuilder P0 Edge Cases - MinUTxO Boundary Precision", () => {
 
       // Check that the test token is present in the change output
       let foundTestAsset = false
-      for (const [_, assetMap] of changeAssets) {
+      for (const [_, assetMap] of changeAssets.map) {
         for (const [_, qty] of assetMap) {
           if (qty === 1n) {
             foundTestAsset = true

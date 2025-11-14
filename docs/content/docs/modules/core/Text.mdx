@@ -17,10 +17,6 @@ parent: Modules
   - [fromHex](#fromhex)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
-- [errors](#errors)
-  - [TextError (class)](#texterror-class)
 - [schemas](#schemas)
   - [FromBytes](#frombytes-1)
 - [testing](#testing)
@@ -67,70 +63,48 @@ Added in v2.0.0
 
 ## fromBytes
 
-Convert bytes to text (unsafe)
+Convert bytes to text
 
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => string
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
 
 ## fromHex
 
-Convert hex string to text (unsafe)
+Convert hex string to text
 
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => string
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
 
 ## toBytes
 
-Convert text to bytes (unsafe)
+Convert text to bytes
 
 **Signature**
 
 ```ts
-export declare const toBytes: (input: string) => Uint8Array
+export declare const toBytes: (a: string, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
 
 ## toHex
 
-Convert text to hex string (unsafe)
+Convert text to hex string
 
 **Signature**
 
 ```ts
-export declare const toHex: (input: string) => string
-```
-
-Added in v2.0.0
-
-# either
-
-## Either (namespace)
-
-Either namespace for Text operations that can fail
-
-Added in v2.0.0
-
-# errors
-
-## TextError (class)
-
-Error class for Text related operations.
-
-**Signature**
-
-```ts
-export declare class TextError
+export declare const toHex: (a: string, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0

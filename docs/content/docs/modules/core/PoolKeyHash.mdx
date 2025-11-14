@@ -12,21 +12,16 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [PoolKeyHashError (class)](#poolkeyhasherror-class)
 - [model](#model)
   - [PoolKeyHash (class)](#poolkeyhash-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
@@ -50,31 +45,6 @@ export declare const arbitrary: FastCheck.Arbitrary<PoolKeyHash>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for PoolKeyHash that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly hash: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => PoolKeyHash
-```
-
-Added in v2.0.0
-
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -84,7 +54,7 @@ Encode PoolKeyHash to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: PoolKeyHash) => Uint8Array
+export declare const toBytes: (a: PoolKeyHash, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -96,35 +66,7 @@ Encode PoolKeyHash to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: PoolKeyHash) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two PoolKeyHash instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: PoolKeyHash, b: PoolKeyHash) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## PoolKeyHashError (class)
-
-Error class for PoolKeyHash related operations.
-
-**Signature**
-
-```ts
-export declare class PoolKeyHashError
+export declare const toHex: (a: PoolKeyHash, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -149,7 +91,7 @@ Added in v2.0.0
 **Signature**
 
 ```ts
-toJSON(): string
+toJSON()
 ```
 
 ### toString (method)
@@ -158,6 +100,30 @@ toJSON(): string
 
 ```ts
 toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # parsing
@@ -169,7 +135,7 @@ Parse PoolKeyHash from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => PoolKeyHash
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => PoolKeyHash
 ```
 
 Added in v2.0.0
@@ -181,7 +147,7 @@ Parse PoolKeyHash from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => PoolKeyHash
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => PoolKeyHash
 ```
 
 Added in v2.0.0

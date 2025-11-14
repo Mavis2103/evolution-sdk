@@ -19,9 +19,7 @@ parent: Modules
   - [toHex](#tohex)
   - [toVariableHex](#tovariablehex)
 - [utils](#utils)
-  - [Bytes64Error (class)](#bytes64error-class)
   - [BytesFromHex](#bytesfromhex)
-  - [Either (namespace)](#either-namespace)
   - [VariableBytesFromHex](#variablebytesfromhex)
   - [equals](#equals)
 
@@ -50,7 +48,7 @@ Decode fixed-length hex into bytes.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => Uint8Array
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -62,7 +60,7 @@ Decode variable-length hex (0..BYTES_LENGTH) into bytes.
 **Signature**
 
 ```ts
-export declare const fromVariableHex: (input: any) => any
+export declare const fromVariableHex: (i: any, overrideOptions?: ParseOptions) => any
 ```
 
 Added in v2.0.0
@@ -76,7 +74,7 @@ Encode fixed-length bytes to hex.
 **Signature**
 
 ```ts
-export declare const toHex: (input: Uint8Array) => string
+export declare const toHex: (a: Uint8Array, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -88,20 +86,12 @@ Encode variable-length bytes (0..BYTES_LENGTH) to hex.
 **Signature**
 
 ```ts
-export declare const toVariableHex: (input: any) => any
+export declare const toVariableHex: (a: any, overrideOptions?: ParseOptions) => any
 ```
 
 Added in v2.0.0
 
 # utils
-
-## Bytes64Error (class)
-
-**Signature**
-
-```ts
-export declare class Bytes64Error
-```
 
 ## BytesFromHex
 
@@ -110,8 +100,6 @@ export declare class Bytes64Error
 ```ts
 export declare const BytesFromHex: Schema.filter<Schema.Schema<Uint8Array, string, never>>
 ```
-
-## Either (namespace)
 
 ## VariableBytesFromHex
 

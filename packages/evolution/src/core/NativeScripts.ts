@@ -1,20 +1,8 @@
-import { Data, Effect as Eff, FastCheck, ParseResult, Schema } from "effect"
+import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
-import * as Function from "./Function.js"
 import * as Hash28 from "./Hash28.js"
-
-/**
- * Error class for Native script related operations.
- *
- * @since 2.0.0
- * @category errors
- */
-export class NativeScriptError extends Data.TaggedError("NativeScriptError")<{
-  message?: string
-  cause?: unknown
-}> {}
 
 // ============================================================================
 // Type Definitions
@@ -28,11 +16,11 @@ export class NativeScriptError extends Data.TaggedError("NativeScriptError")<{
  */
 export type NativeScriptEncoded =
   | { readonly _tag: "ScriptPubKey"; readonly keyHash: string }
-  | { readonly _tag: "InvalidBefore"; readonly slot: string }
-  | { readonly _tag: "InvalidHereafter"; readonly slot: string }
+  | { readonly _tag: "InvalidBefore"; readonly slot: bigint }
+  | { readonly _tag: "InvalidHereafter"; readonly slot: bigint }
   | { readonly _tag: "ScriptAll"; readonly scripts: ReadonlyArray<NativeScriptEncoded> }
   | { readonly _tag: "ScriptAny"; readonly scripts: ReadonlyArray<NativeScriptEncoded> }
-  | { readonly _tag: "ScriptNOfK"; readonly required: string; readonly scripts: ReadonlyArray<NativeScriptEncoded> }
+  | { readonly _tag: "ScriptNOfK"; readonly required: bigint; readonly scripts: ReadonlyArray<NativeScriptEncoded> }
 
 /**
  * Native script type definition (runtime representation)
@@ -65,11 +53,11 @@ export const NativeScriptVariants: Schema.Schema<NativeScriptVariants, NativeScr
   }),
   Schema.Struct({
     _tag: Schema.Literal("InvalidBefore"),
-    slot: Schema.BigInt
+    slot: Schema.BigIntFromSelf
   }),
   Schema.Struct({
     _tag: Schema.Literal("InvalidHereafter"),
-    slot: Schema.BigInt
+    slot: Schema.BigIntFromSelf
   }),
   Schema.Struct({
     _tag: Schema.Literal("ScriptAll"),
@@ -85,7 +73,7 @@ export const NativeScriptVariants: Schema.Schema<NativeScriptVariants, NativeScr
   }),
   Schema.Struct({
     _tag: Schema.Literal("ScriptNOfK"),
-    required: Schema.BigInt,
+    required: Schema.BigIntFromSelf,
     scripts: Schema.Array(
       Schema.suspend((): Schema.Schema<NativeScriptVariants, NativeScriptEncoded> => NativeScriptVariants)
     )
@@ -108,7 +96,108 @@ export class NativeScript extends Schema.TaggedClass<NativeScript>("NativeScript
     title: "Native Script",
     description: "A native script following Cardano specifications"
   }
-) {}
+) {
+  toJSON() {
+    return {
+      _tag: "NativeScript" as const,
+      script: this.script
+    }
+  }
+
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  [Equal.symbol](that: unknown): boolean {
+    return that instanceof NativeScript && nativeScriptVariantsEquals(this.script, that.script)
+  }
+
+  [Hash.symbol](): number {
+    return nativeScriptVariantsHash(this.script)
+  }
+}
+
+// Helper functions for comparing/hashing NativeScriptVariants
+const nativeScriptVariantsEquals = (a: NativeScriptVariants, b: NativeScriptVariants): boolean => {
+  if (a._tag !== b._tag) return false
+
+  switch (a._tag) {
+    case "ScriptPubKey":
+      if (b._tag !== "ScriptPubKey") return false
+      if (a.keyHash.length !== b.keyHash.length) return false
+      for (let i = 0; i < a.keyHash.length; i++) {
+        if (a.keyHash[i] !== b.keyHash[i]) return false
+      }
+      return true
+    case "InvalidBefore":
+      return b._tag === "InvalidBefore" && a.slot === b.slot
+    case "InvalidHereafter":
+      return b._tag === "InvalidHereafter" && a.slot === b.slot
+    case "ScriptAll":
+      if (b._tag !== "ScriptAll") return false
+      if (a.scripts.length !== b.scripts.length) return false
+      for (let i = 0; i < a.scripts.length; i++) {
+        if (!nativeScriptVariantsEquals(a.scripts[i], b.scripts[i])) return false
+      }
+      return true
+    case "ScriptAny":
+      if (b._tag !== "ScriptAny") return false
+      if (a.scripts.length !== b.scripts.length) return false
+      for (let i = 0; i < a.scripts.length; i++) {
+        if (!nativeScriptVariantsEquals(a.scripts[i], b.scripts[i])) return false
+      }
+      return true
+    case "ScriptNOfK":
+      if (b._tag !== "ScriptNOfK") return false
+      if (a.required !== b.required) return false
+      if (a.scripts.length !== b.scripts.length) return false
+      for (let i = 0; i < a.scripts.length; i++) {
+        if (!nativeScriptVariantsEquals(a.scripts[i], b.scripts[i])) return false
+      }
+      return true
+  }
+}
+
+const nativeScriptVariantsHash = (v: NativeScriptVariants): number => {
+  switch (v._tag) {
+    case "ScriptPubKey": {
+      let h = Hash.string("ScriptPubKey")
+      for (let i = 0; i < v.keyHash.length; i++) {
+        h = Hash.combine(h)(Hash.number(v.keyHash[i]))
+      }
+      return h
+    }
+    case "InvalidBefore":
+      return Hash.combine(Hash.string("InvalidBefore"))(Hash.number(Number(v.slot)))
+    case "InvalidHereafter":
+      return Hash.combine(Hash.string("InvalidHereafter"))(Hash.number(Number(v.slot)))
+    case "ScriptAll": {
+      let h = Hash.string("ScriptAll")
+      for (const script of v.scripts) {
+        h = Hash.combine(h)(nativeScriptVariantsHash(script))
+      }
+      return h
+    }
+    case "ScriptAny": {
+      let h = Hash.string("ScriptAny")
+      for (const script of v.scripts) {
+        h = Hash.combine(h)(nativeScriptVariantsHash(script))
+      }
+      return h
+    }
+    case "ScriptNOfK": {
+      let h = Hash.combine(Hash.string("ScriptNOfK"))(Hash.number(Number(v.required)))
+      for (const script of v.scripts) {
+        h = Hash.combine(h)(nativeScriptVariantsHash(script))
+      }
+      return h
+    }
+  }
+}
 
 // ============================================================================
 // Smart Constructors
@@ -436,19 +525,6 @@ export const is = Schema.is(NativeScriptVariants)
  * Check if two NativeScript instances are equal
  *
  * @since 2.0.0
- * @category equality
- */
-export const equals = (a: NativeScript, b: NativeScript): boolean => {
-  // Use CBOR encoding for deep equality comparison
-  try {
-    const aBytes = toCBORBytes(a)
-    const bBytes = toCBORBytes(b)
-    return Bytes.equals(aBytes, bBytes)
-  } catch {
-    return false
-  }
-}
-
 // ============================================================================
 // FastCheck Arbitraries
 // ============================================================================
@@ -530,7 +606,8 @@ export const arbitrary: FastCheck.Arbitrary<NativeScript> = FastCheck.letrec((ti
  * @since 2.0.0
  * @category parsing
  */
-export const fromCBORBytes = Function.makeCBORDecodeSync(FromCDDL, NativeScriptError, "NativeScript.fromCBORBytes")
+export const fromCBORBytes = (bytes: Uint8Array, options = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.decodeSync(FromCBORBytes(options))(bytes)
 
 /**
  * Parse a NativeScript from CBOR hex string
@@ -538,7 +615,8 @@ export const fromCBORBytes = Function.makeCBORDecodeSync(FromCDDL, NativeScriptE
  * @since 2.0.0
  * @category parsing
  */
-export const fromCBORHex = Function.makeCBORDecodeHexSync(FromCDDL, NativeScriptError, "NativeScript.fromCBORHex")
+export const fromCBORHex = (hex: string, options = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.decodeSync(FromCBORHex(options))(hex)
 
 /**
  * Convert a NativeScript to CBOR bytes
@@ -546,7 +624,8 @@ export const fromCBORHex = Function.makeCBORDecodeHexSync(FromCDDL, NativeScript
  * @since 2.0.0
  * @category encoding
  */
-export const toCBORBytes = Function.makeCBOREncodeSync(FromCDDL, NativeScriptError, "NativeScript.toCBORBytes")
+export const toCBORBytes = (data: NativeScript, options = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.encodeSync(FromCBORBytes(options))(data)
 
 /**
  * Convert a NativeScript to CBOR hex string
@@ -554,48 +633,5 @@ export const toCBORBytes = Function.makeCBOREncodeSync(FromCDDL, NativeScriptErr
  * @since 2.0.0
  * @category encoding
  */
-export const toCBORHex = Function.makeCBOREncodeHexSync(FromCDDL, NativeScriptError, "NativeScript.toCBORHex")
-
-// ============================================================================
-// Effect Namespace
-// ============================================================================
-
-/**
- * Effect-based error handling variants for functions that can fail
- *
- * @since 2.0.0
- * @category effect
- */
-export namespace Either {
-  /**
-   * Parse a NativeScript from CBOR bytes with Effect error handling
-   *
-   * @since 2.0.0
-   * @category parsing
-   */
-  export const fromCBORBytes = Function.makeCBORDecodeEither(FromCDDL, NativeScriptError)
-
-  /**
-   * Parse a NativeScript from CBOR hex string with Effect error handling
-   *
-   * @since 2.0.0
-   * @category parsing
-   */
-  export const fromCBORHex = Function.makeCBORDecodeHexEither(FromCDDL, NativeScriptError)
-
-  /**
-   * Convert a NativeScript to CBOR bytes with Effect error handling
-   *
-   * @since 2.0.0
-   * @category encoding
-   */
-  export const toCBORBytes = Function.makeCBOREncodeEither(FromCDDL, NativeScriptError)
-
-  /**
-   * Convert a NativeScript to CBOR hex string with Effect error handling
-   *
-   * @since 2.0.0
-   * @category encoding
-   */
-  export const toCBORHex = Function.makeCBOREncodeHexEither(FromCDDL, NativeScriptError)
-}
+export const toCBORHex = (data: NativeScript, options = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.encodeSync(FromCBORHex(options))(data)

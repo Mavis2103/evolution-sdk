@@ -1,11 +1,10 @@
-import { Data, Effect as Eff, FastCheck, ParseResult, Schema } from "effect"
+import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Anchor from "./Anchor.js"
 import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 import * as Credential from "./Credential.js"
 import * as DRep from "./DRep.js"
-import * as Function from "./Function.js"
 import * as GovernanceAction from "./GovernanceAction.js"
 import * as KeyHash from "./KeyHash.js"
 import * as PoolKeyHash from "./PoolKeyHash.js"
@@ -14,15 +13,48 @@ import * as TransactionHash from "./TransactionHash.js"
 import * as TransactionIndex from "./TransactionIndex.js"
 
 /**
- * Error class for VotingProcedures related operations.
+ * Helper function for content-based Map equality using Equal.equals.
+ * Compares two Maps by iterating entries and using Equal.equals for both keys and values.
  *
  * @since 2.0.0
- * @category errors
+ * @category equality
  */
-export class VotingProceduresError extends Data.TaggedError("VotingProceduresError")<{
-  message?: string
-  cause?: unknown
-}> {}
+const mapEquals = <K, V>(a: Map<K, V>, b: Map<K, V>): boolean => {
+  if (a.size !== b.size) return false
+  
+  for (const [aKey, aValue] of a.entries()) {
+    let found = false
+    for (const [bKey, bValue] of b.entries()) {
+      if (Equal.equals(aKey, bKey)) {
+        if (aValue instanceof Map && bValue instanceof Map) {
+          if (!mapEquals(aValue, bValue)) return false
+        } else {
+          if (!Equal.equals(aValue, bValue)) return false
+        }
+        found = true
+        break
+      }
+    }
+    if (!found) return false
+  }
+  
+  return true
+}
+
+/**
+ * Helper function for content-based Map hashing.
+ * Computes hash by XORing hashes of all entries for order-independence.
+ *
+ * @since 2.0.0
+ * @category hashing
+ */
+const mapHash = <K, V>(map: Map<K, V>): number => {
+  let hash = Hash.hash(map.size)
+  for (const [key, value] of map.entries()) {
+    hash ^= Hash.hash(key) ^ Hash.hash(value)
+  }
+  return hash
+}
 
 /**
  * Voter types based on Conway CDDL specification.
@@ -37,23 +69,92 @@ export class VotingProceduresError extends Data.TaggedError("VotingProceduresErr
  * @since 2.0.0
  * @category schemas
  */
-// export const ConstitutionalCommitteeVoter = Schema.TaggedStruct("ConstitutionalCommitteeVoter", {
-//   credential: Credential.Credential
-// })
 export class ConstitutionalCommitteeVoter extends Schema.TaggedClass<ConstitutionalCommitteeVoter>()(
   "ConstitutionalCommitteeVoter",
   {
     credential: Credential.CredentialSchema
   }
-) {}
+) {
+  toJSON() {
+    return {
+      _tag: "ConstitutionalCommitteeVoter" as const,
+      credential: this.credential
+    }
+  }
+
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  [Equal.symbol](that: unknown): boolean {
+    return (
+      that instanceof ConstitutionalCommitteeVoter &&
+      Equal.equals(this.credential, that.credential)
+    )
+  }
+
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.hash(this.credential))
+  }
+}
 
 export class DRepVoter extends Schema.TaggedClass<DRepVoter>()("DRepVoter", {
   drep: DRep.DRep
-}) {}
+}) {
+  toJSON() {
+    return {
+      _tag: "DRepVoter" as const,
+      drep: this.drep
+    }
+  }
+
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  [Equal.symbol](that: unknown): boolean {
+    return that instanceof DRepVoter && Equal.equals(this.drep, that.drep)
+  }
+
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.hash(this.drep))
+  }
+}
 
 export class StakePoolVoter extends Schema.TaggedClass<StakePoolVoter>()("StakePoolVoter", {
   poolKeyHash: PoolKeyHash.PoolKeyHash
-}) {}
+}) {
+  toJSON() {
+    return {
+      _tag: "StakePoolVoter" as const,
+      poolKeyHash: this.poolKeyHash
+    }
+  }
+
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  [Equal.symbol](that: unknown): boolean {
+    return that instanceof StakePoolVoter && Equal.equals(this.poolKeyHash, that.poolKeyHash)
+  }
+
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.hash(this.poolKeyHash))
+  }
+}
 
 /**
  * Voter union schema.
@@ -67,7 +168,9 @@ export type Voter = typeof Voter.Type
 
 /**
  * CDDL schema for Voter as tuple structure.
+ * ```
  * Maps to: [voter_type, voter_data]
+ * ```
  *
  * @since 2.0.0
  * @category schemas
@@ -134,11 +237,11 @@ export const VoterFromCDDL = Schema.transformOrFail(VoterCDDL, Schema.typeSchema
         }
         case 2n: {
           const keyHash = yield* ParseResult.decode(KeyHash.FromBytes)(voterData)
-          return new DRepVoter({ drep: { _tag: "KeyHashDRep", keyHash } as DRep.DRep })
+          return new DRepVoter({ drep: new DRep.KeyHashDRep({ keyHash }) })
         }
         case 3n: {
           const scriptHash = yield* ParseResult.decode(ScriptHash.FromBytes)(voterData)
-          return new DRepVoter({ drep: { _tag: "ScriptHashDRep", scriptHash } as DRep.DRep })
+          return new DRepVoter({ drep: new DRep.ScriptHashDRep({ scriptHash }) })
         }
         case 4n: {
           const poolKeyHash = yield* ParseResult.decode(PoolKeyHash.FromBytes)(voterData)
@@ -160,9 +263,71 @@ export const VoterFromCDDL = Schema.transformOrFail(VoterCDDL, Schema.typeSchema
  * @since 2.0.0
  * @category schemas
  */
-export class NoVote extends Schema.TaggedClass<NoVote>()("NoVote", {}) {}
-export class YesVote extends Schema.TaggedClass<YesVote>()("YesVote", {}) {}
-export class AbstainVote extends Schema.TaggedClass<AbstainVote>()("AbstainVote", {}) {}
+export class NoVote extends Schema.TaggedClass<NoVote>()("NoVote", {}) {
+  toJSON() {
+    return { _tag: "NoVote" as const }
+  }
+
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  [Equal.symbol](that: unknown): boolean {
+    return that instanceof NoVote
+  }
+
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.string("NoVote"))
+  }
+}
+
+export class YesVote extends Schema.TaggedClass<YesVote>()("YesVote", {}) {
+  toJSON() {
+    return { _tag: "YesVote" as const }
+  }
+
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  [Equal.symbol](that: unknown): boolean {
+    return that instanceof YesVote
+  }
+
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.string("YesVote"))
+  }
+}
+
+export class AbstainVote extends Schema.TaggedClass<AbstainVote>()("AbstainVote", {}) {
+  toJSON() {
+    return { _tag: "AbstainVote" as const }
+  }
+
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  [Equal.symbol](that: unknown): boolean {
+    return that instanceof AbstainVote
+  }
+
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.string("AbstainVote"))
+  }
+}
 
 /**
  * Vote union schema.
@@ -233,7 +398,34 @@ export const VoteFromCDDL = Schema.transformOrFail(VoteCDDL, Schema.typeSchema(V
 export class VotingProcedure extends Schema.Class<VotingProcedure>("VotingProcedure")({
   vote: Vote,
   anchor: Schema.NullOr(Anchor.Anchor)
-}) {}
+}) {
+  toJSON() {
+    return {
+      vote: this.vote,
+      anchor: this.anchor
+    }
+  }
+
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  [Equal.symbol](that: unknown): boolean {
+    return (
+      that instanceof VotingProcedure &&
+      Equal.equals(this.vote, that.vote) &&
+      Equal.equals(this.anchor, that.anchor)
+    )
+  }
+
+  [Hash.symbol](): number {
+    return Hash.cached(this, Hash.combine(Hash.hash(this.vote))(Hash.hash(this.anchor)))
+  }
+}
 
 /**
  * CDDL schema for VotingProcedure tuple structure.
@@ -288,7 +480,39 @@ export class VotingProcedures extends Schema.Class<VotingProcedures>("VotingProc
       value: VotingProcedure
     })
   })
-}) {}
+}) {
+  toJSON() {
+    return {
+      procedures: this.procedures
+    }
+  }
+
+  toString(): string {
+    return Inspectable.format(this.toJSON())
+  }
+
+  [Inspectable.NodeInspectSymbol](): unknown {
+    return this.toJSON()
+  }
+
+  [Equal.symbol](that: unknown): boolean {
+    return that instanceof VotingProcedures && mapEquals(this.procedures, that.procedures)
+  }
+
+  /**
+   * @since 2.0.0
+   * @category hashing
+   */
+  [Hash.symbol](): number {
+    let hash = Hash.hash(this.procedures.size)
+    for (const [voter, govActionMap] of this.procedures.entries()) {
+      const voterHash = Hash.hash(voter)
+      const govActionMapHash = mapHash(govActionMap)
+      hash ^= voterHash ^ govActionMapHash
+    }
+    return Hash.cached(this, hash)
+  }
+}
 
 /**
  * CDDL schema for VotingProcedures map structure.
@@ -387,49 +611,8 @@ export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTION
 // ============================================================================
 // Constructors
 // ============================================================================
-
-/**
- * Create a VotingProcedures instance.
- *
- * @since 2.0.0
- * @category constructors
- */
-export const make = (...args: ConstructorParameters<typeof VotingProcedures>) => new VotingProcedures(...args)
-
-/**
- * Create a VotingProcedure instance.
- *
- * @since 2.0.0
- * @category constructors
- */
-export const makeProcedure = (vote: Vote, anchor?: Anchor.Anchor | null): VotingProcedure =>
-  new VotingProcedure({ vote, anchor: anchor ?? null })
-
-/**
- * Create a Constitutional Committee voter.
- *
- * @since 2.0.0
- * @category constructors
- */
-export const makeCommitteeVoter = (credential: Credential.CredentialSchema): Voter =>
-  new ConstitutionalCommitteeVoter({ credential })
-
-/**
- * Create a DRep voter.
- *
- * @since 2.0.0
- * @category constructors
- */
-export const makeDRepVoter = (drep: DRep.DRep): DRepVoter => new DRepVoter({ drep })
-
-/**
- * Create a Stake Pool voter.
- *
- * @since 2.0.0
- * @category constructors
- */
-export const makeStakePoolVoter = (poolKeyHash: PoolKeyHash.PoolKeyHash): StakePoolVoter =>
-  new StakePoolVoter({ poolKeyHash })
+// Constructors - Simple helper functions
+// ============================================================================
 
 /**
  * Create a No vote.
@@ -557,89 +740,8 @@ export const matchVote =
   }
 
 // ============================================================================
-// Equality
+// Arbitrary
 // ============================================================================
-
-/**
- * Check if two Voters are equal.
- *
- * @since 2.0.0
- * @category equality
- */
-export const voterEquals = (a: Voter, b: Voter): boolean => {
-  if (a._tag !== b._tag) return false
-
-  switch (a._tag) {
-    case "ConstitutionalCommitteeVoter":
-      return Credential.equals(a.credential, (b as Schema.Schema.Type<typeof ConstitutionalCommitteeVoter>).credential)
-    case "DRepVoter":
-      return DRep.equals(a.drep, (b as Schema.Schema.Type<typeof DRepVoter>).drep)
-    case "StakePoolVoter":
-      return PoolKeyHash.equals(a.poolKeyHash, (b as Schema.Schema.Type<typeof StakePoolVoter>).poolKeyHash)
-  }
-}
-
-/**
- * Check if two Votes are equal.
- *
- * @since 2.0.0
- * @category equality
- */
-export const voteEquals = (a: Vote, b: Vote): boolean => a._tag === b._tag
-
-/**
- * Check if two VotingProcedures are equal.
- *
- * @since 2.0.0
- * @category equality
- */
-export const equals = (a: VotingProcedures, b: VotingProcedures): boolean => {
-  if (a.procedures.size !== b.procedures.size) return false
-
-  for (const [voterA, govActionMapA] of a.procedures) {
-    let foundMatchingVoter = false
-
-    for (const [voterB, govActionMapB] of b.procedures) {
-      if (voterEquals(voterA, voterB)) {
-        foundMatchingVoter = true
-
-        if (govActionMapA.size !== govActionMapB.size) return false
-
-        for (const [govActionIdA, procedureA] of govActionMapA) {
-          let foundMatchingAction = false
-
-          for (const [govActionIdB, procedureB] of govActionMapB) {
-            // Compare GovActionId by value (hash bytes and index), not by reference
-            if (
-              TransactionHash.equals(govActionIdA.transactionId, govActionIdB.transactionId) &&
-              TransactionIndex.equals(govActionIdA.govActionIndex, govActionIdB.govActionIndex)
-            ) {
-              foundMatchingAction = true
-
-              const votesEqual = voteEquals(procedureA.vote, procedureB.vote)
-              const anchorsEqual =
-                (procedureA.anchor === null && procedureB.anchor === null) ||
-                (procedureA.anchor !== null &&
-                  procedureB.anchor !== null &&
-                  Anchor.equals(procedureA.anchor, procedureB.anchor))
-
-              if (!votesEqual || !anchorsEqual) return false
-              break
-            }
-          }
-
-          if (!foundMatchingAction) return false
-        }
-
-        break
-      }
-    }
-
-    if (!foundMatchingVoter) return false
-  }
-
-  return true
-}
 
 /**
  * FastCheck arbitrary for VotingProcedures.
@@ -654,8 +756,8 @@ export const arbitrary = FastCheck.array(
       Credential.arbitrary.map((credential) => new ConstitutionalCommitteeVoter({ credential })),
       // Only key/script DRep variants are valid Voter identifiers
       FastCheck.oneof(
-        KeyHash.arbitrary.map((keyHash) => ({ _tag: "KeyHashDRep" as const, keyHash })),
-        ScriptHash.arbitrary.map((scriptHash) => ({ _tag: "ScriptHashDRep" as const, scriptHash }))
+        KeyHash.arbitrary.map((keyHash) => new DRep.KeyHashDRep({ keyHash })),
+        ScriptHash.arbitrary.map((scriptHash) => new DRep.ScriptHashDRep({ scriptHash }))
       ).map((drep) => new DRepVoter({ drep })),
       PoolKeyHash.arbitrary.map((poolKeyHash) => new StakePoolVoter({ poolKeyHash }))
     ),
@@ -668,8 +770,8 @@ export const arbitrary = FastCheck.array(
         ).map(
           ([transactionId, govActionIndex]) =>
             new GovernanceAction.GovActionId({
-              transactionId: TransactionHash.make({ hash: transactionId }),
-              govActionIndex: TransactionIndex.make(govActionIndex)
+              transactionId: new TransactionHash.TransactionHash({ hash: transactionId }),
+              govActionIndex: Schema.decodeSync(TransactionIndex.TransactionIndex)(govActionIndex)
             })
         ),
         FastCheck.tuple(
@@ -695,11 +797,8 @@ export const arbitrary = FastCheck.array(
  * @since 2.0.0
  * @category parsing
  */
-export const fromCBORBytes = Function.makeCBORDecodeSync(
-  FromCDDL,
-  VotingProceduresError,
-  "VotingProcedures.fromCBORBytes"
-)
+export const fromCBORBytes = (bytes: Uint8Array, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.decodeSync(FromCBORBytes(options))(bytes)
 
 /**
  * Parse VotingProcedures from CBOR hex string.
@@ -707,11 +806,8 @@ export const fromCBORBytes = Function.makeCBORDecodeSync(
  * @since 2.0.0
  * @category parsing
  */
-export const fromCBORHex = Function.makeCBORDecodeHexSync(
-  FromCDDL,
-  VotingProceduresError,
-  "VotingProcedures.fromCBORHex"
-)
+export const fromCBORHex = (hex: string, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.decodeSync(FromCBORHex(options))(hex)
 
 /**
  * Encode VotingProcedures to CBOR bytes.
@@ -719,7 +815,8 @@ export const fromCBORHex = Function.makeCBORDecodeHexSync(
  * @since 2.0.0
  * @category encoding
  */
-export const toCBORBytes = Function.makeCBOREncodeSync(FromCDDL, VotingProceduresError, "VotingProcedures.toCBORBytes")
+export const toCBORBytes = (data: VotingProcedures, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.encodeSync(FromCBORBytes(options))(data)
 
 /**
  * Encode VotingProcedures to CBOR hex string.
@@ -727,48 +824,6 @@ export const toCBORBytes = Function.makeCBOREncodeSync(FromCDDL, VotingProcedure
  * @since 2.0.0
  * @category encoding
  */
-export const toCBORHex = Function.makeCBOREncodeHexSync(FromCDDL, VotingProceduresError, "VotingProcedures.toCBORHex")
+export const toCBORHex = (data: VotingProcedures, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
+  Schema.encodeSync(FromCBORHex(options))(data)
 
-// ============================================================================
-// Effect Namespace
-// ============================================================================
-
-/**
- * Effect-based error handling variants for functions that can fail.
- *
- * @since 2.0.0
- * @category effect
- */
-export namespace Either {
-  /**
-   * Parse VotingProcedures from CBOR bytes with Effect error handling.
-   *
-   * @since 2.0.0
-   * @category parsing
-   */
-  export const fromCBORBytes = Function.makeCBORDecodeEither(FromCDDL, VotingProceduresError)
-
-  /**
-   * Parse VotingProcedures from CBOR hex string with Effect error handling.
-   *
-   * @since 2.0.0
-   * @category parsing
-   */
-  export const fromCBORHex = Function.makeCBORDecodeHexEither(FromCDDL, VotingProceduresError)
-
-  /**
-   * Encode VotingProcedures to CBOR bytes with Effect error handling.
-   *
-   * @since 2.0.0
-   * @category encoding
-   */
-  export const toCBORBytes = Function.makeCBOREncodeEither(FromCDDL, VotingProceduresError)
-
-  /**
-   * Encode VotingProcedures to CBOR hex string with Effect error handling.
-   *
-   * @since 2.0.0
-   * @category encoding
-   */
-  export const toCBORHex = Function.makeCBOREncodeHexEither(FromCDDL, VotingProceduresError)
-}

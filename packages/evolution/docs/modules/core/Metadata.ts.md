@@ -13,16 +13,11 @@ parent: Modules
 - [constructors](#constructors)
   - [empty](#empty)
   - [fromEntries](#fromentries)
-  - [make](#make)
   - [remove](#remove)
   - [set](#set)
-- [effect](#effect)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [errors](#errors)
-  - [MetadataError (class)](#metadataerror-class)
 - [model](#model)
   - [MetadataLabel (type alias)](#metadatalabel-type-alias)
 - [parsing](#parsing)
@@ -39,7 +34,6 @@ parent: Modules
   - [arbitrary](#arbitrary)
 - [utilities](#utilities)
   - [entries](#entries)
-  - [equals](#equals)
   - [get](#get)
   - [has](#has)
   - [labels](#labels)
@@ -72,43 +66,8 @@ Create Metadata from an array of label-metadatum pairs.
 
 ```ts
 export declare const fromEntries: (
-  entries: Array<[MetadataLabel, TransactionMetadatum.TransactionMetadatum]>
+  entries: Array<[MetadataLabel, TransactionMetadatum.TransactionMetadatumVariants]>
 ) => Metadata
-```
-
-Added in v2.0.0
-
-## make
-
-Smart constructor for Metadata that validates and applies typing.
-
-**Signature**
-
-```ts
-export declare const make: (
-  _: never
-) => Schema.Schema.Variance<
-  Map<
-    bigint,
-    | TransactionMetadatum.TextMetadatum
-    | TransactionMetadatum.IntMetadatum
-    | TransactionMetadatum.BytesMetadatum
-    | TransactionMetadatum.ArrayMetadatum
-    | TransactionMetadatum.MetadatumMap
-  >,
-  ReadonlyMap<
-    string,
-    | { readonly value: string; readonly _tag: "TextMetadatum" }
-    | { readonly value: bigint; readonly _tag: "IntMetadatum" }
-    | { readonly value: any; readonly _tag: "BytesMetadatum" }
-    | { readonly value: readonly TransactionMetadatum.TransactionMetadatum[]; readonly _tag: "ArrayMetadatum" }
-    | {
-        readonly value: Map<TransactionMetadatum.TransactionMetadatum, TransactionMetadatum.TransactionMetadatum>
-        readonly _tag: "MetadatumMap"
-      }
-  >,
-  never
->
 ```
 
 Added in v2.0.0
@@ -135,17 +94,9 @@ Add or update a metadata entry.
 export declare const set: (
   metadata: Metadata,
   label: MetadataLabel,
-  metadatum: TransactionMetadatum.TransactionMetadatum
+  metadatum: TransactionMetadatum.TransactionMetadatumVariants
 ) => Metadata
 ```
-
-Added in v2.0.0
-
-# effect
-
-## Either (namespace)
-
-Effect-based error handling variants for functions that can fail.
 
 Added in v2.0.0
 
@@ -159,7 +110,9 @@ Convert Metadata to CBOR bytes.
 
 ```ts
 export declare const toCBORBytes: (
-  input: Map<
+  options?: CBOR.CodecOptions
+) => (
+  a: Map<
     bigint,
     | TransactionMetadatum.TextMetadatum
     | TransactionMetadatum.IntMetadatum
@@ -167,8 +120,8 @@ export declare const toCBORBytes: (
     | TransactionMetadatum.ArrayMetadatum
     | TransactionMetadatum.MetadatumMap
   >,
-  options?: CBOR.CodecOptions
-) => Uint8Array
+  overrideOptions?: ParseOptions
+) => any
 ```
 
 Added in v2.0.0
@@ -181,7 +134,9 @@ Convert Metadata to CBOR hex string.
 
 ```ts
 export declare const toCBORHex: (
-  input: Map<
+  options?: CBOR.CodecOptions
+) => (
+  a: Map<
     bigint,
     | TransactionMetadatum.TextMetadatum
     | TransactionMetadatum.IntMetadatum
@@ -189,22 +144,8 @@ export declare const toCBORHex: (
     | TransactionMetadatum.ArrayMetadatum
     | TransactionMetadatum.MetadatumMap
   >,
-  options?: CBOR.CodecOptions
+  overrideOptions?: ParseOptions
 ) => string
-```
-
-Added in v2.0.0
-
-# errors
-
-## MetadataError (class)
-
-Error class for Metadata related operations.
-
-**Signature**
-
-```ts
-export declare class MetadataError
 ```
 
 Added in v2.0.0
@@ -233,8 +174,10 @@ Parse Metadata from CBOR bytes.
 
 ```ts
 export declare const fromCBORBytes: (
-  bytes: Uint8Array,
   options?: CBOR.CodecOptions
+) => (
+  i: any,
+  overrideOptions?: ParseOptions
 ) => Map<
   bigint,
   | TransactionMetadatum.TextMetadatum
@@ -255,8 +198,10 @@ Parse Metadata from CBOR hex string.
 
 ```ts
 export declare const fromCBORHex: (
-  hex: string,
   options?: CBOR.CodecOptions
+) => (
+  i: string,
+  overrideOptions?: ParseOptions
 ) => Map<
   bigint,
   | TransactionMetadatum.TextMetadatum
@@ -437,7 +382,7 @@ Represents: metadata = {* transaction_metadatum_label => transaction_metadatum}
 
 ```ts
 export declare const Metadata: Schema.MapFromSelf<
-  Schema.refine<bigint, typeof Schema.BigInt>,
+  Schema.refine<bigint, typeof Schema.BigIntFromSelf>,
   Schema.Union<
     [
       typeof TransactionMetadatum.TextMetadatum,
@@ -459,7 +404,7 @@ Schema for transaction metadatum label (uint .size 8).
 **Signature**
 
 ```ts
-export declare const MetadataLabel: Schema.refine<bigint, typeof Schema.BigInt>
+export declare const MetadataLabel: Schema.refine<bigint, typeof Schema.BigIntFromSelf>
 ```
 
 Added in v2.0.0
@@ -496,19 +441,9 @@ Get all entries in the metadata.
 **Signature**
 
 ```ts
-export declare const entries: (metadata: Metadata) => Array<[MetadataLabel, TransactionMetadatum.TransactionMetadatum]>
-```
-
-Added in v2.0.0
-
-## equals
-
-Check if two Metadata instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: Metadata, b: Metadata) => boolean
+export declare const entries: (
+  metadata: Metadata
+) => Array<[MetadataLabel, TransactionMetadatum.TransactionMetadatumVariants]>
 ```
 
 Added in v2.0.0
@@ -523,7 +458,7 @@ Get a metadata entry by label.
 export declare const get: (
   metadata: Metadata,
   label: MetadataLabel
-) => TransactionMetadatum.TransactionMetadatum | undefined
+) => TransactionMetadatum.TransactionMetadatumVariants | undefined
 ```
 
 Added in v2.0.0
@@ -571,7 +506,7 @@ Get all metadata values in the metadata.
 **Signature**
 
 ```ts
-export declare const values: (metadata: Metadata) => Array<TransactionMetadatum.TransactionMetadatum>
+export declare const values: (metadata: Metadata) => Array<TransactionMetadatum.TransactionMetadatumVariants>
 ```
 
 Added in v2.0.0

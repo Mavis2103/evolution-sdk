@@ -12,12 +12,6 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [NetworkIdError (class)](#networkiderror-class)
 - [schemas](#schemas)
   - [NetworkId](#networkid)
 - [utils](#utils)
@@ -36,48 +30,6 @@ Generates values 0 (Testnet) or 1 (Mainnet).
 
 ```ts
 export declare const arbitrary: FastCheck.Arbitrary<number>
-```
-
-Added in v2.0.0
-
-# constructors
-
-## make
-
-Smart constructor for NetworkId that validates and applies branding.
-
-**Signature**
-
-```ts
-export declare const make: (a: number, options?: Schema.MakeOptions) => number
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two NetworkId instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: NetworkId, b: NetworkId) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## NetworkIdError (class)
-
-Error class for NetworkId related operations.
-
-**Signature**
-
-```ts
-export declare class NetworkIdError
 ```
 
 Added in v2.0.0

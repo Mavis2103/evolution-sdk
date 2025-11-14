@@ -12,19 +12,11 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [constructors](#constructors)
-  - [make](#make)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [ScriptRefError (class)](#scriptreferror-class)
 - [parsing](#parsing)
   - [fromBytes](#frombytes)
   - [fromCBORBytes](#fromcborbytes)
@@ -39,6 +31,9 @@ parent: Modules
   - [ScriptRef (class)](#scriptref-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [utils](#utils)
   - [CDDLSchema](#cddlschema)
 
@@ -58,31 +53,6 @@ export declare const arbitrary: FastCheck.Arbitrary<ScriptRef>
 
 Added in v2.0.0
 
-# constructors
-
-## make
-
-Smart constructor for ScriptRef.
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: { readonly bytes: Uint8Array },
-  options?: Schema.MakeOptions | undefined
-) => ScriptRef
-```
-
-Added in v2.0.0
-
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toBytes
@@ -92,7 +62,7 @@ Encode ScriptRef to bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (input: ScriptRef) => any
+export declare const toBytes: (data: ScriptRef) => any
 ```
 
 Added in v2.0.0
@@ -104,7 +74,7 @@ Encode ScriptRef to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: ScriptRef, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (data: ScriptRef, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
@@ -116,7 +86,7 @@ Encode ScriptRef to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: ScriptRef, options?: CBOR.CodecOptions) => string
+export declare const toCBORHex: (data: ScriptRef, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -128,35 +98,7 @@ Encode ScriptRef to hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (input: ScriptRef) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two ScriptRef instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: ScriptRef, b: ScriptRef) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## ScriptRefError (class)
-
-Error class for ScriptRef related operations.
-
-**Signature**
-
-```ts
-export declare class ScriptRefError
+export declare const toHex: (data: ScriptRef) => string
 ```
 
 Added in v2.0.0
@@ -170,7 +112,7 @@ Parse ScriptRef from bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: any) => ScriptRef
+export declare const fromBytes: (bytes: Uint8Array) => ScriptRef
 ```
 
 Added in v2.0.0
@@ -206,7 +148,7 @@ Parse ScriptRef from hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => ScriptRef
+export declare const fromHex: (hex: string) => ScriptRef
 ```
 
 Added in v2.0.0
@@ -230,6 +172,7 @@ Added in v2.0.0
 
 ## FromCBORBytes
 
+/\*\*
 CBOR bytes transformation schema for ScriptRef.
 
 **Signature**
@@ -342,7 +285,7 @@ Added in v2.0.0
 **Signature**
 
 ```ts
-toJSON(): string
+toJSON()
 ```
 
 ### toString (method)
@@ -351,6 +294,30 @@ toJSON(): string
 
 ```ts
 toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # utils

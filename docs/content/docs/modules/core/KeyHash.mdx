@@ -15,22 +15,18 @@ parent: Modules
 - [constructors](#constructors)
   - [fromPrivateKey](#fromprivatekey)
   - [fromVKey](#fromvkey)
-  - [make](#make)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding/decoding](#encodingdecoding)
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [KeyHashError (class)](#keyhasherror-class)
 - [model](#model)
   - [KeyHash (class)](#keyhash-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [transformer](#transformer)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
@@ -77,26 +73,6 @@ export declare const fromVKey: (vkey: VKey.VKey) => KeyHash
 
 Added in v2.0.0
 
-## make
-
-Smart constructor for KeyHash
-
-**Signature**
-
-```ts
-export declare const make: (props: { readonly hash: Uint8Array }, options?: Schema.MakeOptions | undefined) => KeyHash
-```
-
-Added in v2.0.0
-
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding/decoding
 
 ## fromBytes
@@ -106,7 +82,7 @@ Decode a KeyHash from raw bytes.
 **Signature**
 
 ```ts
-export declare const fromBytes: (input: Uint8Array) => KeyHash
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => KeyHash
 ```
 
 Added in v2.0.0
@@ -118,7 +94,7 @@ Decode a KeyHash from a hex string.
 **Signature**
 
 ```ts
-export declare const fromHex: (input: string) => KeyHash
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => KeyHash
 ```
 
 Added in v2.0.0
@@ -130,7 +106,7 @@ Convert a KeyHash to raw bytes.
 **Signature**
 
 ```ts
-export declare const toBytes: (keyhash: KeyHash) => Uint8Array
+export declare const toBytes: (a: KeyHash, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -142,35 +118,7 @@ Convert a KeyHash to a hex string.
 **Signature**
 
 ```ts
-export declare const toHex: (keyhash: KeyHash) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two KeyHash instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: KeyHash, b: KeyHash) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## KeyHashError (class)
-
-Error class for KeyHash related operations.
-
-**Signature**
-
-```ts
-export declare class KeyHashError
+export declare const toHex: (a: KeyHash, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -209,6 +157,30 @@ toJSON()
 
 ```ts
 toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 # transformer

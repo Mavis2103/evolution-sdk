@@ -12,27 +12,25 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
-- [encoding](#encoding)
-  - [toCBORBytes](#tocborbytes)
-  - [toCBORHex](#tocborhex)
-- [errors](#errors)
-  - [TransactionBodyError (class)](#transactionbodyerror-class)
-- [model](#model)
-  - [TransactionBody (class)](#transactionbody-class)
-- [parsing](#parsing)
+- [conversion](#conversion)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
+  - [toCBORBytes](#tocborbytes)
+  - [toCBORHex](#tocborhex)
+- [model](#model)
+  - [TransactionBody (class)](#transactionbody-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [schemas](#schemas)
   - [CDDLSchema](#cddlschema)
   - [FromCBORBytes](#fromcborbytes-1)
   - [FromCBORHex](#fromcborhex-1)
 - [utils](#utils)
   - [FromCDDL](#fromcddl)
-  - [equals](#equals)
   - [isTransactionBody](#istransactionbody)
-  - [make](#make)
 
 ---
 
@@ -54,52 +52,52 @@ export declare const arbitrary: FastCheck.Arbitrary<TransactionBody>
 
 Added in v2.0.0
 
-# either
+# conversion
 
-## Either (namespace)
+## fromCBORBytes
 
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
-# encoding
-
-## toCBORBytes
-
-Convert a TransactionBody to CBOR bytes.
-Default options use CML_DEFAULT_OPTIONS for CDDL/CML parity.
+Convert CBOR bytes to TransactionBody.
 
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: TransactionBody, options?: CBOR.CodecOptions) => Uint8Array
+export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => TransactionBody
+```
+
+Added in v2.0.0
+
+## fromCBORHex
+
+Convert CBOR hex string to TransactionBody.
+
+**Signature**
+
+```ts
+export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => TransactionBody
+```
+
+Added in v2.0.0
+
+## toCBORBytes
+
+Convert TransactionBody to CBOR bytes.
+
+**Signature**
+
+```ts
+export declare const toCBORBytes: (data: TransactionBody, options?: CBOR.CodecOptions) => any
 ```
 
 Added in v2.0.0
 
 ## toCBORHex
 
-Convert a TransactionBody to CBOR hex string.
-Default options use CML_DEFAULT_OPTIONS for CDDL/CML parity.
+Convert TransactionBody to CBOR hex string.
 
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: TransactionBody, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# errors
-
-## TransactionBodyError (class)
-
-Error class for TransactionBody related operations.
-
-**Signature**
-
-```ts
-export declare class TransactionBodyError
+export declare const toCBORHex: (data: TransactionBody, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -143,30 +141,47 @@ export declare class TransactionBody
 
 Added in v2.0.0
 
-# parsing
-
-## fromCBORBytes
-
-Parse a TransactionBody from CBOR bytes.
-Default options use CML_DEFAULT_OPTIONS for CDDL/CML parity.
+### toJSON (method)
 
 **Signature**
 
 ```ts
-export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => TransactionBody
+toJSON()
 ```
 
-Added in v2.0.0
-
-## fromCBORHex
-
-Parse a TransactionBody from CBOR hex string.
-Default options use CML_DEFAULT_OPTIONS for CDDL/CML parity.
+### toString (method)
 
 **Signature**
 
 ```ts
-export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => TransactionBody
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+Custom hash implementation for TransactionBody.
+Only hashes frequently-changing fields for performance.
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
 ```
 
 Added in v2.0.0
@@ -204,7 +219,11 @@ export declare const FromCBORBytes: (
     Schema.declare<CBOR.CBOR, CBOR.CBOR, readonly [], never>,
     never
   >,
-  any
+  Schema.transformOrFail<
+    Schema.MapFromSelf<typeof Schema.BigIntFromSelf, Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>>,
+    Schema.SchemaClass<TransactionBody, TransactionBody, never>,
+    never
+  >
 >
 ```
 
@@ -229,7 +248,11 @@ export declare const FromCBORHex: (
       never
     >
   >,
-  any
+  Schema.transformOrFail<
+    Schema.MapFromSelf<typeof Schema.BigIntFromSelf, Schema.Schema<CBOR.CBOR, CBOR.CBOR, never>>,
+    Schema.SchemaClass<TransactionBody, TransactionBody, never>,
+    never
+  >
 >
 ```
 
@@ -249,101 +272,10 @@ export declare const FromCDDL: Schema.transformOrFail<
 >
 ```
 
-## equals
-
-**Signature**
-
-```ts
-export declare const equals: (self: TransactionBody, that: TransactionBody) => boolean
-```
-
 ## isTransactionBody
 
 **Signature**
 
 ```ts
 export declare const isTransactionBody: (u: unknown, overrideOptions?: ParseOptions | number) => u is TransactionBody
-```
-
-## make
-
-**Signature**
-
-```ts
-export declare const make: (
-  props: {
-    readonly mint?: Map<PolicyId, Map<AssetName, bigint>> | undefined
-    readonly networkId?: number | undefined
-    readonly withdrawals?: Withdrawals.Withdrawals | undefined
-    readonly fee: bigint
-    readonly inputs: readonly TransactionInput.TransactionInput[]
-    readonly outputs: readonly (
-      | TransactionOutput.ShelleyTransactionOutput
-      | TransactionOutput.BabbageTransactionOutput
-    )[]
-    readonly ttl?: bigint | undefined
-    readonly certificates?:
-      | readonly [
-          (
-            | Certificate.StakeRegistration
-            | Certificate.StakeDeregistration
-            | Certificate.StakeDelegation
-            | Certificate.PoolRegistration
-            | Certificate.PoolRetirement
-            | Certificate.RegCert
-            | Certificate.UnregCert
-            | Certificate.VoteDelegCert
-            | Certificate.StakeVoteDelegCert
-            | Certificate.StakeRegDelegCert
-            | Certificate.VoteRegDelegCert
-            | Certificate.StakeVoteRegDelegCert
-            | Certificate.AuthCommitteeHotCert
-            | Certificate.ResignCommitteeColdCert
-            | Certificate.RegDrepCert
-            | Certificate.UnregDrepCert
-            | Certificate.UpdateDrepCert
-          ),
-          ...(
-            | Certificate.StakeRegistration
-            | Certificate.StakeDeregistration
-            | Certificate.StakeDelegation
-            | Certificate.PoolRegistration
-            | Certificate.PoolRetirement
-            | Certificate.RegCert
-            | Certificate.UnregCert
-            | Certificate.VoteDelegCert
-            | Certificate.StakeVoteDelegCert
-            | Certificate.StakeRegDelegCert
-            | Certificate.VoteRegDelegCert
-            | Certificate.StakeVoteRegDelegCert
-            | Certificate.AuthCommitteeHotCert
-            | Certificate.ResignCommitteeColdCert
-            | Certificate.RegDrepCert
-            | Certificate.UnregDrepCert
-            | Certificate.UpdateDrepCert
-          )[]
-        ]
-      | undefined
-    readonly auxiliaryDataHash?: AuxiliaryDataHash.AuxiliaryDataHash | undefined
-    readonly validityIntervalStart?: bigint | undefined
-    readonly scriptDataHash?: ScriptDataHash.ScriptDataHash | undefined
-    readonly collateralInputs?:
-      | readonly [TransactionInput.TransactionInput, ...TransactionInput.TransactionInput[]]
-      | undefined
-    readonly requiredSigners?: readonly [KeyHash.KeyHash, ...KeyHash.KeyHash[]] | undefined
-    readonly collateralReturn?:
-      | TransactionOutput.ShelleyTransactionOutput
-      | TransactionOutput.BabbageTransactionOutput
-      | undefined
-    readonly totalCollateral?: bigint | undefined
-    readonly referenceInputs?:
-      | readonly [TransactionInput.TransactionInput, ...TransactionInput.TransactionInput[]]
-      | undefined
-    readonly votingProcedures?: VotingProcedures.VotingProcedures | undefined
-    readonly proposalProcedures?: ProposalProcedures.ProposalProcedures | undefined
-    readonly currentTreasuryValue?: bigint | undefined
-    readonly donation?: bigint | undefined
-  },
-  options?: Schema.MakeOptions | undefined
-) => TransactionBody
 ```

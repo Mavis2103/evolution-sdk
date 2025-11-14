@@ -12,17 +12,16 @@ parent: Modules
 
 - [arbitrary](#arbitrary)
   - [arbitrary](#arbitrary-1)
-- [either](#either)
-  - [Either (namespace)](#either-namespace)
 - [encoding](#encoding)
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
-- [equality](#equality)
-  - [equals](#equals)
-- [errors](#errors)
-  - [OperationalCertError (class)](#operationalcerterror-class)
 - [model](#model)
   - [OperationalCert (class)](#operationalcert-class)
+    - [toJSON (method)](#tojson-method)
+    - [toString (method)](#tostring-method)
+    - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
+    - [[Equal.symbol] (method)](#equalsymbol-method)
+    - [[Hash.symbol] (method)](#hashsymbol-method)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
@@ -51,14 +50,6 @@ export declare const arbitrary: FastCheck.Arbitrary<OperationalCert>
 
 Added in v2.0.0
 
-# either
-
-## Either (namespace)
-
-Either-based error handling variants for functions that can fail.
-
-Added in v2.0.0
-
 # encoding
 
 ## toCBORBytes
@@ -68,7 +59,7 @@ Encode OperationalCert to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (input: OperationalCert, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (cert: OperationalCert, options?: CBOR.CodecOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -80,35 +71,7 @@ Encode OperationalCert to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (input: OperationalCert, options?: CBOR.CodecOptions) => string
-```
-
-Added in v2.0.0
-
-# equality
-
-## equals
-
-Check if two OperationalCert instances are equal.
-
-**Signature**
-
-```ts
-export declare const equals: (a: OperationalCert, b: OperationalCert) => boolean
-```
-
-Added in v2.0.0
-
-# errors
-
-## OperationalCertError (class)
-
-Error class for OperationalCert operations
-
-**Signature**
-
-```ts
-export declare class OperationalCertError
+export declare const toCBORHex: (cert: OperationalCert, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
@@ -137,6 +100,46 @@ export declare class OperationalCert
 ```
 
 Added in v2.0.0
+
+### toJSON (method)
+
+**Signature**
+
+```ts
+toJSON()
+```
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+### [Inspectable.NodeInspectSymbol] (method)
+
+**Signature**
+
+```ts
+[Inspectable.NodeInspectSymbol](): unknown
+```
+
+### [Equal.symbol] (method)
+
+**Signature**
+
+```ts
+[Equal.symbol](that: unknown): boolean
+```
+
+### [Hash.symbol] (method)
+
+**Signature**
+
+```ts
+[Hash.symbol](): number
+```
 
 # parsing
 
