@@ -51,7 +51,12 @@ export class Address extends Schema.Class<Address>("AddressStructure")({
   }
 
   [Hash.symbol](): number {
-    return Hash.hash(this.toJSON())
+    return Hash.cached(
+      this,
+      Hash.combine(
+        Hash.combine(Hash.number(this.networkId))(Hash.hash(this.paymentCredential))
+      )(Hash.hash(this.stakingCredential))
+    )
   }
 }
 
