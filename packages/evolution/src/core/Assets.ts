@@ -55,17 +55,8 @@ export class Assets extends Schema.Class<Assets>("Assets")({
   }
 }
 
-// ============================================================================
-// Construction
-// ============================================================================
-
 /**
  * Create Assets containing only ADA/Lovelace.
- *
- * @example
- * ```typescript
- * const assets = Assets.fromLovelace(5_000_000n)
- * ```
  *
  * @since 2.0.0
  * @category constructors
@@ -74,11 +65,6 @@ export const fromLovelace = (lovelace: Coin.Coin): Assets => new Assets({ lovela
 
 /**
  * Create Assets containing ADA and native tokens.
- *
- * @example
- * ```typescript
- * const assets = Assets.withMultiAsset(2_000_000n, multiAsset)
- * ```
  *
  * @since 2.0.0
  * @category constructors
