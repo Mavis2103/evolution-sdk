@@ -23,7 +23,7 @@ export class TransactionMetadatumError extends Data.TaggedError("TransactionMeta
 export type TransactionMetadatumVariantsEncoded =
   | { readonly _tag: "TextMetadatum"; readonly value: string }
   | { readonly _tag: "IntMetadatum"; readonly value: string }
-  | { readonly _tag: "BytesMetadatum"; readonly value: Uint8Array }
+  | { readonly _tag: "BytesMetadatum"; readonly value: string }
   | {
       readonly _tag: "MetadatumMap"
       readonly value: ReadonlyArray<readonly [TransactionMetadatumVariantsEncoded, TransactionMetadatumVariantsEncoded]>
@@ -66,7 +66,7 @@ export class IntMetadatum extends Schema.TaggedClass<IntMetadatum>("IntMetadatum
  * @category schemas
  */
 export class BytesMetadatum extends Schema.TaggedClass<BytesMetadatum>("BytesMetadatum")("BytesMetadatum", {
-  value: Schema.Uint8ArrayFromSelf
+  value: Schema.Uint8ArrayFromHex
 }) {}
 
 /**

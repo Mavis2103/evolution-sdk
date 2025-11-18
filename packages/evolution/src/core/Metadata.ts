@@ -32,7 +32,7 @@ export const MetadataLabel = Numeric.Uint8Schema.annotations({
  * @since 2.0.0
  * @category schemas
  */
-export const Metadata = Schema.MapFromSelf({
+export const Metadata = Schema.Map({
   key: MetadataLabel,
   value: TransactionMetadatum.TransactionMetadatumVariants
 }).annotations({
