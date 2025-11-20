@@ -1,4 +1,5 @@
 use aiken/cbor
+use cardano/address.{Address, Inline, Pointer, Script, VerificationKey}
 
 // ============================================================================
 // Primitive Types
@@ -406,4 +407,146 @@ test encode_script_hash() {
   // Simulating a script hash (26 bytes)
   let script = #"1234567890abcdef1234567890abcdef1234567890abcdef1234"
   cbor.serialise(script) == #"581a1234567890abcdef1234567890abcdef1234567890abcdef1234"
+}
+
+// ============================================================================
+// Address Types (Cardano Address Structure)
+// ============================================================================
+
+test encode_credential_verification_key() {
+  // Credential.VerificationKey with 28-byte hash
+  let vk_hash = #"abcdef1234567890abcdef1234567890abcdef1234567890abcdef12"
+  let cred = VerificationKey(vk_hash)
+  cbor.serialise(cred) == #"d8799f581cabcdef1234567890abcdef1234567890abcdef1234567890abcdef12ff"
+}
+
+test encode_credential_script() {
+  // Credential.Script with 27-byte script hash
+  let script_hash = #"1234567890abcdef1234567890abcdef1234567890abcdef1234ab"
+  let cred = Script(script_hash)
+  cbor.serialise(cred) == #"d87a9f581b1234567890abcdef1234567890abcdef1234567890abcdef1234abff"
+}
+
+test encode_referenced_inline() {
+  // Referenced::Inline wrapping a credential
+  let vk_hash = #"abcdef1234567890abcdef1234567890abcdef1234567890abcdef12"
+  let cred = VerificationKey(vk_hash)
+  let inline_ref = Inline(cred)
+  cbor.serialise(inline_ref) == #"d8799fd8799f581cabcdef1234567890abcdef1234567890abcdef1234567890abcdef12ffff"
+}
+
+test encode_referenced_pointer() {
+  // Referenced::Pointer with slot_number=100, tx_index=2, cert_index=0
+  let pointer =
+    Pointer { slot_number: 100, transaction_index: 2, certificate_index: 0 }
+  cbor.serialise(pointer) == #"d87a9f18640200ff"
+}
+
+// Address with payment key, no stake credential
+test encode_address_payment_key_no_stake() {
+  // Address { payment_credential: VerificationKey(hash), stake_credential: None }
+  let pk_hash = #"ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6"
+  let address =
+    Address {
+      payment_credential: VerificationKey(pk_hash),
+      stake_credential: None,
+    }
+  cbor.serialise(address) == #"d8799fd8799f581cff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6ffd87a80ff"
+}
+
+// Address with payment key + inline stake key
+test encode_address_payment_key_stake_key_inline() {
+  // Address with both payment and stake credentials (base address)
+  let payment_hash = #"ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6"
+  let stake_hash = #"64ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507"
+  let address =
+    Address {
+      payment_credential: VerificationKey(payment_hash),
+      stake_credential: Some(Inline(VerificationKey(stake_hash))),
+    }
+  cbor.serialise(address) == #"d8799fd8799f581cff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6ffd8799fd8799fd8799f581c64ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507ffffffff"
+}
+
+// Address with payment script, no stake credential
+test encode_address_payment_script_no_stake() {
+  // Script address without delegation (enterprise script address)
+  let script_hash = #"1234567890abcdef1234567890abcdef1234567890abcdef1234ab"
+  let address =
+    Address { payment_credential: Script(script_hash), stake_credential: None }
+  cbor.serialise(address) == #"d8799fd87a9f581b1234567890abcdef1234567890abcdef1234567890abcdef1234abffd87a80ff"
+}
+
+// Address with payment script + inline stake key
+test encode_address_payment_script_stake_key_inline() {
+  // Script address with stake delegation to a key
+  let script_hash = #"1234567890abcdef1234567890abcdef1234567890abcdef1234ab"
+  let stake_hash = #"abcdef1234567890abcdef1234567890abcdef1234567890abcdef12"
+  let address =
+    Address {
+      payment_credential: Script(script_hash),
+      stake_credential: Some(Inline(VerificationKey(stake_hash))),
+    }
+  cbor.serialise(address) == #"d8799fd87a9f581b1234567890abcdef1234567890abcdef1234567890abcdef1234abffd8799fd8799fd8799f581cabcdef1234567890abcdef1234567890abcdef1234567890abcdef12ffffffff"
+}
+
+// Address with payment key + inline stake script
+test encode_address_payment_key_stake_script_inline() {
+  // Payment key with stake script delegation
+  let payment_hash = #"ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6"
+  let stake_script = #"1234567890abcdef1234567890abcdef1234567890abcdef1234ab"
+  let address =
+    Address {
+      payment_credential: VerificationKey(payment_hash),
+      stake_credential: Some(Inline(Script(stake_script))),
+    }
+  cbor.serialise(address) == #"d8799fd8799f581cff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6ffd8799fd8799fd87a9f581b1234567890abcdef1234567890abcdef1234567890abcdef1234abffffffff"
+}
+
+// Address with payment script + inline stake script
+test encode_address_payment_script_stake_script_inline() {
+  // Both payment and stake are scripts
+  let payment_script = #"1234567890abcdef1234567890abcdef1234567890abcdef1234ab"
+  let stake_script = #"abcdef1234567890abcdef1234567890abcdef1234567890abcdef12"
+  let address =
+    Address {
+      payment_credential: Script(payment_script),
+      stake_credential: Some(Inline(Script(stake_script))),
+    }
+  cbor.serialise(address) == #"d8799fd87a9f581b1234567890abcdef1234567890abcdef1234567890abcdef1234abffd8799fd8799fd87a9f581cabcdef1234567890abcdef1234567890abcdef1234567890abcdef12ffffffff"
+}
+
+// Address with payment key + pointer stake credential
+test encode_address_payment_key_stake_pointer() {
+  // Payment key with pointer to stake credential registration
+  let payment_hash = #"ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6"
+  let address =
+    Address {
+      payment_credential: VerificationKey(payment_hash),
+      stake_credential: Some(
+        Pointer {
+          slot_number: 2498243,
+          transaction_index: 7,
+          certificate_index: 0,
+        },
+      ),
+    }
+  cbor.serialise(address) == #"d8799fd8799f581cff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6ffd8799fd87a9f1a00261ec30700ffffff"
+}
+
+// Address with payment script + pointer stake credential
+test encode_address_payment_script_stake_pointer() {
+  // Script payment with pointer to stake credential
+  let script_hash = #"1234567890abcdef1234567890abcdef1234567890abcdef1234ab"
+  let address =
+    Address {
+      payment_credential: Script(script_hash),
+      stake_credential: Some(
+        Pointer {
+          slot_number: 1000,
+          transaction_index: 5,
+          certificate_index: 2,
+        },
+      ),
+    }
+  cbor.serialise(address) == #"d8799fd87a9f581b1234567890abcdef1234567890abcdef1234567890abcdef1234abffd8799fd87a9f1903e80502ffffff"
 }

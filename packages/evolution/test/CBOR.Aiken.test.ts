@@ -1,4 +1,3 @@
-
 import { describe, expect, it } from "vitest"
 
 import * as Bytes from "../src/core/Bytes.js"
@@ -224,22 +223,26 @@ describe("Aiken CBOR Encoding Compatibility", () => {
   it("encode_constructor_with_three_fields: should encode Triple(1, 2, 3)", () => {
     // Approach 1: Using Union with explicit indices
     const WithFieldsUnion = TSchema.Union(
-      TSchema.Struct({ value: TSchema.Integer }, { flatInUnion: true, index: 0 }),  // Single - index 0
-      TSchema.Struct({ a: TSchema.Integer, b: TSchema.Integer, c: TSchema.Integer }, { flatInUnion: true, index: 1 })  // Triple - index 1
+      TSchema.Struct({ value: TSchema.Integer }, { flatInUnion: true, index: 0 }), // Single - index 0
+      TSchema.Struct({ a: TSchema.Integer, b: TSchema.Integer, c: TSchema.Integer }, { flatInUnion: true, index: 1 }) // Triple - index 1
     )
     const valueUnion = Data.withSchema(WithFieldsUnion).toData({ a: 1n, b: 2n, c: 3n })
     const encodedUnion = Data.toCBORHex(valueUnion, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encodedUnion).toBe("d87a9f010203ff")
-    
+
     // Approach 2: Using discriminated union with TaggedStruct
     const Single = TSchema.TaggedStruct("Single", { value: TSchema.Integer }, { flatInUnion: true, index: 0 })
-    const Triple = TSchema.TaggedStruct("Triple", { a: TSchema.Integer, b: TSchema.Integer, c: TSchema.Integer }, { flatInUnion: true, index: 1 })
+    const Triple = TSchema.TaggedStruct(
+      "Triple",
+      { a: TSchema.Integer, b: TSchema.Integer, c: TSchema.Integer },
+      { flatInUnion: true, index: 1 }
+    )
     const WithFieldsTagged = TSchema.Union(Single, Triple)
-    
+
     const valueTagged = Data.withSchema(WithFieldsTagged).toData({ _tag: "Triple" as const, a: 1n, b: 2n, c: 3n })
     const encodedTagged = Data.toCBORHex(valueTagged, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encodedTagged).toBe("d87a9f010203ff")
-    
+
     // Approach 3: Using Variant helper
     const WithFieldsVariant = TSchema.Variant({
       Single: { value: TSchema.Integer },
@@ -248,7 +251,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
     const valueVariant = Data.withSchema(WithFieldsVariant).toData({ Triple: { a: 1n, b: 2n, c: 3n } })
     const encodedVariant = Data.toCBORHex(valueVariant, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encodedVariant).toBe("d87a9f010203ff")
-    
+
     // Approach 4: Using Struct with flatInUnion option directly (equivalent to Variant)
     // This shows that Variant is just syntactic sugar over Struct with flatInUnion and flatFields
     const WithFieldsStructOnly = TSchema.Union(
@@ -257,20 +260,22 @@ describe("Aiken CBOR Encoding Compatibility", () => {
         { flatInUnion: true, index: 0 }
       ),
       TSchema.Struct(
-        { Triple: TSchema.Struct({ a: TSchema.Integer, b: TSchema.Integer, c: TSchema.Integer }, { flatFields: true }) },
+        {
+          Triple: TSchema.Struct({ a: TSchema.Integer, b: TSchema.Integer, c: TSchema.Integer }, { flatFields: true })
+        },
         { flatInUnion: true, index: 1 }
       )
     )
-    
+
     // Test both Single and Triple variants
     const valueSingleStructOnly = Data.withSchema(WithFieldsStructOnly).toData({ Single: { value: 999n } })
     const encodedSingleStructOnly = Data.toCBORHex(valueSingleStructOnly, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encodedSingleStructOnly).toBe("d8799f1903e7ff") // Single(999)
-    
+
     const valueTripleStructOnly = Data.withSchema(WithFieldsStructOnly).toData({ Triple: { a: 1n, b: 2n, c: 3n } })
     const encodedTripleStructOnly = Data.toCBORHex(valueTripleStructOnly, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encodedTripleStructOnly).toBe("d87a9f010203ff")
-    
+
     // Verify all approaches produce identical CBOR for Triple
     expect(encodedUnion).toBe(encodedTagged)
     expect(encodedTagged).toBe(encodedVariant)
@@ -286,11 +291,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #31: encode_list_of_bytearrays
   it("encode_list_of_bytearrays: should encode list of bytearrays", () => {
-    const value = Data.list([
-      Bytes.fromHexUnsafe("aa"),
-      Bytes.fromHexUnsafe("bb"),
-      Bytes.fromHexUnsafe("cc")
-    ])
+    const value = Data.list([Bytes.fromHexUnsafe("aa"), Bytes.fromHexUnsafe("bb"), Bytes.fromHexUnsafe("cc")])
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("9f41aa41bb41ccff")
   })
@@ -330,7 +331,10 @@ describe("Aiken CBOR Encoding Compatibility", () => {
     const OptionInt = TSchema.UndefinedOr(TSchema.Integer)
     const some100 = Data.withSchema(OptionInt).toData(100n)
     const none = Data.withSchema(OptionInt).toData(undefined)
-    const value = Data.map([[1n, some100], [2n, none]])
+    const value = Data.map([
+      [1n, some100],
+      [2n, none]
+    ])
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("9f9f01d8799f1864ffff9f02d87a80ffff")
   })
@@ -521,14 +525,14 @@ describe("Aiken CBOR Encoding Compatibility", () => {
     const amount = 1000n
     const beneficiaries: Array<[Uint8Array, bigint]> = []
     const metadata = Bytes.fromHexUnsafe("dead")
-    
+
     const Datum = TSchema.Struct({
       owner: TSchema.ByteArray,
       amount: TSchema.Integer,
       beneficiaries: TSchema.Array(TSchema.Tuple([TSchema.ByteArray, TSchema.Integer])),
       metadata: TSchema.UndefinedOr(TSchema.ByteArray)
     })
-    
+
     const datum = Data.withSchema(Datum).toData({
       owner,
       amount,
@@ -543,12 +547,12 @@ describe("Aiken CBOR Encoding Compatibility", () => {
   it("encode_redeemer: should encode Redeemer{action: 100, params: [#abcd]}", () => {
     const action = 100n
     const params = [Bytes.fromHexUnsafe("abcd")]
-    
+
     const Redeemer = TSchema.Struct({
       action: TSchema.Integer,
       params: TSchema.Array(TSchema.ByteArray)
     })
-    
+
     const redeemer = Data.withSchema(Redeemer).toData({ action, params })
     const encoded = Data.toCBORHex(redeemer, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("d8799f18649f42abcdffff")
@@ -560,14 +564,14 @@ describe("Aiken CBOR Encoding Compatibility", () => {
     const outputs = [3n]
     const fee = 170000n
     const valid_range: [bigint, bigint] = [0n, 100n]
-    
+
     const ScriptContext = TSchema.Struct({
       inputs: TSchema.Array(TSchema.Integer),
       outputs: TSchema.Array(TSchema.Integer),
       fee: TSchema.Integer,
       valid_range: TSchema.Tuple([TSchema.Integer, TSchema.Integer])
     })
-    
+
     const ctx = Data.withSchema(ScriptContext).toData({ inputs, outputs, fee, valid_range })
     const encoded = Data.toCBORHex(ctx, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("d8799f9f0102ff9f03ff1a000298109f001864ffff")
@@ -585,5 +589,162 @@ describe("Aiken CBOR Encoding Compatibility", () => {
     const value = Bytes.fromHexUnsafe("1234567890abcdef1234567890abcdef1234567890abcdef1234")
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("581a1234567890abcdef1234567890abcdef1234567890abcdef1234")
+  })
+
+  // Test #65: encode_credential_verification_key
+  it("encode_credential_verification_key: should encode Credential with VerificationKey", () => {
+    const hash = Bytes.fromHexUnsafe("abcdef1234567890abcdef1234567890abcdef1234567890abcdef12")
+
+    const Credential = TSchema.Variant({
+      VerificationKey: { hash: TSchema.ByteArray },
+      Script: { hash: TSchema.ByteArray }
+    })
+
+    const credential = Data.withSchema(Credential).toData({
+      VerificationKey: { hash }
+    })
+    const encoded = Data.toCBORHex(credential, CBOR.AIKEN_DEFAULT_OPTIONS)
+    expect(encoded).toBe("d8799f581cabcdef1234567890abcdef1234567890abcdef1234567890abcdef12ff")
+  })
+
+  // Test #66: encode_credential_script
+  it("encode_credential_script: should encode Credential with Script", () => {
+    const hash = Bytes.fromHexUnsafe("1234567890abcdef1234567890abcdef1234567890abcdef1234ab")
+
+    const Credential = TSchema.Variant({
+      VerificationKey: { hash: TSchema.ByteArray },
+      Script: { hash: TSchema.ByteArray }
+    })
+
+    const credential = Data.withSchema(Credential).toData({
+      Script: { hash }
+    })
+    const encoded = Data.toCBORHex(credential, CBOR.AIKEN_DEFAULT_OPTIONS)
+    expect(encoded).toBe("d87a9f581b1234567890abcdef1234567890abcdef1234567890abcdef1234abff")
+  })
+
+  // Test #67: encode_referenced_inline
+  it("encode_referenced_inline: should encode Referenced with Inline credential", () => {
+    const hash = Bytes.fromHexUnsafe("abcdef1234567890abcdef1234567890abcdef1234567890abcdef12")
+
+    const Credential = TSchema.Variant({
+      VerificationKey: { hash: TSchema.ByteArray },
+      Script: { hash: TSchema.ByteArray }
+    })
+
+    const Referenced = TSchema.Variant({
+      Inline: { credential: Credential },
+      Pointer: {
+        slot_number: TSchema.Integer,
+        transaction_index: TSchema.Integer,
+        certificate_index: TSchema.Integer
+      }
+    })
+
+    const referenced = Data.withSchema(Referenced).toData({
+      Inline: {
+        credential: { VerificationKey: { hash } }
+      }
+    })
+    const encoded = Data.toCBORHex(referenced, CBOR.AIKEN_DEFAULT_OPTIONS)
+    expect(encoded).toBe("d8799fd8799f581cabcdef1234567890abcdef1234567890abcdef1234567890abcdef12ffff")
+  })
+
+  // Test #68: encode_referenced_pointer
+  it("encode_referenced_pointer: should encode Referenced with Pointer", () => {
+    const Referenced = TSchema.Variant({
+      Inline: {
+        credential: TSchema.Variant({
+          VerificationKey: { hash: TSchema.ByteArray },
+          Script: { hash: TSchema.ByteArray }
+        })
+      },
+      Pointer: {
+        slot_number: TSchema.Integer,
+        transaction_index: TSchema.Integer,
+        certificate_index: TSchema.Integer
+      }
+    })
+
+    const referenced = Data.withSchema(Referenced).toData({
+      Pointer: {
+        slot_number: 100n,
+        transaction_index: 2n,
+        certificate_index: 0n
+      }
+    })
+    const encoded = Data.toCBORHex(referenced, CBOR.AIKEN_DEFAULT_OPTIONS)
+    expect(encoded).toBe("d87a9f18640200ff")
+  })
+
+  // Test #69: encode_address_payment_only
+  it("encode_address_payment_only: should encode Address with payment credential only", () => {
+    const hash = Bytes.fromHexUnsafe("ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6")
+
+    const Credential = TSchema.Variant({
+      VerificationKey: { hash: TSchema.ByteArray },
+      Script: { hash: TSchema.ByteArray }
+    })
+
+    const Address = TSchema.Struct({
+      payment_credential: Credential,
+      stake_credential: TSchema.UndefinedOr(
+        TSchema.Variant({
+          Inline: { credential: Credential },
+          Pointer: {
+            slot_number: TSchema.Integer,
+            transaction_index: TSchema.Integer,
+            certificate_index: TSchema.Integer
+          }
+        })
+      )
+    })
+
+    const address = Data.withSchema(Address).toData({
+      payment_credential: { VerificationKey: { hash } },
+      stake_credential: undefined
+    })
+    const encoded = Data.toCBORHex(address, CBOR.AIKEN_DEFAULT_OPTIONS)
+    // d87a80 is Some(None) - the Option wrapper for stake_credential
+    expect(encoded).toBe("d8799fd8799f581cff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6ffd87a80ff")
+  })
+
+  // Test #70: encode_address_with_inline_stake_key
+  it("encode_address_with_inline_stake_key: should encode Address with payment and inline stake (key)", () => {
+    const paymentHash = Bytes.fromHexUnsafe("ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6")
+    const stakeHash = Bytes.fromHexUnsafe("64ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507")
+
+    const Credential = TSchema.Variant({
+      VerificationKey: { hash: TSchema.ByteArray },
+      Script: { hash: TSchema.ByteArray }
+    })
+
+    const Address = TSchema.Struct({
+      payment_credential: Credential,
+      stake_credential: TSchema.UndefinedOr(
+        TSchema.Variant({
+          Inline: { credential: Credential },
+          Pointer: {
+            slot_number: TSchema.Integer,
+            transaction_index: TSchema.Integer,
+            certificate_index: TSchema.Integer
+          }
+        })
+      )
+    })
+
+    const address = Data.withSchema(Address).toData({
+      payment_credential: { VerificationKey: { hash: paymentHash } },
+      stake_credential: {
+        Inline: {
+          credential: { VerificationKey: { hash: stakeHash } }
+        }
+      }
+    })
+    const encoded = Data.toCBORHex(address, CBOR.AIKEN_DEFAULT_OPTIONS)
+    // UndefinedOr wraps the value with Some (d8799f), then Inline variant (d8799f), then credential
+    expect(encoded).toBe(
+      "d8799fd8799f581cff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6ffd8799fd8799fd8799f581c64ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507ffffffff"
+    )
   })
 })
