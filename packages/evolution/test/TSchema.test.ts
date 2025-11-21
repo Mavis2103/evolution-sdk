@@ -291,6 +291,43 @@ describe("TypeTaggedSchema Tests", () => {
         expect(encoded).toEqual("d87a80")
         expect(decoded).toBeNull()
       })
+
+      it("should preserve field order in structs with NullOr fields (regression test)", () => {
+        // Regression test for field ordering bug with NullOr/UndefinedOr
+        const CredentialSchema = TSchema.Union(
+          TSchema.Struct({ pubKeyHash: TSchema.ByteArray }, { flatFields: true }),
+          TSchema.Struct({ scriptHash: TSchema.ByteArray }, { flatFields: true })
+        )
+
+        const AddressSchema = TSchema.Struct({
+          paymentCredential: CredentialSchema,
+          stakeCredential: TSchema.NullOr(TSchema.Integer)
+        })
+
+        const Foo = TSchema.Union(
+          TSchema.Struct({ foo: AddressSchema }, { flatFields: true })
+        )
+
+        const input = {
+          foo: {
+            paymentCredential: { pubKeyHash: fromHex("deadbeef") },
+            stakeCredential: null
+          }
+        }
+
+        const encoded = Data.withSchema(Foo).toData(input)
+        const decoded = Data.withSchema(Foo).fromData(encoded)
+
+        // Verify roundtrip
+        expect(decoded).toEqual(input)
+
+        // Verify field order in CBOR: paymentCredential should be field 0, stakeCredential field 1
+        const innerStruct = (encoded.fields[0] as Data.Constr).fields[0] as Data.Constr
+        expect(innerStruct.fields.length).toBe(2)
+        expect(innerStruct.fields[0]).toBeInstanceOf(Data.Constr) // paymentCredential
+        expect(innerStruct.fields[1]).toBeInstanceOf(Data.Constr) // stakeCredential (null)
+        expect((innerStruct.fields[1] as Data.Constr).index).toBe(1n) // null is Constr(1, [])
+      })
     })
 
     describe("Literal Schema", () => {
