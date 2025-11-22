@@ -739,7 +739,7 @@ export const Union = <Members extends ReadonlyArray<Schema.Schema.Any>>(...membe
       const memberNames = getMemberNames()
       const actual = issue.actual
       const actualType = getTypeName(actual)
-      const actualStr = typeof actual === "object" ? String(actual) : JSON.stringify(actual)
+      const actualStr = String(actual)
 
       return `Invalid value for Union: received ${actualType} (${actualStr}), expected ${memberNames.join(" or ")}`
     }
