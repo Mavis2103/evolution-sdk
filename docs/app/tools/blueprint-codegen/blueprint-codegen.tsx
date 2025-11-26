@@ -75,7 +75,7 @@ export function BlueprintCodegen() {
 
   const loadSample = async () => {
     try {
-      const response = await fetch('/sample-blueprint.json')
+      const response = await fetch('/evolution-sdk/sample-blueprint.json')
       if (!response.ok) {
         throw new Error('Failed to load sample blueprint')
       }
