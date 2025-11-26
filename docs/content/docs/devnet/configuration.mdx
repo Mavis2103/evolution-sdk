@@ -146,32 +146,73 @@ The calculation produces deterministic UTxOs based on the genesis configuration.
 
 ## Protocol Parameters
 
-Protocol parameters control transaction fees, size limits, script execution costs, and staking mechanics. Customize these to test edge cases or simulate different network conditions.
+The devnet runs on Conway era and uses three genesis files with distinct parameter sets.
 
-Modify protocol parameters within the genesis configuration:
+### Genesis Type Definitions
+
+The devnet package exports these types from `DevnetDefault`:
+
+```typescript twoslash
+import type { DevnetDefault } from "@evolution-sdk/devnet";
+
+// Use the exported types
+type ShelleyGenesis = DevnetDefault.ShelleyGenesis;
+type AlonzoGenesis = DevnetDefault.AlonzoGenesis;
+type ConwayGenesis = DevnetDefault.ConwayGenesis;
+
+// ShelleyGenesis.protocolParams contains:
+// - minFeeA, minFeeB: Transaction fees
+// - maxTxSize, maxBlockBodySize: Size limits
+// - keyDeposit, poolDeposit: Stake deposits
+// - minUTxOValue: Legacy parameter (unused in Conway)
+
+// AlonzoGenesis contains:
+// - lovelacePerUTxOWord: UTxO cost (Conway converts to coinsPerUtxoByte ÷8)
+// - executionPrices: Plutus script execution costs
+// - maxTxExUnits, maxBlockExUnits: Script execution limits
+// - collateralPercentage, maxCollateralInputs: Collateral settings
+// - costModels: PlutusV1 and PlutusV2 cost models
+
+// ConwayGenesis contains:
+// - poolVotingThresholds, dRepVotingThresholds: Governance voting
+// - govActionDeposit, dRepDeposit: Governance deposits
+// - minFeeRefScriptCostPerByte: Reference script fees
+// - plutusV3CostModel: PlutusV3 cost model
+```
+
+### Modifying Parameters
+
+Customize protocol parameters by modifying the appropriate genesis configuration:
 
 ```typescript twoslash
 import { Devnet, DevnetDefault } from "@evolution-sdk/devnet";
 declare const addressHex: string;
 
-const genesisConfig = {
+// Shelley genesis: fees and transaction limits
+const shelleyConfig: Partial<DevnetDefault.ShelleyGenesis> = {
   ...DevnetDefault.DEFAULT_SHELLEY_GENESIS,
   protocolParams: {
     ...DevnetDefault.DEFAULT_SHELLEY_GENESIS.protocolParams,
     minFeeA: 50,        // Transaction fee coefficient (default: 44)
     minFeeB: 200000,    // Minimum fee constant (default: 155381)
-    maxTxSize: 32768,   // Maximum transaction size in bytes (default: 16384)
-    coinsPerUTxOByte: "4310" // Ada per UTxO byte (as string)
+    maxTxSize: 32768    // Maximum transaction size in bytes (default: 16384)
   },
   initialFunds: {
     [addressHex]: 100_000_000_000
   }
 };
 
+// Alonzo genesis: UTxO costs (Conway runtime uses this)
+const alonzoConfig: Partial<DevnetDefault.AlonzoGenesis> = {
+  ...DevnetDefault.DEFAULT_ALONZO_GENESIS,
+  lovelacePerUTxOWord: 34482  // Conway converts to coinsPerUtxoByte (÷8 = 4310.25)
+};
+
 const cluster = await Devnet.Cluster.make({
   clusterName: "custom-protocol-devnet",
   ports: { node: 3001, submit: 3002 },
-  shelleyGenesis: genesisConfig
+  shelleyGenesis: shelleyConfig,
+  alonzoGenesis: alonzoConfig
 });
 
 await Devnet.Cluster.start(cluster);
@@ -179,12 +220,20 @@ await Devnet.Cluster.start(cluster);
 
 Common protocol parameter customizations:
 
-- **minFeeA / minFeeB**: Control transaction fees. Lower values reduce costs for testing. Higher values test fee edge cases.
-- **maxTxSize**: Increase for large transaction testing (multiple inputs/outputs, large datums). Decrease to test size limit errors.
-- **maxBlockBodySize**: Control how many transactions fit in a block. Affects throughput testing.
-- **coinsPerUTxOByte**: Minimum ADA required per UTxO. Affects multi-output transaction viability.
+**ShelleyGenesis.protocolParams:**
+- **minFeeA / minFeeB**: Transaction fee coefficient and constant
+- **maxTxSize**: Maximum transaction size in bytes
+- **maxBlockBodySize**: Maximum block size in bytes
+- **keyDeposit / poolDeposit**: Stake credential and pool deposits
 
-The complete list of parameters is available in the `ShelleyGenesis` type definition. Refer to `DevnetDefault.ts` for all available fields and their defaults.
+**AlonzoGenesis:**
+- **lovelacePerUTxOWord**: UTxO cost. Conway runtime converts this to `coinsPerUtxoByte` (÷8). Default 34482 ≈ 4310 lovelace/byte
+- **collateralPercentage**: Collateral % for script transactions (default: 150)
+- **maxCollateralInputs**: Max collateral inputs (default: 3)
+
+**Important**: The devnet runs Conway era. At runtime, the node uses `coinsPerUtxoByte` (from Alonzo's `lovelacePerUTxOWord`), not Shelley's legacy `minUTxOValue`.
+
+See the exported types `DevnetDefault.ShelleyGenesis`, `DevnetDefault.AlonzoGenesis`, and `DevnetDefault.ConwayGenesis` for complete definitions.
 
 ## Block Timing and Network Behavior
 
@@ -247,43 +296,6 @@ const genesisConfig = {
 - **slotsPerKESPeriod**: KES evolution frequency. Affects stake pool testing scenarios.
 
 Most applications can ignore these parameters and use defaults. Adjust only when testing specific consensus or staking behaviors.
-
-## Network Magic
-
-Network magic identifies the network and prevents cross-network transaction replay. Devnet uses magic `42` by default to distinguish from testnet (1, 2) and mainnet (764824073).
-
-Override network magic if testing network isolation or multi-network scenarios:
-
-```typescript twoslash
-import { DevnetDefault } from "@evolution-sdk/devnet";
-declare const addressHex: string;
-
-const genesisConfig = {
-  ...DevnetDefault.DEFAULT_SHELLEY_GENESIS,
-  networkMagic: 12345, // Custom network identifier
-  initialFunds: {
-    [addressHex]: 100_000_000_000
-  }
-};
-```
-
-Clients must use matching network magic when connecting:
-
-```typescript twoslash
-import { createClient } from "@evolution-sdk/evolution";
-
-const client = createClient({
-  network: 12345, // Must match genesis networkMagic
-  provider: {
-    type: "kupmios",
-    kupoUrl: "http://localhost:1442",
-    ogmiosUrl: "http://localhost:1337"
-  },
-  wallet: { type: "seed", mnemonic: "..." }
-});
-```
-
-Mismatched network magic causes address format incompatibilities and transaction validation failures.
 
 ## Complete Configuration Example
 
@@ -446,8 +458,8 @@ With custom genesis configuration, you can now:
 
 **Genesis UTxO not found**: Wait 3-5 seconds after cluster start for full initialization. Query timing matters for fast block configurations.
 
-**Protocol parameter validation**: Some parameter combinations are invalid (e.g., `coinsPerUTxOByte` too low). Check cardano-node logs if startup fails.
+**Protocol parameter validation**: Some parameter combinations are invalid (e.g., `lovelacePerUTxOWord` too low in Alonzo genesis). Check cardano-node logs if startup fails.
 
-**Network magic mismatch**: Client network parameter must exactly match genesis `networkMagic`. Addresses won't validate with incorrect magic.
+**Client network parameter**: Always use `network: 0` for devnet clients to create testnet-format addresses (addr_test...).
 
 **Excessive funds**: While genesis supports arbitrary amounts, extremely large values may cause numeric overflow in some calculations. Stay under 45B ADA (total supply) per address.
