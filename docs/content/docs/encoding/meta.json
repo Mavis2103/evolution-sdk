@@ -5,6 +5,9 @@
     "cbor",
     "bech32",
     "hex",
-    "json"
+    "json",
+    "data",
+    "tschema",
+    "plutus"
   ]
 }

@@ -16,6 +16,8 @@
   "exports": {
     "./package.json": "./package.json",
     ".": "./src/index.ts",
+    "./core/plutus": "./src/core/plutus/index.ts",
+    "./core/*": "./src/core/*.ts",
     "./*": "./src/*.ts",
     "./internal/*": null,
     "./*/index": null
@@ -79,6 +81,8 @@
     "exports": {
       "./package.json": "./package.json",
       ".": "./dist/index.js",
+      "./core/plutus": "./dist/core/plutus/index.js",
+      "./core/*": "./dist/core/*.js",
       "./*": "./dist/*.js",
       "./internal/*": null,
       "./*/index": null
