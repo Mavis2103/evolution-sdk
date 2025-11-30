@@ -1,6 +1,6 @@
 ---
 title: core/PoolParams.ts
-nav_order: 88
+nav_order: 93
 parent: Modules
 ---
 

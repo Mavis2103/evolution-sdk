@@ -1,6 +1,6 @@
 ---
 title: core/PrivateKey.ts
-nav_order: 91
+nav_order: 96
 parent: Modules
 ---
 

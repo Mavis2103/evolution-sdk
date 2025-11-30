@@ -1,5 +1,6 @@
 export * as Blueprint from "./blueprint/index.js"
 export * as Core from "./core/index.js"
+export * as Plutus from "./core/plutus/index.js"
 export * as Address from "./sdk/Address.js"
 export * as AddressDetails from "./sdk/AddressDetails.js"
 export * from "./sdk/client/Client.js"

@@ -106,12 +106,14 @@ export interface CodegenConfig {
   useRelativeRefs: boolean
 
   /**
-   * Import paths for Data and TSchema modules
+   * Explicit import lines for Data, TSchema, and effect modules
+   * e.g. data: 'import { Data } from "@evolution-sdk/evolution/core/Data"'
    */
   imports: {
     data: string
     tschema: string
-    effect: string
+    /** Optional explicit import line for Effect Schema (`Schema`). Omit to skip emitting it. */
+    effect?: string
   }
 
   /**
