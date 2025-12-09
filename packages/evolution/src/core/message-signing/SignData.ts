@@ -14,11 +14,11 @@ import type * as CBOR from "../CBOR.js"
 import * as KeyHash from "../KeyHash.js"
 import * as PrivateKey from "../PrivateKey.js"
 import * as VKey from "../VKey.js"
-import { COSEKeyFromCBORBytes, EdDSA25519Key } from "./cose-key.js"
-import { coseSign1BuilderNew, COSESign1FromCBORBytes } from "./cose-sign1.js"
-import { headerMapNew, headersNew } from "./header.js"
-import { AlgorithmId, labelFromInt, labelFromText } from "./label.js"
-import type { Payload } from "./utils.js"
+import { COSEKeyFromCBORBytes, EdDSA25519Key } from "./CoseKey.js"
+import { coseSign1BuilderNew, COSESign1FromCBORBytes } from "./CoseSign1.js"
+import { headerMapNew, headersNew } from "./Header.js"
+import { AlgorithmId, labelFromInt, labelFromText } from "./Label.js"
+import type { Payload } from "./Utils.js"
 
 // ============================================================================
 // Types

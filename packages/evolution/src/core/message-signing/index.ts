@@ -8,10 +8,10 @@
  * @category Message Signing
  */
 
-export * as COSEKey from "./cose-key.js"
-export * as COSESign from "./cose-sign.js"
-export * as COSESign1 from "./cose-sign1.js"
-export * as Header from "./header.js"
-export * as Label from "./label.js"
-export * as SignData from "./sign-data.js"
-export * as Utils from "./utils.js"
+export * as COSEKey from "./CoseKey.js"
+export * as COSESign from "./CoseSign.js"
+export * as COSESign1 from "./CoseSign1.js"
+export * as Header from "./Header.js"
+export * as Label from "./Label.js"
+export * as SignData from "./SignData.js"
+export * as Utils from "./Utils.js"

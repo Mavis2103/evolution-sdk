@@ -16,10 +16,10 @@ import {
   HeaderMapFromCBORBytes,
   Headers,
   headersNew
-} from "./header.js"
-import type { Label} from "./label.js";
-import { labelFromInt, labelFromText } from "./label.js"
-import { fnv32a } from "./utils.js"
+} from "./Header.js"
+import type { Label} from "./Label.js";
+import { labelFromInt, labelFromText } from "./Label.js"
+import { fnv32a } from "./Utils.js"
 
 // ============================================================================
 // COSESign1

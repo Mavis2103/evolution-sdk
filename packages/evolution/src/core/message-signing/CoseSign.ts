@@ -13,7 +13,7 @@ import { Equal, Hash, Inspectable, ParseResult, Schema } from "effect"
 import * as Bytes from "../Bytes.js"
 import * as CBOR from "../CBOR.js"
 import * as Ed25519Signature from "../Ed25519Signature.js"
-import { HeaderMapFromCBORBytes, Headers, headersNew } from "./header.js"
+import { HeaderMapFromCBORBytes, Headers, headersNew } from "./Header.js"
 
 // ============================================================================
 // COSESignature

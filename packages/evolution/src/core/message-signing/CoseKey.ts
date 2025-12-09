@@ -11,16 +11,16 @@ import * as Bytes from "../Bytes.js"
 import * as CBOR from "../CBOR.js"
 import * as PrivateKey from "../PrivateKey.js"
 import * as VKey from "../VKey.js"
-import { HeaderMap, headerMapNew } from "./header.js"
-import type { Label } from "./label.js"
+import { HeaderMap, headerMapNew } from "./Header.js"
+import type { Label } from "./Label.js"
 import {
   AlgorithmId,
   CurveType,
   KeyOperation,
   KeyType,
   labelFromInt,
-  labelFromText
-} from "./label.js"
+  labelFromText,
+} from "./Label.js"
 
 // ============================================================================
 // COSEKey

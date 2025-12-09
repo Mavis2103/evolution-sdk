@@ -9,12 +9,12 @@ import { Equal, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Bytes from "../Bytes.js"
 import * as CBOR from "../CBOR.js"
-import type { AlgorithmId } from "./label.js"
+import type { AlgorithmId } from "./Label.js"
 import {
   Label,
   labelFromInt,
   labelFromText
-} from "./label.js"
+} from "./Label.js"
 
 // ============================================================================
 // HeaderMap
