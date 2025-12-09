@@ -1,6 +1,6 @@
 ---
 title: core/plutus/CIP68Metadata.ts
-nav_order: 81
+nav_order: 88
 parent: Modules
 ---
 

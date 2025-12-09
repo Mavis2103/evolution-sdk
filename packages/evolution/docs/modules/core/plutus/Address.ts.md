@@ -1,6 +1,6 @@
 ---
 title: core/plutus/Address.ts
-nav_order: 80
+nav_order: 87
 parent: Modules
 ---
 

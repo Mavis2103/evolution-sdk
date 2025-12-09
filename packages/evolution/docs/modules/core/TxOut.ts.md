@@ -1,6 +1,6 @@
 ---
 title: core/TxOut.ts
-nav_order: 124
+nav_order: 131
 parent: Modules
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: core/Redeemer.ts
-nav_order: 101
+nav_order: 108
 parent: Modules
 ---
 

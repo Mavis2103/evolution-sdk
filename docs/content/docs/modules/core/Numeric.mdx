@@ -1,6 +1,6 @@
 ---
 title: core/Numeric.ts
-nav_order: 77
+nav_order: 84
 parent: Modules
 ---
 

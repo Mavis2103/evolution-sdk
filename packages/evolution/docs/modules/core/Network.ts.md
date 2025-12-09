@@ -1,6 +1,6 @@
 ---
 title: core/Network.ts
-nav_order: 73
+nav_order: 80
 parent: Modules
 ---
 
