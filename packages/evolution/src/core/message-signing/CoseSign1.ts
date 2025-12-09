@@ -97,7 +97,7 @@ export class COSESign1 extends Schema.Class<COSESign1>("COSESign1")({
   }
 
   /**
-   * Convert to user-facing encoding format (cms_<base64url>).
+   * Convert to user-facing encoding format (`cms_<base64url>`).
    * Includes checksum for data integrity verification.
    *
    * @since 2.0.0
@@ -116,7 +116,7 @@ export class COSESign1 extends Schema.Class<COSESign1>("COSESign1")({
   }
 
   /**
-   * Parse from user-facing encoding format (cms_<base64url>).
+   * Parse from user-facing encoding format (`cms_<base64url>`).
    *
    * @since 2.0.0
    * @category Conversion

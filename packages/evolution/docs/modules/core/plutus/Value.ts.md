@@ -1,6 +1,6 @@
 ---
 title: core/plutus/Value.ts
-nav_order: 84
+nav_order: 91
 parent: Modules
 ---
 

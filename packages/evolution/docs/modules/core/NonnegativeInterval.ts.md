@@ -1,6 +1,6 @@
 ---
 title: core/NonnegativeInterval.ts
-nav_order: 75
+nav_order: 82
 parent: Modules
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: core/Natural.ts
-nav_order: 72
+nav_order: 79
 parent: Modules
 ---
 
