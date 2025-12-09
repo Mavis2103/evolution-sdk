@@ -490,7 +490,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  * @category schemas
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
-  Schema.compose(Bytes.FromHex, FromCBORBytes(options)).annotations({
+  Schema.compose(Schema.Uint8ArrayFromHex, FromCBORBytes(options)).annotations({
     identifier: "AuxiliaryData.FromCBORHex",
     title: "AuxiliaryData from CBOR hex",
     description: "Decode AuxiliaryData from CBOR-encoded hex (tag 259)"

@@ -36,7 +36,7 @@ export class ScriptRef extends Schema.TaggedClass<ScriptRef>()("ScriptRef", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof ScriptRef && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof ScriptRef && Bytes.equals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {
@@ -65,7 +65,7 @@ export const FromBytes = Schema.transform(Schema.Uint8ArrayFromSelf, Schema.type
  * @category schemas
  */
 export const FromHex = Schema.compose(
-  Bytes.FromHex, // string -> Uint8Array
+  Schema.Uint8ArrayFromHex, // string -> Uint8Array
   FromBytes // Uint8Array -> ScriptRef
 ).annotations({
   identifier: "ScriptRef.FromHex"
@@ -119,7 +119,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → ScriptRef
   ).annotations({
     identifier: "ScriptRef.FromCBORHex"

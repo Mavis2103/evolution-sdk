@@ -11,7 +11,7 @@ import * as NetworkId from "./NetworkId.js"
  */
 export class ByronAddress extends Schema.TaggedClass<ByronAddress>("ByronAddress")("ByronAddress", {
   networkId: NetworkId.NetworkId,
-  bytes: Bytes.HexSchema
+  bytes: Schema.Uint8ArrayFromSelf
 }) {
   toJSON() {
     return {
@@ -48,13 +48,12 @@ export class ByronAddress extends Schema.TaggedClass<ByronAddress>("ByronAddress
  */
 export const BytesSchema = Schema.transformOrFail(Schema.Uint8ArrayFromSelf, ByronAddress, {
   strict: true,
-  encode: (_, __, ___, toA) => ParseResult.decode(Bytes.FromHex)(toA.bytes),
+  encode: (_, __, ___, toA) => ParseResult.succeed(toA.bytes),
   decode: (_, __, ast, fromA) =>
     Eff.gen(function* () {
-      const hexString = yield* ParseResult.encode(Bytes.FromHex)(fromA)
       return new ByronAddress({
         networkId: NetworkId.NetworkId.make(0),
-        bytes: hexString
+        bytes: fromA
       })
     })
 })
@@ -65,4 +64,4 @@ export const BytesSchema = Schema.transformOrFail(Schema.Uint8ArrayFromSelf, Byr
  * @since 2.0.0
  * @category schemas
  */
-export const FromHex = Schema.compose(Bytes.FromHex, BytesSchema)
+export const FromHex = Schema.compose(Schema.Uint8ArrayFromHex, BytesSchema)

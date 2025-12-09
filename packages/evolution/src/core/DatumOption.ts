@@ -44,7 +44,7 @@ export class DatumHash extends Schema.TaggedClass<DatumHash>()("DatumHash", {
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof DatumHash && Bytes.bytesEquals(this.hash, that.hash)
+    return that instanceof DatumHash && Bytes.equals(this.hash, that.hash)
   }
 
   /**
@@ -257,7 +257,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → DatumOption
   ).annotations({
     identifier: "DatumOption.FromCBORHex",

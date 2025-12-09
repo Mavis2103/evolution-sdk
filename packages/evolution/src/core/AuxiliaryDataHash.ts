@@ -35,7 +35,7 @@ export class AuxiliaryDataHash extends Schema.TaggedClass<AuxiliaryDataHash>()("
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof AuxiliaryDataHash && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof AuxiliaryDataHash && Bytes.equals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {

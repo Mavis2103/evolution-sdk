@@ -31,7 +31,7 @@ export class VKey extends Schema.TaggedClass<VKey>()("VKey", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof VKey && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof VKey && Bytes.equals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {

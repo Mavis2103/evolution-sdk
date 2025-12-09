@@ -157,7 +157,7 @@ export const makeCBOREncodeHexSync = <A, T extends CBOR.CBOR, E extends Error>(
       try {
         const cborValue = encode(input)
         const bytes = CBOR.internalEncodeSync(cborValue, options || defaultOptions)
-        return Bytes.toHexUnsafe(bytes)
+        return Bytes.toHex(bytes)
       } catch (e) {
         const error = new ErrorClass({ message: `Failed to encode hex in ${functionName}`, cause: e })
         if (Error.captureStackTrace) {
@@ -258,6 +258,6 @@ export const makeCBOREncodeHexEither =
   (input: A, options?: CBOR.CodecOptions) =>
     Schema.encodeEither(schemaTransformer)(input).pipe(
       Either.flatMap((cborValue) => Either.try(() => CBOR.internalEncodeSync(cborValue, options || defaultOptions))),
-      Either.map((bytes) => Bytes.toHexUnsafe(bytes)),
+      Either.map((bytes) => Bytes.toHex(bytes)),
       Either.mapLeft((e) => new ErrorClass({ message: (e as Error).message, cause: e as Error }))
     )

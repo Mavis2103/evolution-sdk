@@ -1,7 +1,6 @@
 import { pipe, Schema } from "effect"
 import type { ParseIssue } from "effect/ParseResult"
 
-import * as Bytes from "./Bytes.js"
 
 /**
  * Plutus data types and schemas for serialization/deserialization between
@@ -39,10 +38,12 @@ export type Map = {
 const renderParseIssue = (issue: ParseIssue): string | undefined =>
   typeof issue.actual === "object" ? "[complex value]" : String(issue.actual)
 
+const HEX_REGEX = /^(?:[0-9a-f]{2})*$/
+
 const HexString = <Source extends string, Target>(self: Schema.Schema<Source, Target>) =>
   pipe(
     self,
-    Schema.filter((value) => Bytes.isHex(value), {
+    Schema.filter((value) => HEX_REGEX.test(value), {
       message: (issue) => `Expected a hexadecimal string but received: ${issue.actual}.`
     })
   )

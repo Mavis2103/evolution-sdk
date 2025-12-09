@@ -1,35 +1,28 @@
 import { FastCheck, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 
 export const Text = Schema.String
 
-/**
- * Configuration for text transformations.
- *
- * @since 2.0.0
- * @category types
- */
-export interface TextTransformationConfig {
-  id: string
-  to: Schema.Schema<string, string>
-  from: Schema.Schema<Uint8Array, Uint8Array>
+// Shared transform options for text conversions
+const textTransform = {
+  strict: true as const,
+  decode: (input: Uint8Array) => new TextDecoder().decode(input),
+  encode: (text: string) => new TextEncoder().encode(text)
 }
 
 /**
- * Creates a text transformation schema.
+ * Schema for converting between strings and bytes (UTF-8).
+ *
+ * ```
+ * text <-> bytes
+ * ```
  *
  * @since 2.0.0
- * @category utilities
+ * @category schemas
  */
-export const makeTextTransformation = (config: TextTransformationConfig) => {
-  const { from: bytesSchema, id, to: inputSchema } = config
-  return Schema.transform(bytesSchema, inputSchema, {
-    strict: true,
-    decode: (input) => new TextDecoder().decode(input),
-    encode: (text) => new TextEncoder().encode(text)
-  }).annotations({ identifier: id })
-}
+export const FromBytes = Schema.transform(Schema.Uint8ArrayFromSelf, Text, textTransform).annotations({
+  identifier: "Text.FromBytes"
+})
 
 /**
  * Schema for converting between strings and hex representation of UTF-8 bytes.
@@ -41,18 +34,9 @@ export const makeTextTransformation = (config: TextTransformationConfig) => {
  * @since 2.0.0
  * @category schemas
  */
-export const FromBytes = makeTextTransformation({
-  id: "Text.FromBytes",
-  to: Text,
-  from: Schema.Uint8ArrayFromSelf
+export const FromHex = Schema.transform(Schema.Uint8ArrayFromHex, Text, textTransform).annotations({
+  identifier: "Text.FromHex"
 })
-// type t = typeof FromBytes.Type
-// type e = typeof FromBytes.Encoded
-
-export const FromHex = Schema.compose(
-  Bytes.FromHex, // string → Uint8Array
-  FromBytes // Uint8Array → string
-)
 
 // =============================================================================
 // Text Length Validation Utilities
@@ -64,7 +48,7 @@ export const FromHex = Schema.compose(
  * @since 2.0.0
  * @category validation
  */
-export const textLengthEquals = (length: number, identifier?: string) =>
+export const length = (length: number, identifier?: string) =>
   Schema.filter((text: string) => text.length === length, {
     message: () => `Expected text length ${length}`,
     identifier
@@ -77,7 +61,7 @@ export const textLengthEquals = (length: number, identifier?: string) =>
  * @since 2.0.0
  * @category composition
  */
-export const textLengthBetween =
+export const between =
   (min: number, max: number, moduleName: string) =>
   <S extends Schema.Schema<any, string>>(baseSchema: S) =>
     baseSchema.pipe(
@@ -99,7 +83,7 @@ export const textLengthBetween =
  * @since 2.0.0
  * @category validation
  */
-export const textLengthMin = (min: number, identifier?: string) =>
+export const min = (min: number, identifier?: string) =>
   Schema.filter((text: string) => text.length >= min, {
     message: () => `Expected text length at least ${min}`,
     identifier
@@ -111,57 +95,11 @@ export const textLengthMin = (min: number, identifier?: string) =>
  * @since 2.0.0
  * @category validation
  */
-export const textLengthMax = (max: number, identifier?: string) =>
+export const max = (max: number, identifier?: string) =>
   Schema.filter((text: string) => text.length <= max, {
     message: () => `Expected text length at most ${max}`,
     identifier
   })
-
-// =============================================================================
-// Text Transformation Utilities
-// =============================================================================
-
-// =============================================================================
-// Unsafe Helper Functions
-// =============================================================================
-
-/**
- * Convert bytes to text (unsafe, no validation).
- *
- * @since 2.0.0
- * @category unsafe
- */
-export const fromBytesUnsafe = (bytes: Uint8Array): string => new TextDecoder().decode(bytes)
-
-/**
- * Convert text to bytes (unsafe, no validation).
- *
- * @since 2.0.0
- * @category unsafe
- */
-export const toBytesUnsafe = (text: string): Uint8Array => new TextEncoder().encode(text)
-
-/**
- * Convert hex to text (unsafe, no validation).
- *
- * @since 2.0.0
- * @category unsafe
- */
-export const fromHexUnsafe = (hex: string): string => {
-  const bytes = Bytes.fromHexUnsafe(hex)
-  return fromBytesUnsafe(bytes)
-}
-
-/**
- * Convert text to hex (unsafe, no validation).
- *
- * @since 2.0.0
- * @category unsafe
- */
-export const toHexUnsafe = (text: string): string => {
-  const bytes = toBytesUnsafe(text)
-  return Bytes.toHexUnsafe(bytes)
-}
 
 /**
  * FastCheck arbitrary for generating random text strings

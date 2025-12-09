@@ -168,7 +168,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → ProposalProcedure
   ).annotations({
     identifier: "ProposalProcedure.FromCBORHex",

@@ -27,7 +27,7 @@ export class Ed25519Signature extends Schema.Class<Ed25519Signature>("Ed25519Sig
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof Ed25519Signature && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof Ed25519Signature && Bytes.equals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {

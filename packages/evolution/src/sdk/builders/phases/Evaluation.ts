@@ -201,7 +201,7 @@ export const executeEvaluation = (): Effect.Effect<
         })
     })
 
-    const txHex = Bytes.toHexUnsafe(txCborBytes)
+    const txHex = Bytes.toHex(txCborBytes)
     
     // Debug: Log transaction details
     yield* Effect.logDebug(`[Evaluation] Transaction CBOR length: ${txHex.length} chars`)

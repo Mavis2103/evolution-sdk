@@ -5,7 +5,6 @@
 import { bech32 } from "@scure/base"
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 import * as Bytes29 from "./Bytes29.js"
 import * as Bytes57 from "./Bytes57.js"
 import * as Credential from "./Credential.js"
@@ -68,7 +67,7 @@ export class Address extends Schema.Class<Address>("AddressStructure")({
  * @category Transformations
  */
 export const FromBytes = Schema.transformOrFail(
-  Schema.Union(Bytes57.BytesSchema, Bytes29.BytesSchema),
+  Schema.Union(Schema.typeSchema(Bytes57.BytesFromHex), Schema.typeSchema(Bytes29.BytesFromHex)),
   Schema.typeSchema(Address),
   {
     strict: true,
@@ -147,7 +146,7 @@ export const FromBytes = Schema.transformOrFail(
  * @since 1.0.0
  * @category Transformations
  */
-export const FromHex = Schema.compose(Bytes.FromHex, FromBytes).annotations({
+export const FromHex = Schema.compose(Schema.Uint8ArrayFromHex, FromBytes).annotations({
   identifier: "AddressStructure.FromHex"
 })
 

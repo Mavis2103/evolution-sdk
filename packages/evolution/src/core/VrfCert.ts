@@ -25,11 +25,18 @@ export class VRFOutput extends Schema.TaggedClass<VRFOutput>()("VrfOutput", {
     return this.toJSON()
   }
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof VRFOutput && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof VRFOutput && Bytes.equals(this.bytes, that.bytes)
   }
   [Hash.symbol](): number {
     return Hash.array(Array.from(this.bytes))
   }
+}
+
+// Shared transform options for VRFOutput
+const vrfOutputTransform = {
+  strict: true as const,
+  decode: (bytes: Uint8Array) => new VRFOutput({ bytes }, { disableValidation: true }),
+  encode: (vrfOutput: VRFOutput) => vrfOutput.bytes
 }
 
 /**
@@ -42,11 +49,7 @@ export class VRFOutput extends Schema.TaggedClass<VRFOutput>()("VrfOutput", {
 export const VRFOutputFromBytes = Schema.transform(
   Schema.typeSchema(Bytes32.BytesFromHex),
   Schema.typeSchema(VRFOutput),
-  {
-    strict: true,
-    decode: (bytes) => new VRFOutput({ bytes }, { disableValidation: true }), // Disable validation since we already check length in Bytes32
-    encode: (vrfOutput) => vrfOutput.bytes
-  }
+  vrfOutputTransform
 ).annotations({
   identifier: "VrfOutput.Bytes"
 })
@@ -58,9 +61,10 @@ export const VRFOutputFromBytes = Schema.transform(
  * @since 2.0.0
  * @category schemas
  */
-export const VRFOutputHexSchema = Schema.compose(
-  Bytes32.BytesFromHex, // string -> hex string
-  VRFOutputFromBytes // hex string -> VRFOutput
+export const VRFOutputHexSchema = Schema.transform(
+  Bytes32.BytesFromHex,
+  Schema.typeSchema(VRFOutput),
+  vrfOutputTransform
 ).annotations({
   identifier: "VrfOutput.Hex"
 })
@@ -73,7 +77,7 @@ export const VRFOutputHexSchema = Schema.compose(
  * @category schemas
  */
 export class VRFProof extends Schema.TaggedClass<VRFProof>()("VrfProof", {
-  bytes: Bytes80.BytesSchema
+  bytes: Bytes80.BytesFromHex
 }) {
   toJSON() {
     return { _tag: "VrfProof", bytes: this.bytes }
@@ -85,11 +89,18 @@ export class VRFProof extends Schema.TaggedClass<VRFProof>()("VrfProof", {
     return this.toJSON()
   }
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof VRFProof && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof VRFProof && Bytes.equals(this.bytes, that.bytes)
   }
   [Hash.symbol](): number {
     return Hash.array(Array.from(this.bytes))
   }
+}
+
+// Shared transform options for VRFProof
+const vrfProofTransform = {
+  strict: true as const,
+  decode: (bytes: Uint8Array) => new VRFProof({ bytes }, { disableValidation: true }),
+  encode: (vrfProof: VRFProof) => vrfProof.bytes
 }
 
 /**
@@ -99,11 +110,11 @@ export class VRFProof extends Schema.TaggedClass<VRFProof>()("VrfProof", {
  * @since 2.0.0
  * @category schemas
  */
-export const VRFProofFromBytes = Schema.transform(Bytes80.BytesSchema, VRFProof, {
-  strict: true,
-  decode: (bytes) => new VRFProof({ bytes }, { disableValidation: true }), // Disable validation since we already check length in Bytes80
-  encode: (vrfProof) => vrfProof.bytes
-}).annotations({
+export const VRFProofFromBytes = Schema.transform(
+  Schema.typeSchema(Bytes80.BytesFromHex),
+  Schema.typeSchema(VRFProof),
+  vrfProofTransform
+).annotations({
   identifier: "VrfProof.Bytes"
 })
 
@@ -114,9 +125,10 @@ export const VRFProofFromBytes = Schema.transform(Bytes80.BytesSchema, VRFProof,
  * @since 2.0.0
  * @category schemas
  */
-export const VRFProofHexSchema = Schema.compose(
-  Bytes80.FromHex, // string -> hex string
-  VRFProofFromBytes // hex string -> VRFProof
+export const VRFProofHexSchema = Schema.transform(
+  Bytes80.BytesFromHex,
+  Schema.typeSchema(VRFProof),
+  vrfProofTransform
 ).annotations({
   identifier: "VrfProof.Hex"
 })
@@ -202,7 +214,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → VrfCert
   ).annotations({
     identifier: "VrfCert.FromCBORHex"

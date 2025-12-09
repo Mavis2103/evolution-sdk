@@ -116,7 +116,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
   )
 
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
-  Schema.compose(Bytes.FromHex, FromCBORBytes(options))
+  Schema.compose(Schema.Uint8ArrayFromHex, FromCBORBytes(options))
 
 /**
  * FastCheck arbitrary for Script.

@@ -387,7 +387,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → Mint
   ).annotations({
     identifier: "Mint.FromCBORHex",
@@ -408,13 +408,13 @@ export const arbitrary: FastCheck.Arbitrary<Mint> = FastCheck.oneof(
   FastCheck.uniqueArray(PolicyId.arbitrary, {
     minLength: 1,
     maxLength: 5,
-    selector: (p) => Bytes.toHexUnsafe(p.hash)
+    selector: (p) => Bytes.toHex(p.hash)
   }).chain((policies) => {
     const assetsForPolicy = () =>
       FastCheck.uniqueArray(AssetName.arbitrary, {
         minLength: 1,
         maxLength: 5,
-        selector: (a) => Bytes.toHexUnsafe(a.bytes)
+        selector: (a) => Bytes.toHex(a.bytes)
       }).chain((names) =>
         FastCheck.array(NonZeroInt64.arbitrary, {
           minLength: names.length,

@@ -38,7 +38,7 @@ export class Anchor extends Schema.TaggedClass<Anchor>()("Anchor", {
     return (
       that instanceof Anchor &&
       Equal.equals(this.anchorUrl, that.anchorUrl) &&
-      Bytes.bytesEquals(this.anchorDataHash, that.anchorDataHash)
+      Bytes.equals(this.anchorDataHash, that.anchorDataHash)
     )
   }
 
@@ -92,7 +92,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → Anchor
   )
 

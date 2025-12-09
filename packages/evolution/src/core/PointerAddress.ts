@@ -1,6 +1,5 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 import * as Credential from "./Credential.js"
 import * as KeyHash from "./KeyHash.js"
 import * as Natural from "./Natural.js"
@@ -202,7 +201,7 @@ export const FromBytes = Schema.transformOrFail(Schema.Uint8ArrayFromSelf, Schem
 })
 
 export const FromHex = Schema.compose(
-  Bytes.FromHex, // string → Uint8Array
+  Schema.Uint8ArrayFromHex, // string → Uint8Array
   FromBytes // Uint8Array → PointerAddress
 ).annotations({
   identifier: "PointerAddress.FromHex",

@@ -21,6 +21,6 @@ export const FromBytes = (prefix: string = "addr") =>
   })
 
 export const FromHex = (prefix: string = "addr") =>
-  Schema.compose(Bytes.FromHex, FromBytes(prefix)).annotations({
+  Schema.compose(Schema.Uint8ArrayFromHex, FromBytes(prefix)).annotations({
     identifier: "Bech32.FromHex"
   })

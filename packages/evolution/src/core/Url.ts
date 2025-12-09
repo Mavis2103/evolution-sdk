@@ -67,14 +67,14 @@ export class Url extends Schema.TaggedClass<Url>("Url")("Url", {
   }
 }
 
-export const FromBytes = Schema.transform(Text128.FromVariableBytes, Url, {
+export const FromBytes = Schema.transform(Text128.FromBytes, Url, {
   strict: true,
   decode: (bytes) => new Url({ href: bytes }, { disableValidation: true }), // Disable validation since we already check length in Text128
   encode: (url) => url.href
 })
 
 export const FromHex = Schema.compose(
-  Bytes.BytesFromHexLenient, // string -> hex string
+  Schema.Uint8ArrayFromHex, // string -> hex string
   FromBytes
 ).annotations({
   identifier: "Url.Hex"

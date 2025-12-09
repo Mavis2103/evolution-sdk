@@ -44,7 +44,7 @@ export class Bip32PublicKey extends Schema.TaggedClass<Bip32PublicKey>()("Bip32P
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof Bip32PublicKey && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof Bip32PublicKey && Bytes.equals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {

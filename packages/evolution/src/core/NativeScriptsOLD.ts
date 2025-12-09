@@ -188,7 +188,7 @@ export const internalEncodeCDDL = (native: Native): E.Either<NativeCDDL, ParseIs
     switch (native.type) {
       case "sig": {
         // Convert hex string keyHash to bytes for CBOR encoding
-        const keyHashBytes = yield* ParseResult.decodeEither(Bytes.FromHex)(native.keyHash)
+        const keyHashBytes = yield* ParseResult.decodeEither(Schema.Uint8ArrayFromHex)(native.keyHash)
         return [0n, keyHashBytes] as const
       }
       case "all": {
@@ -239,7 +239,7 @@ export const internalDecodeCDDL = (cborTuple: NativeCDDL): E.Either<Native, Pars
       case 0n: {
         // sig: [0, keyHash_bytes] - convert bytes back to hex string
         const [, keyHashBytes] = cborTuple
-        const keyHash = yield* ParseResult.encodeEither(Bytes.FromHex)(keyHashBytes)
+        const keyHash = yield* ParseResult.encodeEither(Schema.Uint8ArrayFromHex)(keyHashBytes)
         return {
           type: "sig" as const,
           keyHash
@@ -420,7 +420,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → Native
   ).annotations({
     identifier: "Native.FromCBORHex",

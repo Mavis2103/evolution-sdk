@@ -29,7 +29,7 @@ export class PoolKeyHash extends Schema.TaggedClass<PoolKeyHash>()("PoolKeyHash"
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof PoolKeyHash && Bytes.bytesEquals(this.hash, that.hash)
+    return that instanceof PoolKeyHash && Bytes.equals(this.hash, that.hash)
   }
 
   [Hash.symbol](): number {

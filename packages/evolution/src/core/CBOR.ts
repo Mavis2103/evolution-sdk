@@ -605,7 +605,7 @@ export const FromBytes = (options: CodecOptions) =>
       })
   })
 
-export const FromHex = (options: CodecOptions) => Schema.compose(Bytes.FromHex, FromBytes(options))
+export const FromHex = (options: CodecOptions) => Schema.compose(Schema.Uint8ArrayFromHex, FromBytes(options))
 
 // ============================================================================
 // Either-based API (Step 1)
@@ -627,8 +627,7 @@ export namespace Either {
   export const fromCBORHex = (hex: string, options: CodecOptions = CML_DEFAULT_OPTIONS): E.Either<CBOR, CBORError> =>
     E.try({
       try: () => {
-        if (!Bytes.isHex(hex)) throw new CBORError({ message: "Invalid hex input" })
-        const bytes = Bytes.fromHexUnsafe(hex)
+        const bytes = Bytes.fromHex(hex)
         return internalDecodeSync(bytes, options)
       },
       catch: (e) => (e instanceof CBORError ? e : new CBORError({ message: String(e), cause: e }))
@@ -647,7 +646,7 @@ export namespace Either {
   /** Encode a CBOR value to hex string, returning Either */
   export const toCBORHex = (value: CBOR, options: CodecOptions = CML_DEFAULT_OPTIONS): E.Either<string, CBORError> =>
     E.try({
-      try: () => Bytes.toHexUnsafe(internalEncodeSync(value, options)),
+      try: () => Bytes.toHex(internalEncodeSync(value, options)),
       catch: (e) => (e instanceof CBORError ? e : new CBORError({ message: String(e), cause: e }))
     })
 }
@@ -672,8 +671,7 @@ export const fromCBORBytes = (bytes: Uint8Array, options: CodecOptions = CML_DEF
  * @category parsing
  */
 export const fromCBORHex = (hex: string, options: CodecOptions = CML_DEFAULT_OPTIONS): CBOR => {
-  if (!Bytes.isHex(hex)) throw new CBORError({ message: "Invalid hex input" })
-  const bytes = Bytes.fromHexUnsafe(hex)
+  const bytes = Bytes.fromHex(hex)
   return internalDecodeSync(bytes, options)
 }
 
@@ -697,7 +695,7 @@ export const toCBORBytes = (value: CBOR, options: CodecOptions = CML_DEFAULT_OPT
  * @category encoding
  */
 export const toCBORHex = (value: CBOR, options: CodecOptions = CML_DEFAULT_OPTIONS): string =>
-  Bytes.toHexUnsafe(internalEncodeSync(value, options))
+  Bytes.toHex(internalEncodeSync(value, options))
 
 // ============================================================================
 // Sync core (Step 2): fast, exception-based encode/decode with no Effect

@@ -27,7 +27,7 @@ export class KESVkey extends Schema.TaggedClass<KESVkey>()("KESVkey", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof KESVkey && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof KESVkey && Bytes.equals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {

@@ -403,7 +403,7 @@ export const HeaderMapFromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEF
  * @category Schemas
  */
 export const HeaderMapFromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
-  Schema.compose(Bytes.FromHex, HeaderMapFromCBORBytes(options)).annotations({
+  Schema.compose(Schema.Uint8ArrayFromHex, HeaderMapFromCBORBytes(options)).annotations({
     identifier: "HeaderMap.FromCBORHex",
     description: "Transforms CBOR hex string to HeaderMap"
   })
@@ -926,7 +926,7 @@ export const COSESign1FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEF
  * @category Schemas
  */
 export const COSESign1FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
-  Schema.compose(Bytes.FromHex, COSESign1FromCBORBytes(options)).annotations({
+  Schema.compose(Schema.Uint8ArrayFromHex, COSESign1FromCBORBytes(options)).annotations({
     identifier: "COSESign1.FromCBORHex",
     description: "Transforms CBOR hex string to COSESign1"
   })
@@ -969,9 +969,9 @@ export class COSESign1Builder extends Schema.Class<COSESign1Builder>("COSESign1B
     return (
       that instanceof COSESign1Builder &&
       Equal.equals(this.headers, that.headers) &&
-      Bytes.bytesEquals(this.payload, that.payload) &&
+      Bytes.equals(this.payload, that.payload) &&
       this.hashPayload === that.hashPayload &&
-      Bytes.bytesEquals(this.externalAad, that.externalAad)
+      Bytes.equals(this.externalAad, that.externalAad)
     )
   }
 
@@ -1166,7 +1166,7 @@ export const verifyData = (
 
     // Verify payload matches (allow empty payloads)
     if (coseSign1.payload === undefined) return false
-    if (!Bytes.bytesEquals(coseSign1.payload, payload)) return false
+    if (!Bytes.equals(coseSign1.payload, payload)) return false
 
     // Get protected headers
     const addressLabel = labelFromText("address")

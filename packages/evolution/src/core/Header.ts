@@ -114,7 +114,7 @@ export const FromBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS)
  */
 export const FromHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromBytes(options) // Uint8Array → Header
   )
 

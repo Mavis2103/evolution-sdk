@@ -12,7 +12,7 @@ export const BYTES_LENGTH = 64
 
 export const BytesFromHex = Schema.Uint8ArrayFromHex.pipe(Bytes.bytesLengthEquals(BYTES_LENGTH))
 
-export const VariableBytesFromHex = Schema.Uint8ArrayFromSelf.pipe(Bytes.bytesLengthBetween(0, BYTES_LENGTH))
+export const VariableBytesFromHex = Schema.Uint8ArrayFromHex.pipe(Bytes.bytesLengthBetween(0, BYTES_LENGTH))
 
 // =============================================================================
 // Public (throwing) API
