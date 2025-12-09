@@ -1,7 +1,6 @@
 import { Effect as Eff, Equal, ParseResult, Schema } from "effect"
 
 import * as AddressEras from "../core/AddressEras.js"
-import * as Bytes from "../core/Bytes.js"
 import * as NetworkId from "../core/NetworkId.js"
 
 /**
@@ -22,7 +21,7 @@ export class AddressDetails extends Schema.Class<AddressDetails>("AddressDetails
   ),
   address: AddressEras.AddressEras,
   bech32: Schema.String,
-  hex: Bytes.HexSchema
+  hex: Schema.String
 }) {}
 
 export const FromBech32 = Schema.transformOrFail(Schema.String, Schema.typeSchema(AddressDetails), {
@@ -42,7 +41,7 @@ export const FromBech32 = Schema.transformOrFail(Schema.String, Schema.typeSchem
     })
 })
 
-export const FromHex = Schema.transformOrFail(Bytes.HexSchema, Schema.typeSchema(AddressDetails), {
+export const FromHex = Schema.transformOrFail(Schema.String, Schema.typeSchema(AddressDetails), {
   strict: true,
   encode: (_, __, ___, toA) => ParseResult.succeed(toA.hex),
   decode: (_, __, ___, fromA) =>

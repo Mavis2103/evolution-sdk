@@ -105,9 +105,9 @@ export class MultiAsset extends Schema.Class<MultiAsset>("MultiAsset")({
     for (const [policyId, assetMap] of this.map.entries()) {
       const serializedAssets: Record<string, string> = {}
       for (const [assetName, quantity] of assetMap.entries()) {
-        serializedAssets[Bytes.toHexUnsafe(assetName.bytes)] = quantity.toString()
+        serializedAssets[Bytes.toHex(assetName.bytes)] = quantity.toString()
       }
-      serializedMap[Bytes.toHexUnsafe(policyId.hash)] = serializedAssets
+      serializedMap[Bytes.toHex(policyId.hash)] = serializedAssets
     }
     return {
       _tag: "MultiAsset" as const,
@@ -171,7 +171,7 @@ export const equals = (a: MultiAsset, b: MultiAsset): boolean => {
     // Find matching policy in b by comparing bytes
     let bAssetMap: typeof aAssetMap | undefined
     for (const [bPolicyId, bAssets] of b.map.entries()) {
-      if (Bytes.bytesEquals(aPolicyId.hash, bPolicyId.hash)) {
+      if (Bytes.equals(aPolicyId.hash, bPolicyId.hash)) {
         bAssetMap = bAssets
         break
       }
@@ -185,7 +185,7 @@ export const equals = (a: MultiAsset, b: MultiAsset): boolean => {
       // Find matching asset name in b by comparing bytes
       let bAmount: bigint | undefined
       for (const [bAssetName, bAmt] of bAssetMap.entries()) {
-        if (Bytes.bytesEquals(aAssetName.bytes, bAssetName.bytes)) {
+        if (Bytes.equals(aAssetName.bytes, bAssetName.bytes)) {
           bAmount = bAmt as bigint
           break
         }
@@ -321,14 +321,14 @@ export const is = (value: unknown): value is MultiAsset => Schema.is(MultiAsset)
 export const arbitrary: FastCheck.Arbitrary<MultiAsset> = FastCheck.uniqueArray(PolicyId.arbitrary, {
   minLength: 1,
   maxLength: 5,
-  selector: (p) => Bytes.toHexUnsafe(p.hash)
+  selector: (p) => Bytes.toHex(p.hash)
 }).chain((policies) => {
   // For each unique policy, generate a unique set of asset names with aligned positive amounts
   const assetsForPolicy = () =>
     FastCheck.uniqueArray(AssetName.arbitrary, {
       minLength: 1,
       maxLength: 5,
-      selector: (a) => Bytes.toHexUnsafe(a.bytes)
+      selector: (a) => Bytes.toHex(a.bytes)
     }).chain((names) =>
       // Generate exactly names.length amounts to pair with the unique names
       FastCheck.array(PositiveCoin.arbitrary, { minLength: names.length, maxLength: names.length }).map((amounts) => {
@@ -444,7 +444,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → MultiAsset
   ).annotations({
     identifier: "MultiAsset.FromCBORHex",

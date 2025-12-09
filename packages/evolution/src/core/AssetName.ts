@@ -22,7 +22,7 @@ export class AssetName extends Schema.TaggedClass<AssetName>()("AssetName", {
   toJSON() {
     return {
       _tag: "AssetName",
-      bytes: Bytes.toHexUnsafe(this.bytes)
+      bytes: Bytes.toHex(this.bytes)
     }
   }
 
@@ -53,7 +53,7 @@ export class AssetName extends Schema.TaggedClass<AssetName>()("AssetName", {
    * @category equality
    */
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof AssetName && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof AssetName && Bytes.equals(this.bytes, that.bytes)
   }
 
   /**

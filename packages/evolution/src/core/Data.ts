@@ -1,6 +1,5 @@
 import { Data as EffectData, Effect, Equal, FastCheck, Hash, ParseResult, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 import * as Numeric from "./Numeric.js"
 
@@ -854,7 +853,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DATA_DEFAULT
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DATA_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → Data
   ).annotations({
     identifier: "Data.FromCBORHex",

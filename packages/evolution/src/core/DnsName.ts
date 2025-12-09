@@ -9,7 +9,7 @@ import * as Text128 from "./Text128.js"
  * @since 2.0.0
  * @category model
  */
-export const DnsName = Text128.FromVariableHex.pipe(Schema.brand("DnsName"))
+export const DnsName = Text128.Text128.pipe(Schema.brand("DnsName"))
 
 /**
  * Type alias for DnsName.
@@ -19,11 +19,11 @@ export const DnsName = Text128.FromVariableHex.pipe(Schema.brand("DnsName"))
  */
 export type DnsName = typeof DnsName.Type
 
-export const FromBytes = Schema.compose(Text128.FromVariableBytes, DnsName).annotations({
+export const FromBytes = Schema.compose(Text128.FromBytes, DnsName).annotations({
   identifier: "DnsName.FromBytes"
 })
 
-export const FromHex = Schema.compose(Text128.FromVariableHex, DnsName).annotations({
+export const FromHex = Schema.compose(Text128.FromHex, DnsName).annotations({
   identifier: "DnsName.FromHex"
 })
 
@@ -53,7 +53,7 @@ export const arbitrary = Text128.arbitrary.map((text) => DnsName.make(text))
  * @since 2.0.0
  * @category parsing
  */
-export const fromBytes = (bytes: Uint8Array): DnsName => Schema.decodeSync(FromBytes)(bytes)
+export const fromBytes = Schema.decodeSync(FromBytes)
 
 /**
  * Parse DnsName from hex string.
@@ -61,7 +61,7 @@ export const fromBytes = (bytes: Uint8Array): DnsName => Schema.decodeSync(FromB
  * @since 2.0.0
  * @category parsing
  */
-export const fromHex = (hex: string): DnsName => Schema.decodeSync(FromHex)(hex)
+export const fromHex = Schema.decodeSync(FromHex)
 
 /**
  * Encode DnsName to bytes.
@@ -69,7 +69,7 @@ export const fromHex = (hex: string): DnsName => Schema.decodeSync(FromHex)(hex)
  * @since 2.0.0
  * @category encoding
  */
-export const toBytes = (dnsName: DnsName): Uint8Array => Schema.encodeSync(FromBytes)(dnsName)
+export const toBytes = Schema.encodeSync(FromBytes)
 
 /**
  * Encode DnsName to hex string.
@@ -77,4 +77,4 @@ export const toBytes = (dnsName: DnsName): Uint8Array => Schema.encodeSync(FromB
  * @since 2.0.0
  * @category encoding
  */
-export const toHex = (dnsName: DnsName): string => Schema.encodeSync(FromHex)(dnsName)
+export const toHex = Schema.encodeSync(FromHex)

@@ -37,7 +37,7 @@ export class ScriptHash extends Schema.TaggedClass<ScriptHash>()("ScriptHash", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof ScriptHash && Bytes.bytesEquals(this.hash, that.hash)
+    return that instanceof ScriptHash && Bytes.equals(this.hash, that.hash)
   }
 
   [Hash.symbol](): number {

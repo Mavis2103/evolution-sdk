@@ -1,6 +1,5 @@
 import { pipe, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 
 /**
  * Regular expression that matches valid hexadecimal strings.
@@ -17,7 +16,7 @@ export const HexStringFilter = <Source extends string, Target>(self: Schema.Sche
     identifier: "HexString"
   })
 
-export const HexStringSchema = Schema.String.pipe(Schema.filter((a) => Bytes.isHex(a))).annotations({
+export const HexStringSchema = Schema.String.pipe(Schema.filter((a) => HEX_REGEX.test(a))).annotations({
   message: () => `must be a hex string`,
   identifier: "HexString"
 })

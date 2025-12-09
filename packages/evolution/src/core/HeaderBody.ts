@@ -2,7 +2,6 @@ import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema
 
 import * as BlockBodyHash from "./BlockBodyHash.js"
 import * as BlockHeaderHash from "./BlockHeaderHash.js"
-import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 import * as Ed25519Signature from "./Ed25519Signature.js"
 import * as KESVkey from "./KESVkey.js"
@@ -300,7 +299,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → HeaderBody
   ).annotations({
     identifier: "HeaderBody.FromCBORHex",

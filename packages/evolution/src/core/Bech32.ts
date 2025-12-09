@@ -1,7 +1,6 @@
 import { bech32 } from "@scure/base"
 import { Effect, ParseResult, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 
 export const Bech32Schema = Schema.String
 export type Bech32 = typeof Bech32Schema.Type
@@ -21,6 +20,6 @@ export const FromBytes = (prefix: string = "addr") =>
   })
 
 export const FromHex = (prefix: string = "addr") =>
-  Schema.compose(Bytes.FromHex, FromBytes(prefix)).annotations({
+  Schema.compose(Schema.Uint8ArrayFromHex, FromBytes(prefix)).annotations({
     identifier: "Bech32.FromHex"
   })

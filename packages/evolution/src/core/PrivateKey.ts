@@ -53,7 +53,7 @@ export class PrivateKey extends Schema.TaggedClass<PrivateKey>()("PrivateKey", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof PrivateKey && Bytes.bytesEquals(this.key, that.key)
+    return that instanceof PrivateKey && Bytes.equals(this.key, that.key)
   }
 
   [Hash.symbol](): number {
@@ -74,7 +74,7 @@ export const FromBytes = Schema.transform(
 })
 
 export const FromHex = Schema.compose(
-  Bytes.FromHex, // string -> Uint8Array (any length)
+  Schema.Uint8ArrayFromHex, // string -> Uint8Array (any length)
   FromBytes // Uint8Array -> PrivateKey (validates 32 or 64)
 ).annotations({
   identifier: "PrivateKey.FromHex"

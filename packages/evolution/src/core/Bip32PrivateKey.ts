@@ -31,7 +31,7 @@ export class Bip32PrivateKeyError extends Data.TaggedError("Bip32PrivateKeyError
  * @category schemas
  */
 export class Bip32PrivateKey extends Schema.TaggedClass<Bip32PrivateKey>()("Bip32PrivateKey", {
-  bytes: Bytes96.BytesSchema
+  bytes: Bytes96.BytesFromHex
 }) {
   toJSON() {
     return { _tag: "Bip32PrivateKey" as const, bytes: Bytes.toHex(this.bytes) }
@@ -46,7 +46,7 @@ export class Bip32PrivateKey extends Schema.TaggedClass<Bip32PrivateKey>()("Bip3
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof Bip32PrivateKey && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof Bip32PrivateKey && Bytes.equals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {
@@ -60,7 +60,7 @@ export class Bip32PrivateKey extends Schema.TaggedClass<Bip32PrivateKey>()("Bip3
  * @since 2.0.0
  * @category schemas
  */
-export const FromBytes = Schema.transform(Bytes96.BytesSchema, Bip32PrivateKey, {
+export const FromBytes = Schema.transform(Schema.typeSchema(Bytes96.BytesFromHex), Schema.typeSchema(Bip32PrivateKey), {
   strict: true,
   decode: (bytes) => new Bip32PrivateKey({ bytes }, { disableValidation: true }),
   encode: (bip32PrivateKey) => bip32PrivateKey.bytes
@@ -75,7 +75,7 @@ export const FromBytes = Schema.transform(Bytes96.BytesSchema, Bip32PrivateKey, 
  * @category schemas
  */
 export const FromHex = Schema.compose(
-  Bytes96.FromHex, // string -> Bytes96
+  Bytes96.BytesFromHex, // string -> Bytes96
   FromBytes // Bytes96 -> Bip32PrivateKey
 ).annotations({
   identifier: "Bip32PrivateKey.FromHex"
@@ -443,7 +443,9 @@ export namespace Either {
   export const from_128_xprv = (bytes: Uint8Array) =>
     Effect.gen(function* () {
       if (bytes.length !== 128) {
-        return yield* Effect.fail(new Bip32PrivateKeyError({ message: `Expected exactly 128 bytes, got ${bytes.length}` }))
+        return yield* Effect.fail(
+          new Bip32PrivateKeyError({ message: `Expected exactly 128 bytes, got ${bytes.length}` })
+        )
       }
       const scalar = bytes.slice(0, 32)
       const iv = bytes.slice(32, 64)

@@ -36,7 +36,7 @@ export class KeyHash extends Schema.TaggedClass<KeyHash>()("KeyHash", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof KeyHash && Bytes.bytesEquals(this.hash, that.hash)
+    return that instanceof KeyHash && Bytes.equals(this.hash, that.hash)
   }
 
   [Hash.symbol](): number {

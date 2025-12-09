@@ -1,7 +1,6 @@
 import { Effect as Eff, Equal, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Anchor from "./Anchor.js"
-import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 import * as Coin from "./Coin.js"
 import * as GovernanceAction from "./GovernanceAction.js"
@@ -168,7 +167,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
  */
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromCBORBytes(options) // Uint8Array → ProposalProcedure
   ).annotations({
     identifier: "ProposalProcedure.FromCBORHex",

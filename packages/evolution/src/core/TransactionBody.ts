@@ -565,7 +565,7 @@ export const arbitrary: FastCheck.Arbitrary<TransactionBody> =
     inputs: FastCheck.uniqueArray(TransactionInput.arbitrary, {
       minLength: 1,
       maxLength: 5,
-      selector: (i) => `${Bytes.toHexUnsafe(i.transactionId.hash)}:${i.index.toString()}`
+      selector: (i) => `${Bytes.toHex(i.transactionId.hash)}:${i.index.toString()}`
     }),
     outputs: FastCheck.array(TxOut.arbitrary, { minLength: 1, maxLength: 5 }),
     fee: Coin.arbitrary,
@@ -585,7 +585,7 @@ export const arbitrary: FastCheck.Arbitrary<TransactionBody> =
       FastCheck.uniqueArray(KeyHash.arbitrary, {
         minLength: 1,
         maxLength: 5,
-        selector: (k) => Bytes.toHexUnsafe(k.hash)
+        selector: (k) => Bytes.toHex(k.hash)
       }),
       { nil: undefined }
     ),
@@ -600,7 +600,7 @@ export const arbitrary: FastCheck.Arbitrary<TransactionBody> =
       FastCheck.uniqueArray(TransactionInput.arbitrary, {
         minLength: 1,
         maxLength: 3,
-        selector: (i) => `${Bytes.toHexUnsafe(i.transactionId.hash)}:${i.index.toString()}`
+        selector: (i) => `${Bytes.toHex(i.transactionId.hash)}:${i.index.toString()}`
       }),
       { nil: undefined }
     ),
@@ -609,7 +609,7 @@ export const arbitrary: FastCheck.Arbitrary<TransactionBody> =
       FastCheck.uniqueArray(TransactionInput.arbitrary, {
         minLength: 1,
         maxLength: 3,
-        selector: (i) => `${Bytes.toHexUnsafe(i.transactionId.hash)}:${i.index.toString()}`
+        selector: (i) => `${Bytes.toHex(i.transactionId.hash)}:${i.index.toString()}`
       }),
       { nil: undefined }
     ),

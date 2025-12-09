@@ -1,7 +1,6 @@
 import { bech32 } from "@scure/base"
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 import * as Bytes29 from "./Bytes29.js"
 import * as Credential from "./Credential.js"
 import * as KeyHash from "./KeyHash.js"
@@ -63,7 +62,7 @@ export class RewardAccount extends Schema.TaggedClass<RewardAccount>("RewardAcco
   }
 }
 
-export const FromBytes = Schema.transformOrFail(Bytes29.BytesSchema, Schema.typeSchema(RewardAccount), {
+export const FromBytes = Schema.transformOrFail(Schema.typeSchema(Bytes29.BytesFromHex), Schema.typeSchema(RewardAccount), {
   strict: true,
   encode: (_, __, ___, toA) =>
     Eff.gen(function* () {
@@ -102,7 +101,7 @@ export const FromBytes = Schema.transformOrFail(Bytes29.BytesSchema, Schema.type
 })
 
 export const FromHex = Schema.compose(
-  Bytes.FromHex, // string → Uint8Array
+  Schema.Uint8ArrayFromHex, // string → Uint8Array
   FromBytes // Uint8Array → RewardAccount
 ).annotations({
   identifier: "RewardAccount.FromHex",

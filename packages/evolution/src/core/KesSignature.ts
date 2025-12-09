@@ -11,7 +11,7 @@ import * as Bytes448 from "./Bytes448.js"
  * @category schemas
  */
 export class KesSignature extends Schema.TaggedClass<KesSignature>()("KesSignature", {
-  bytes: Bytes448.BytesSchema
+  bytes: Bytes448.BytesFromHex
 }) {
   toJSON() {
     return { _tag: "KesSignature" as const, bytes: Bytes.toHex(this.bytes) }
@@ -26,7 +26,7 @@ export class KesSignature extends Schema.TaggedClass<KesSignature>()("KesSignatu
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof KesSignature && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof KesSignature && Bytes.equals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {
@@ -35,7 +35,7 @@ export class KesSignature extends Schema.TaggedClass<KesSignature>()("KesSignatu
 }
 
 // Transform between raw bytes (Uint8Array length 448) and KesSignature
-export const FromBytes = Schema.transform(Bytes448.BytesSchema, KesSignature, {
+export const FromBytes = Schema.transform(Schema.typeSchema(Bytes448.BytesFromHex), Schema.typeSchema(KesSignature), {
   strict: true,
   decode: (bytes) => new KesSignature({ bytes }, { disableValidation: true }),
   encode: (value) => value.bytes
@@ -44,7 +44,7 @@ export const FromBytes = Schema.transform(Bytes448.BytesSchema, KesSignature, {
 })
 
 export const FromHex = Schema.compose(
-  Bytes448.FromHex, // string -> Uint8Array(448)
+  Bytes448.BytesFromHex, // string -> Uint8Array(448)
   FromBytes // bytes -> KesSignature
 ).annotations({
   identifier: "KesSignature.FromHex"

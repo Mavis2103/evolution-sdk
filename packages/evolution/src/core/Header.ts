@@ -7,7 +7,6 @@
  */
 import { Effect, Equal, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 import * as HeaderBody from "./HeaderBody.js"
 import * as KesSignature from "./KesSignature.js"
@@ -114,7 +113,7 @@ export const FromBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS)
  */
 export const FromHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.compose(
-    Bytes.FromHex, // string → Uint8Array
+    Schema.Uint8ArrayFromHex, // string → Uint8Array
     FromBytes(options) // Uint8Array → Header
   )
 

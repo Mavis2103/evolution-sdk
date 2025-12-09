@@ -3,7 +3,6 @@ import { Effect as Eff, FastCheck, ParseResult, Schema } from "effect"
 
 import * as BaseAddress from "./BaseAddress.js"
 import * as ByronAddress from "./ByronAddress.js"
-import * as Bytes from "./Bytes.js"
 import * as EnterpriseAddress from "./EnterpriseAddress.js"
 import * as PointerAddress from "./PointerAddress.js"
 import * as RewardAccount from "./RewardAccount.js"
@@ -136,7 +135,7 @@ export const FromBytes = Schema.transformOrFail(Schema.Uint8ArrayFromSelf, Schem
  * @since 2.0.0
  * @category schema
  */
-export const FromHex = Schema.compose(Bytes.FromHex, FromBytes)
+export const FromHex = Schema.compose(Schema.Uint8ArrayFromHex, FromBytes)
 
 /**
  * Schema for encoding/decoding addresses as Bech32 strings.

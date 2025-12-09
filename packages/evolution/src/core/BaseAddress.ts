@@ -1,6 +1,5 @@
 import { Effect as Eff, Equal, FastCheck, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 import * as Bytes57 from "./Bytes57.js"
 import * as Credential from "./Credential.js"
 import * as KeyHash from "./KeyHash.js"
@@ -45,7 +44,7 @@ export class BaseAddress extends Schema.TaggedClass<BaseAddress>("BaseAddress")(
   }
 }
 
-export const FromBytes = Schema.transformOrFail(Bytes57.BytesSchema, Schema.typeSchema(BaseAddress), {
+export const FromBytes = Schema.transformOrFail(Schema.typeSchema(Bytes57.BytesFromHex), Schema.typeSchema(BaseAddress), {
   strict: true,
   encode: (_, __, ___, toA) =>
     Eff.gen(function* () {
@@ -94,7 +93,7 @@ export const FromBytes = Schema.transformOrFail(Bytes57.BytesSchema, Schema.type
   identifier: "BaseAddress.FromBytes"
 })
 
-export const FromHex = Schema.compose(Bytes.FromHex, FromBytes).annotations({
+export const FromHex = Schema.compose(Schema.Uint8ArrayFromHex, FromBytes).annotations({
   identifier: "BaseAddress.FromHex"
 })
 

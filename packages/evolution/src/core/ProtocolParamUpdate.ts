@@ -1,6 +1,5 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 import * as Coin from "./Coin.js"
 import * as CostModel from "./CostModel.js"
@@ -502,7 +501,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
   })
 
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
-  Schema.compose(Bytes.FromHex, FromCBORBytes(options)).annotations({
+  Schema.compose(Schema.Uint8ArrayFromHex, FromCBORBytes(options)).annotations({
     identifier: "ProtocolParamUpdate.FromCBORHex"
   })
 

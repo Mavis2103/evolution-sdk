@@ -33,7 +33,7 @@ export class PolicyId extends Schema.TaggedClass<PolicyId>()("PolicyId", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof PolicyId && Bytes.bytesEquals(this.hash, that.hash)
+    return that instanceof PolicyId && Bytes.equals(this.hash, that.hash)
   }
 
   [Hash.symbol](): number {

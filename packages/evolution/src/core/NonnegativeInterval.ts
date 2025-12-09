@@ -1,6 +1,5 @@
 import { Effect, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 import * as Numeric from "./Numeric.js"
 
@@ -124,7 +123,7 @@ export const FromCBORBytes = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTI
   Schema.compose(CBOR.FromBytes(options), FromCDDL)
 
 export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
-  Schema.compose(Bytes.FromHex, FromCBORBytes(options))
+  Schema.compose(Schema.Uint8ArrayFromHex, FromCBORBytes(options))
 
 export const arbitrary: FastCheck.Arbitrary<NonnegativeInterval> = FastCheck.bigInt({ min: 1n, max: 1000000n })
   .chain((denominator) =>

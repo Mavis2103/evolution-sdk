@@ -44,14 +44,14 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #6: encode_bytearray_small
   it("encode_bytearray_small: should encode small bytearray", () => {
-    const value = Bytes.fromHexUnsafe("a1b2")
+    const value = Bytes.fromHex("a1b2")
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("42a1b2")
   })
 
   // Test #7: encode_bytearray_long
   it("encode_bytearray_long: should encode longer bytearray", () => {
-    const value = Bytes.fromHexUnsafe("deadbeef")
+    const value = Bytes.fromHex("deadbeef")
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("44deadbeef")
   })
@@ -93,14 +93,14 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #13: encode_pair_mixed
   it("encode_pair_mixed: should encode mixed pair", () => {
-    const value = Data.list([1n, Bytes.fromHexUnsafe("ff")])
+    const value = Data.list([1n, Bytes.fromHex("ff")])
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("9f0141ffff")
   })
 
   // Test #14: encode_triple
   it("encode_triple: should encode triple", () => {
-    const value = Data.list([1n, Bytes.fromHexUnsafe("ff"), 3n])
+    const value = Data.list([1n, Bytes.fromHex("ff"), 3n])
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("9f0141ff03ff")
   })
@@ -121,7 +121,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #17: encode_map_single_entry
   it("encode_map_single_entry: should encode single entry map", () => {
-    const value = Data.map([[1n, Bytes.fromHexUnsafe("ff")]])
+    const value = Data.map([[1n, Bytes.fromHex("ff")]])
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("9f9f0141ffffff")
   })
@@ -129,9 +129,9 @@ describe("Aiken CBOR Encoding Compatibility", () => {
   // Test #18: encode_map_multiple_entries
   it("encode_map_multiple_entries: should encode map with multiple entries", () => {
     const value = Data.map([
-      [Bytes.fromHexUnsafe("01"), 1n],
-      [Bytes.fromHexUnsafe("02"), 2n],
-      [Bytes.fromHexUnsafe("03"), 3n]
+      [Bytes.fromHex("01"), 1n],
+      [Bytes.fromHex("02"), 2n],
+      [Bytes.fromHex("03"), 3n]
     ])
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("9f9f410101ff9f410202ff9f410303ffff")
@@ -166,7 +166,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
   // Test #22: encode_option_some_bytearray
   it("encode_option_some_bytearray: should encode Some(bytearray)", () => {
     const OptionBytes = TSchema.UndefinedOr(TSchema.ByteArray)
-    const value = Data.withSchema(OptionBytes).toData(Bytes.fromHexUnsafe("deadbeef"))
+    const value = Data.withSchema(OptionBytes).toData(Bytes.fromHex("deadbeef"))
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("d8799f44deadbeefff")
   })
@@ -214,7 +214,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #28: encode_pair_tuple
   it("encode_pair_tuple: should encode pair tuple (1, #ff)", () => {
-    const value = Data.list([1n, Bytes.fromHexUnsafe("ff")])
+    const value = Data.list([1n, Bytes.fromHex("ff")])
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("9f0141ffff")
   })
@@ -291,7 +291,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #31: encode_list_of_bytearrays
   it("encode_list_of_bytearrays: should encode list of bytearrays", () => {
-    const value = Data.list([Bytes.fromHexUnsafe("aa"), Bytes.fromHexUnsafe("bb"), Bytes.fromHexUnsafe("cc")])
+    const value = Data.list([Bytes.fromHex("aa"), Bytes.fromHex("bb"), Bytes.fromHex("cc")])
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("9f41aa41bb41ccff")
   })
@@ -380,7 +380,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
   // Test #41: encode_constructor_with_bytearray_field
   it("encode_constructor_with_bytearray_field: should encode Holder(#deadbeef)", () => {
     const Holder = TSchema.Struct({ data: TSchema.ByteArray })
-    const value = Data.withSchema(Holder).toData({ data: Bytes.fromHexUnsafe("deadbeef") })
+    const value = Data.withSchema(Holder).toData({ data: Bytes.fromHex("deadbeef") })
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("d8799f44deadbeefff")
   })
@@ -472,37 +472,37 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #53: encode_bytearray_25_bytes
   it("encode_bytearray_25_bytes: should encode 25-byte bytearray", () => {
-    const value = Bytes.fromHexUnsafe("000102030405060708090a0b0c0d0e0f101112131415161718")
+    const value = Bytes.fromHex("000102030405060708090a0b0c0d0e0f101112131415161718")
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("5819000102030405060708090a0b0c0d0e0f101112131415161718")
   })
 
   // Test #54: encode_bytearray_max_inline
   it("encode_bytearray_max_inline: should encode 24-byte bytearray", () => {
-    const value = Bytes.fromHexUnsafe("000102030405060708090a0b0c0d0e0f1011121314151617")
+    const value = Bytes.fromHex("000102030405060708090a0b0c0d0e0f1011121314151617")
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("5818000102030405060708090a0b0c0d0e0f1011121314151617")
   })
 
   // Test #55: encode_string_empty
   it("encode_string_empty: should encode empty string as bytearray", () => {
-    const value = Bytes.fromHexUnsafe("")
+    const value = Bytes.fromHex("")
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("40")
   })
 
   // Test #56: encode_string_ascii
   it("encode_string_ascii: should encode 'hello' as bytearray", () => {
-    const value = Text.toBytesUnsafe("hello")
+    const value = Text.toBytes("hello")
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("4568656c6c6f")
   })
 
   // Test #57: encode_string_unicode
   it("encode_string_unicode: should encode 'café' as bytearray", () => {
-    const value = Text.toBytesUnsafe("café")
+    const value = Text.toBytes("café")
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
-    expect(encoded).toBe("45636166c3a9")
+    expect(encoded).toBe("45636166c3a9") // UTF-8 encoding of "café"
   })
 
   // Test #58: encode_bool_true
@@ -521,10 +521,10 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #60: encode_complex_datum
   it("encode_complex_datum: should encode Datum{owner: 28-byte hash, amount: 1000, beneficiaries: [], metadata: Some(#dead)}", () => {
-    const owner = Bytes.fromHexUnsafe("abababababababababababababababababababababababababababab")
+    const owner = Bytes.fromHex("abababababababababababababababababababababababababababab")
     const amount = 1000n
     const beneficiaries: Array<[Uint8Array, bigint]> = []
-    const metadata = Bytes.fromHexUnsafe("dead")
+    const metadata = Bytes.fromHex("dead")
 
     const Datum = TSchema.Struct({
       owner: TSchema.ByteArray,
@@ -546,7 +546,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
   // Test #61: encode_redeemer
   it("encode_redeemer: should encode Redeemer{action: 100, params: [#abcd]}", () => {
     const action = 100n
-    const params = [Bytes.fromHexUnsafe("abcd")]
+    const params = [Bytes.fromHex("abcd")]
 
     const Redeemer = TSchema.Struct({
       action: TSchema.Integer,
@@ -579,21 +579,21 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #63: encode_pkh_credential
   it("encode_pkh_credential: should encode 28-byte payment key hash", () => {
-    const value = Bytes.fromHexUnsafe("abcdef1234567890abcdef1234567890abcdef1234567890abcdef12")
+    const value = Bytes.fromHex("abcdef1234567890abcdef1234567890abcdef1234567890abcdef12")
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("581cabcdef1234567890abcdef1234567890abcdef1234567890abcdef12")
   })
 
   // Test #64: encode_script_hash
   it("encode_script_hash: should encode 26-byte script hash", () => {
-    const value = Bytes.fromHexUnsafe("1234567890abcdef1234567890abcdef1234567890abcdef1234")
+    const value = Bytes.fromHex("1234567890abcdef1234567890abcdef1234567890abcdef1234")
     const encoded = Data.toCBORHex(value, CBOR.AIKEN_DEFAULT_OPTIONS)
     expect(encoded).toBe("581a1234567890abcdef1234567890abcdef1234567890abcdef1234")
   })
 
   // Test #65: encode_credential_verification_key
   it("encode_credential_verification_key: should encode Credential with VerificationKey", () => {
-    const hash = Bytes.fromHexUnsafe("abcdef1234567890abcdef1234567890abcdef1234567890abcdef12")
+    const hash = Bytes.fromHex("abcdef1234567890abcdef1234567890abcdef1234567890abcdef12")
 
     const Credential = TSchema.Variant({
       VerificationKey: { hash: TSchema.ByteArray },
@@ -609,7 +609,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #66: encode_credential_script
   it("encode_credential_script: should encode Credential with Script", () => {
-    const hash = Bytes.fromHexUnsafe("1234567890abcdef1234567890abcdef1234567890abcdef1234ab")
+    const hash = Bytes.fromHex("1234567890abcdef1234567890abcdef1234567890abcdef1234ab")
 
     const Credential = TSchema.Variant({
       VerificationKey: { hash: TSchema.ByteArray },
@@ -625,7 +625,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #67: encode_referenced_inline
   it("encode_referenced_inline: should encode Referenced with Inline credential", () => {
-    const hash = Bytes.fromHexUnsafe("abcdef1234567890abcdef1234567890abcdef1234567890abcdef12")
+    const hash = Bytes.fromHex("abcdef1234567890abcdef1234567890abcdef1234567890abcdef12")
 
     const Credential = TSchema.Variant({
       VerificationKey: { hash: TSchema.ByteArray },
@@ -679,7 +679,7 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #69: encode_address_payment_only
   it("encode_address_payment_only: should encode Address with payment credential only", () => {
-    const hash = Bytes.fromHexUnsafe("ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6")
+    const hash = Bytes.fromHex("ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6")
 
     const Credential = TSchema.Variant({
       VerificationKey: { hash: TSchema.ByteArray },
@@ -711,8 +711,8 @@ describe("Aiken CBOR Encoding Compatibility", () => {
 
   // Test #70: encode_address_with_inline_stake_key
   it("encode_address_with_inline_stake_key: should encode Address with payment and inline stake (key)", () => {
-    const paymentHash = Bytes.fromHexUnsafe("ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6")
-    const stakeHash = Bytes.fromHexUnsafe("64ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507")
+    const paymentHash = Bytes.fromHex("ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507a6")
+    const stakeHash = Bytes.fromHex("64ff0185c80386d7ff02a2042efd97fbe6012dac0102751cfcc14507")
 
     const Credential = TSchema.Variant({
       VerificationKey: { hash: TSchema.ByteArray },

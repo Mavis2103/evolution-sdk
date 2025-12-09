@@ -29,7 +29,7 @@ export class VrfKeyHash extends Schema.TaggedClass<VrfKeyHash>()("VrfKeyHash", {
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof VrfKeyHash && Bytes.bytesEquals(this.hash, that.hash)
+    return that instanceof VrfKeyHash && Bytes.equals(this.hash, that.hash)
   }
 
   [Hash.symbol](): number {

@@ -29,7 +29,7 @@ export class TransactionHash extends Schema.TaggedClass<TransactionHash>()("Tran
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof TransactionHash && Bytes.bytesEquals(this.hash, that.hash)
+    return that instanceof TransactionHash && Bytes.equals(this.hash, that.hash)
   }
 
   [Hash.symbol](): number {

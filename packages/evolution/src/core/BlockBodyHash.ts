@@ -30,7 +30,7 @@ export class BlockBodyHash extends Schema.TaggedClass<BlockBodyHash>()("BlockBod
   }
 
   [Equal.symbol](that: unknown): boolean {
-    return that instanceof BlockBodyHash && Bytes.bytesEquals(this.bytes, that.bytes)
+    return that instanceof BlockBodyHash && Bytes.equals(this.bytes, that.bytes)
   }
 
   [Hash.symbol](): number {
