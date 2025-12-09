@@ -1,6 +1,6 @@
 ---
 title: core/PointerAddress.ts
-nav_order: 89
+nav_order: 96
 parent: Modules
 ---
 

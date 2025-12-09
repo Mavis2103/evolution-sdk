@@ -1,6 +1,6 @@
 ---
 title: core/ProposalProcedure.ts
-nav_order: 97
+nav_order: 104
 parent: Modules
 ---
 

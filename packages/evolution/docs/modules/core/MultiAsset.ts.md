@@ -1,6 +1,6 @@
 ---
 title: core/MultiAsset.ts
-nav_order: 67
+nav_order: 74
 parent: Modules
 ---
 

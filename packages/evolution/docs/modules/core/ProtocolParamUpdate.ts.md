@@ -1,6 +1,6 @@
 ---
 title: core/ProtocolParamUpdate.ts
-nav_order: 99
+nav_order: 106
 parent: Modules
 ---
 

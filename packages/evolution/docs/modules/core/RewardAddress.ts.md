@@ -1,6 +1,6 @@
 ---
 title: core/RewardAddress.ts
-nav_order: 104
+nav_order: 111
 parent: Modules
 ---
 
