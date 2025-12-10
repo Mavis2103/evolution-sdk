@@ -4,4 +4,4 @@
  * @since 2.0.0
  * @module
  */
-export * as UPLC from "./UPLC.js"
+export * from "./UPLC.js"
