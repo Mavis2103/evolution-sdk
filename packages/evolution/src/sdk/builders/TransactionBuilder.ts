@@ -29,12 +29,13 @@ import { Context, Data, Effect, Layer, Logger, LogLevel, Ref } from "effect"
 import type { Either } from "effect/Either"
 
 import type * as Coin from "../../core/Coin.js"
+import type * as Network from "../../core/Network.js"
 import type * as CoreScript from "../../core/Script.js"
+import * as Time from "../../core/Time/index.js"
 import * as Transaction from "../../core/Transaction.js"
 import { runEffectPromise } from "../../utils/effect-runtime.js"
 import type * as Assets from "../Assets.js"
 import type { EvalRedeemer } from "../EvalRedeemer.js"
-import { type Network, SLOT_CONFIG_NETWORK, type SlotConfig } from "../Network.js"
 import type * as ProtocolParametersSDK from "../ProtocolParameters.js"
 import type * as Provider from "../provider/Provider.js"
 import type * as Script from "../Script.js"
@@ -233,15 +234,15 @@ const resolveEvaluator = (config: TxBuilderConfig, options?: BuildOptions): Eval
  * Slot configuration defines the relationship between slots and Unix time,
  * required for UPLC evaluation of time-based validators.
  */
-const resolveSlotConfig = (config: TxBuilderConfig, options?: BuildOptions): SlotConfig => {
+const resolveSlotConfig = (config: TxBuilderConfig, options?: BuildOptions): Time.SlotConfig.SlotConfig => {
   // Priority 1: Explicit slot config from BuildOptions (for custom networks)
   if (options?.slotConfig) {
     return options.slotConfig
   }
 
   // Priority 2: Network-specific slot config from TxBuilderConfig
-  const network: Network = config.network ?? "Mainnet"
-  return SLOT_CONFIG_NETWORK[network]
+  const network: Network.Network = config.network ?? "Mainnet"
+  return Time.SlotConfig.SLOT_CONFIG_NETWORK[network]
 }
 
 /**
@@ -922,7 +923,7 @@ export interface BuildOptions {
    *
    * @since 2.0.0
    */
-  readonly slotConfig?: SlotConfig
+  readonly slotConfig?: Time.SlotConfig.SlotConfig
 
   /**
    * Amount to set as collateral return output (in lovelace).
@@ -1104,7 +1105,7 @@ export interface TxBuilderConfig {
    * @default "Mainnet"
    * @since 2.0.0
    */
-  readonly network?: Network
+  readonly network?: Network.Network
 
   // Future fields:
   // readonly costModels?: Uint8Array // Cost models for script evaluation
