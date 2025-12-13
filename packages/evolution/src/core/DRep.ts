@@ -1,3 +1,4 @@
+import { bech32 } from "@scure/base"
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as CBOR from "./CBOR.js"
@@ -222,6 +223,131 @@ export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTION
   )
 
 /**
+ * Transform from raw bytes to DRep following CIP-129.
+ * CIP-129 format: [1-byte header][28-byte credential]
+ * Header byte: 0x22 = KeyHash, 0x23 = ScriptHash
+ *
+ * @since 2.0.0
+ * @category transformations
+ */
+export const FromBytes = Schema.transformOrFail(Schema.Uint8ArrayFromSelf, Schema.typeSchema(DRep), {
+  strict: true,
+  encode: (_, __, ___, toA) =>
+    Eff.gen(function* () {
+      switch (toA._tag) {
+        case "KeyHashDRep": {
+          const keyHashBytes = yield* ParseResult.encode(KeyHash.FromBytes)(toA.keyHash)
+          const result = new Uint8Array(29)
+          result[0] = 0x22 // DRep KeyHash header
+          result.set(keyHashBytes, 1)
+          return yield* ParseResult.succeed(result)
+        }
+        case "ScriptHashDRep": {
+          const scriptHashBytes = yield* ParseResult.encode(ScriptHash.FromBytes)(toA.scriptHash)
+          const result = new Uint8Array(29)
+          result[0] = 0x23 // DRep ScriptHash header
+          result.set(scriptHashBytes, 1)
+          return yield* ParseResult.succeed(result)
+        }
+        case "AlwaysAbstainDRep":
+        case "AlwaysNoConfidenceDRep":
+          return yield* ParseResult.fail(
+            new ParseResult.Type(
+              Schema.typeSchema(DRep).ast,
+              toA,
+              "AlwaysAbstain and AlwaysNoConfidence DReps cannot be encoded as bech32"
+            )
+          )
+      }
+    }),
+  decode: (fromA, _, ast) =>
+    Eff.gen(function* () {
+      if (fromA.length !== 29) {
+        return yield* ParseResult.fail(
+          new ParseResult.Type(ast, fromA, `Invalid DRep bytes length: expected 29, got ${fromA.length}`)
+        )
+      }
+
+      const header = fromA[0]
+      const credential = fromA.slice(1)
+
+      // Check key type (bits [7:4]) must be 0010 (DRep)
+      const keyType = (header >> 4) & 0x0f
+      if (keyType !== 0x02) {
+        return yield* ParseResult.fail(
+          new ParseResult.Type(ast, fromA, `Invalid key type in header: expected 0x02 (DRep), got 0x0${keyType.toString(16)}`)
+        )
+      }
+
+      // Check credential type (bits [3:0])
+      const credType = header & 0x0f
+
+      if (credType === 0x02) {
+        // Key Hash
+        const keyHash = yield* ParseResult.decode(KeyHash.FromBytes)(credential)
+        return new KeyHashDRep({ keyHash })
+      } else if (credType === 0x03) {
+        // Script Hash
+        const scriptHash = yield* ParseResult.decode(ScriptHash.FromBytes)(credential)
+        return new ScriptHashDRep({ scriptHash })
+      }
+
+      return yield* ParseResult.fail(
+        new ParseResult.Type(ast, fromA, `Invalid credential type in header: expected 0x02 or 0x03, got 0x0${credType.toString(16)}`)
+      )
+    })
+}).annotations({
+  identifier: "DRep.FromBytes",
+  description: "Transforms CIP-129 bytes to DRep (KeyHashDRep or ScriptHashDRep only)"
+})
+
+/**
+ * Transform from hex string to DRep.
+ *
+ * @since 2.0.0
+ * @category transformations
+ */
+export const FromHex = Schema.compose(Schema.Uint8ArrayFromHex, FromBytes).annotations({
+  identifier: "DRep.FromHex",
+  description: "Transforms hex string to DRep"
+})
+
+/**
+ * Transform from Bech32 string to DRep following CIP-129.
+ * Bech32 prefix: "drep" for both KeyHash and ScriptHash
+ *
+ * @since 2.0.0
+ * @category transformations
+ */
+export const FromBech32 = Schema.transformOrFail(Schema.String, Schema.typeSchema(DRep), {
+  strict: true,
+  encode: (_, __, ___, toA) =>
+    Eff.gen(function* () {
+      const bytes = yield* ParseResult.encode(FromBytes)(toA)
+      const words = bech32.toWords(bytes)
+      return bech32.encode("drep", words, false)
+    }),
+  decode: (fromA, _, ast) =>
+    Eff.gen(function* () {
+      const result = yield* Eff.try({
+        try: () => {
+          const decoded = bech32.decode(fromA as any, false)
+          if (decoded.prefix !== "drep") {
+            throw new Error(`Invalid prefix: expected "drep", got "${decoded.prefix}"`)
+          }
+          const bytes = bech32.fromWords(decoded.words)
+          return new Uint8Array(bytes)
+        },
+        catch: (e) => new ParseResult.Type(ast, fromA, `Failed to decode Bech32: ${e}`)
+      })
+      return yield* ParseResult.decode(FromBytes)(result)
+    })
+}).annotations({
+  identifier: "DRep.FromBech32",
+  description: "Transforms CIP-129 Bech32 string to DRep"
+})
+
+/**
  * Check if the given value is a valid DRep
  *
  * @since 2.0.0
@@ -243,7 +369,7 @@ export const arbitrary = FastCheck.oneof(
 )
 
 // ============================================================================
-// Decoding Functions
+// Parsing Functions
 // ============================================================================
 
 /**
@@ -268,14 +394,17 @@ export const fromCBORHex = (hex: string, options?: CBOR.CodecOptions): DRep =>
 // Encoding Functions
 // ============================================================================
 
+// ============================================================================
+// Encoding Functions
+// ============================================================================
+
 /**
  * Encode DRep to CBOR bytes.
  *
  * @since 2.0.0
  * @category encoding
  */
-export const toCBORBytes = (drep: DRep, options?: CBOR.CodecOptions): Uint8Array =>
-  Schema.encodeSync(FromCBORBytes(options))(drep)
+export const toCBORBytes = (options?: CBOR.CodecOptions) => Schema.encodeSync(FromCBORBytes(options))
 
 /**
  * Encode DRep to CBOR hex string.
@@ -283,8 +412,31 @@ export const toCBORBytes = (drep: DRep, options?: CBOR.CodecOptions): Uint8Array
  * @since 2.0.0
  * @category encoding
  */
-export const toCBORHex = (drep: DRep, options?: CBOR.CodecOptions): string =>
-  Schema.encodeSync(FromCBORHex(options))(drep)
+export const toCBORHex = (options?: CBOR.CodecOptions) => Schema.encodeSync(FromCBORHex(options))
+
+/**
+ * Encode DRep to CIP-129 bytes (KeyHashDRep or ScriptHashDRep only).
+ *
+ * @since 2.0.0
+ * @category encoding
+ */
+export const toBytes = Schema.encodeSync(FromBytes)
+
+/**
+ * Encode DRep to hex string.
+ *
+ * @since 2.0.0
+ * @category encoding
+ */
+export const toHex = Schema.encodeSync(FromHex)
+
+/**
+ * Encode DRep to Bech32 string (CIP-129 format).
+ *
+ * @since 2.0.0
+ * @category encoding
+ */
+export const toBech32 = Schema.encodeSync(FromBech32)
 
 /**
  * Create a KeyHashDRep from a KeyHash.
@@ -343,30 +495,6 @@ export const match =
         return patterns.AlwaysNoConfidenceDRep()
     }
   }
-
-/**
- * Check if DRep is a KeyHashDRep.
- *
- * @since 2.0.0
- * @category type guards
- */
-export const isKeyHashDRep = (drep: DRep): drep is KeyHashDRep => drep._tag === "KeyHashDRep"
-
-/**
- * Check if DRep is a ScriptHashDRep.
- *
- * @since 2.0.0
- * @category type guards
- */
-export const isScriptHashDRep = (drep: DRep): drep is ScriptHashDRep => drep._tag === "ScriptHashDRep"
-
-/**
- * Check if DRep is an AlwaysAbstainDRep.
- *
- * @since 2.0.0
- * @category type guards
- */
-export const isAlwaysAbstainDRep = (drep: DRep): drep is AlwaysAbstainDRep => drep._tag === "AlwaysAbstainDRep"
 
 /**
  * Check if DRep is an AlwaysNoConfidenceDRep.
