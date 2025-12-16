@@ -35,7 +35,7 @@ export declare class DerivationError
 
 Result of deriving keys and addresses from a seed or Bip32 root
 
-- address: bech32 payment address (addr... / addr_test...)
+- address: Core Address object (payment address)
 - rewardAddress: bech32 reward address (stake... / stake_test...)
 - paymentKey / stakeKey: ed25519e_sk bech32 private keys
 - keyStore: Map of KeyHash hex -> PrivateKey for signing operations
@@ -45,7 +45,7 @@ Result of deriving keys and addresses from a seed or Bip32 root
 
 ```ts
 export type SeedDerivationResult = {
-  address: SdkAddress.Address
+  address: CoreAddress.Address
   rewardAddress: SdkRewardAddress.RewardAddress | undefined
   paymentKey: string
   stakeKey: string | undefined
@@ -70,7 +70,7 @@ export declare function addressFromSeed(
     accountIndex?: number
     network?: "Mainnet" | "Testnet" | "Custom"
   } = {}
-): { address: SdkAddress.Address; rewardAddress: SdkRewardAddress.RewardAddress | undefined }
+): { address: CoreAddress.Address; rewardAddress: SdkRewardAddress.RewardAddress | undefined }
 ```
 
 ## keysFromSeed

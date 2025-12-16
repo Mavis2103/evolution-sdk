@@ -74,7 +74,7 @@ This ensures all outputs are always valid.
 
 ```ts
 export declare const createUnfrackedChangeOutputs: (
-  changeAddress: string,
+  changeAddress: CoreAddress.Address,
   changeAssets: CoreAssets.Assets,
   options: UnfrackOptions | undefined,
   coinsPerUtxoByte: bigint
@@ -157,7 +157,7 @@ Now calculates proper minUTxO for each bundle using CBOR
 export declare const calculateTokenBundles: (
   tokens: ReadonlyArray<TokenInfo>,
   options: UnfrackOptions,
-  changeAddress: string,
+  changeAddress: CoreAddress.Address,
   coinsPerUtxoByte: bigint
 ) => Effect.Effect<ReadonlyArray<TokenBundle>, Error, never>
 ```

@@ -81,13 +81,13 @@ export interface ProviderEffect {
    * Query UTxOs at a given address or by credential.
    */
   readonly getUtxos: (
-    addressOrCredential: Address.Address | Credential.Credential
+    addressOrCredential: CoreAddress.Address | Credential.Credential
   ) => Effect.Effect<Array<CoreUTxO.UTxO>, ProviderError>
   /**
    * Query UTxOs at a given address or credential filtered by specific unit.
    */
   readonly getUtxosWithUnit: (
-    addressOrCredential: Address.Address | Credential.Credential,
+    addressOrCredential: CoreAddress.Address | Credential.Credential,
     unit: string
   ) => Effect.Effect<Array<CoreUTxO.UTxO>, ProviderError>
   /**

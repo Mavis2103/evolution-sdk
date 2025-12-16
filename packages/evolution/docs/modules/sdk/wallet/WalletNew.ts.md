@@ -54,7 +54,7 @@ Useful for monitoring wallets and read-only operations without signing capabilit
 **Signature**
 
 ```ts
-export declare function makeWalletFromAddress(network: Network, address: Address.Address): ReadOnlyWallet
+export declare function makeWalletFromAddress(network: Network, address: CoreAddress.Address): ReadOnlyWallet
 ```
 
 Added in v2.0.0
@@ -142,7 +142,7 @@ export interface ApiWalletEffect extends ReadOnlyWalletEffect {
     context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ) => Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletError>
   readonly signMessage: (
-    address: Address.Address | RewardAddress.RewardAddress,
+    address: CoreAddress.Address | RewardAddress.RewardAddress,
     payload: Payload
   ) => Effect.Effect<SignedMessage, WalletError>
   /**
@@ -205,7 +205,7 @@ Suitable for read-only applications that need wallet address information.
 
 ```ts
 export interface ReadOnlyWalletEffect {
-  readonly address: () => Effect.Effect<Address.Address, WalletError>
+  readonly address: () => Effect.Effect<CoreAddress.Address, WalletError>
   readonly rewardAddress: () => Effect.Effect<RewardAddress.RewardAddress | null, WalletError>
 }
 ```
@@ -262,7 +262,7 @@ export interface SigningWalletEffect extends ReadOnlyWalletEffect {
     context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ) => Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletError>
   readonly signMessage: (
-    address: Address.Address | RewardAddress.RewardAddress,
+    address: CoreAddress.Address | RewardAddress.RewardAddress,
     payload: Payload
   ) => Effect.Effect<SignedMessage, WalletError>
 }

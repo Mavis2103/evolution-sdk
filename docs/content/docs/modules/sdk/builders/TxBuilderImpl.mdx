@@ -97,7 +97,7 @@ and calculates the exact size to determine the minimum lovelace required.
 
 ```ts
 export declare const calculateMinimumUtxoLovelace: (params: {
-  address: string
+  address: CoreAddress.Address
   assets: CoreAssets.Assets
   datum?: Datum.Datum
   scriptRef?: any
@@ -132,7 +132,7 @@ When unfracking is enabled:
 ```ts
 export declare const createChangeOutput: (params: {
   leftoverAssets: CoreAssets.Assets
-  changeAddress: string
+  changeAddress: CoreAddress.Address
   coinsPerUtxoByte: bigint
   unfrackOptions?: UnfrackOptions
 }) => Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, TransactionBuilderError>
@@ -345,7 +345,7 @@ TransactionOutput represents an output being created in a transaction.
 
 ```ts
 export declare const makeTxOutput: (params: {
-  address: string
+  address: CoreAddress.Address
   assets: CoreAssets.Assets
   datum?: Datum.Datum
   scriptRef?: any

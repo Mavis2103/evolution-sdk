@@ -48,7 +48,7 @@ export interface MintTokensParams {
 
 ```ts
 export interface PayToAddressParams {
-  readonly address: Address.Address // Mandatory: Recipient address
+  readonly address: CoreAddress.Address // Mandatory: Recipient address (Core Address object)
   readonly assets: CoreAssets.Assets // Mandatory: ADA and/or native tokens to send
   readonly datum?: Datum.Datum // Optional: Datum to attach for script addresses
   readonly scriptRef?: Script.Script // Optional: Reference script to attach

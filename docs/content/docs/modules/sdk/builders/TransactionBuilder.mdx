@@ -884,13 +884,13 @@ export interface BuildOptions {
    * // Use different account for change
    * builder.build({ changeAddress: wallet.addresses[5] })
    *
-   * // Custom address
-   * builder.build({ changeAddress: "addr_test1..." })
+   * // Custom Core Address
+   * builder.build({ changeAddress: Core.Address.fromBech32("addr_test1...") })
    * ```
    *
    * @since 2.0.0
    */
-  readonly changeAddress?: string
+  readonly changeAddress?: CoreAddress.Address
 
   /**
    * Override the available UTxOs for this specific transaction build.
