@@ -12,6 +12,7 @@ import { Effect, Ref } from "effect"
 
 import * as CoreAssets from "../../../core/Assets/index.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
+import { mintToAssets } from "../operations/Mint.js"
 import {
   BuildOptionsTag,
   PhaseContextTag,
@@ -76,10 +77,11 @@ export const executeBalance = (): Effect.Effect<
 
     yield* Effect.logDebug(`[Balance] Starting balance verification (attempt ${buildCtx.attempt})`)
 
-    // Step 2: Calculate delta = inputs - outputs - change - fee
+    // Step 2: Calculate delta = inputs + mint - outputs - change - fee
     const state = yield* Ref.get(ctx)
     const inputAssets = state.totalInputAssets
     const outputAssets = state.totalOutputAssets
+    const mintAssets = mintToAssets(state.mint)
 
     // Calculate total change assets
     const changeAssets = buildCtx.changeOutputs.reduce(
@@ -87,8 +89,10 @@ export const executeBalance = (): Effect.Effect<
       CoreAssets.zero
     )
 
-    // Delta = inputs - outputs - change - fee
-    let delta = CoreAssets.subtract(inputAssets, outputAssets)
+    // Delta = inputs + mint - outputs - change - fee
+    // Mint adds assets (positive) or removes assets (negative for burns)
+    let delta = CoreAssets.merge(inputAssets, mintAssets)
+    delta = CoreAssets.subtract(delta, outputAssets)
     delta = CoreAssets.subtract(delta, changeAssets)
     delta = CoreAssets.subtractLovelace(delta, buildCtx.calculatedFee)
 

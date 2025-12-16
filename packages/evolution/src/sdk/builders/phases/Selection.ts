@@ -15,6 +15,7 @@ import * as CoreUTxO from "../../../core/UTxO.js"
 import type { CoinSelectionAlgorithm, CoinSelectionFunction } from "../CoinSelection.js"
 import { largestFirstSelection } from "../CoinSelection.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
+import { negatedMintAssets } from "../operations/Mint.js"
 import {
   AvailableUtxosTag,
   BuildOptionsTag,
@@ -207,9 +208,14 @@ export const executeSelection = (): Effect.Effect<PhaseResult, TransactionBuilde
     const inputAssets = state.totalInputAssets
     const outputAssets = state.totalOutputAssets
 
-    // Step 3: Calculate total needed (outputs + shortfall)
+    // Step 3: Calculate total needed (outputs + shortfall - mint)
     // Shortfall contains fee + any missing lovelace for change outputs
-    const totalNeeded = CoreAssets.addLovelace(outputAssets, buildCtx.shortfall)
+    // Mint assets are negated: positive mints reduce requirements, negative burns increase them
+    const negatedMint = negatedMintAssets(state.mint)
+    const totalNeeded = CoreAssets.merge(
+      CoreAssets.addLovelace(outputAssets, buildCtx.shortfall),
+      negatedMint
+    )
 
     // Step 4: Calculate asset delta & extract shortfalls
     const assetDelta = CoreAssets.subtract(totalNeeded, inputAssets)

@@ -584,3 +584,55 @@ export const toCBORBytes = (nativeScript: NativeScript, options?: CBOR.CodecOpti
  */
 export const toCBORHex = (nativeScript: NativeScript, options?: CBOR.CodecOptions): string =>
   Schema.encodeSync(FromCBORHex(options))(nativeScript)
+
+// ============================================================================
+// Required Signers Calculation
+// ============================================================================
+
+/**
+ * Count the maximum number of key hashes (signers) required to satisfy a native script.
+ * This is used for fee calculation to ensure the fake witness set has the correct size.
+ *
+ * Algorithm:
+ * - ScriptPubKey: 1 signer required
+ * - ScriptAll: sum of all nested scripts (all must be satisfied)
+ * - ScriptAny: maximum of nested scripts (pessimistic - assume most expensive path)
+ * - ScriptNOfK: sum of top N most expensive nested scripts
+ * - InvalidBefore/InvalidHereafter: 0 signers (time-based only)
+ *
+ * @since 2.0.0
+ * @category utilities
+ */
+export const countRequiredSigners = (script: NativeScriptVariants): number => {
+  switch (script._tag) {
+    case "ScriptPubKey":
+      return 1
+
+    case "InvalidBefore":
+    case "InvalidHereafter":
+      return 0
+
+    case "ScriptAll": {
+      // All nested scripts must be satisfied, sum them all
+      return script.scripts.reduce((sum, nested) => sum + countRequiredSigners(nested), 0)
+    }
+
+    case "ScriptAny": {
+      // Any one nested script can satisfy, use maximum (pessimistic for fee calculation)
+      if (script.scripts.length === 0) return 0
+      return Math.max(...script.scripts.map(countRequiredSigners))
+    }
+
+    case "ScriptNOfK": {
+      // At least N scripts must be satisfied
+      // Pessimistic approach: assume we need the N most expensive paths
+      if (script.scripts.length === 0) return 0
+      const counts = script.scripts.map(countRequiredSigners).sort((a, b) => b - a)
+      const required = Number(script.required)
+      return counts.slice(0, required).reduce((sum, count) => sum + count, 0)
+    }
+
+    default:
+      return 0
+  }
+}

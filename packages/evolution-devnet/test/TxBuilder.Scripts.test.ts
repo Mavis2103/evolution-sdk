@@ -1,13 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import { Core } from "@evolution-sdk/evolution"
 import * as CoreAddress from "@evolution-sdk/evolution/core/Address"
+import * as Bytes from "@evolution-sdk/evolution/core/Bytes"
 import * as Data from "@evolution-sdk/evolution/core/Data"
 import * as PlutusV2 from "@evolution-sdk/evolution/core/PlutusV2"
 import * as ScriptHash from "@evolution-sdk/evolution/core/ScriptHash"
 import type { TxBuilderConfig } from "@evolution-sdk/evolution/sdk/builders/TransactionBuilder"
 import { makeTxBuilder } from "@evolution-sdk/evolution/sdk/builders/TransactionBuilder"
 import { KupmiosProvider } from "@evolution-sdk/evolution/sdk/provider/Kupmios"
-import * as Script from "@evolution-sdk/evolution/sdk/Script"
 import { Schema } from "effect"
 
 import * as Cluster from "../src/Cluster.js"
@@ -113,13 +113,21 @@ describe("TxBuilder Script Handling", () => {
 
   const policyId = "c".repeat(56) // Valid policy ID (28 bytes hex = 56 chars)
 
-  // Helper to create script address from CBOR-wrapped script bytes
-  const scriptToAddress = (scriptCbor: string): string => {
+  // Helper to create PlutusV2 script from CBOR-wrapped hex
+  const makePlutusV2Script = (scriptCbor: string): PlutusV2.PlutusV2 => {
     // Unwrap CBOR: First byte 0x49 = byte string of length 9
     const rawScriptHex = scriptCbor.slice(2)
-    const scriptBytes = new Uint8Array(rawScriptHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)))
+    return new PlutusV2.PlutusV2({ bytes: Bytes.fromHex(rawScriptHex) })
+  }
 
-    const coreScript = new PlutusV2.PlutusV2({ bytes: scriptBytes })
+  // Helper to create PlutusV2 script from raw hex bytes (no CBOR wrapping)
+  const makePlutusV2ScriptFromHex = (scriptHex: string): PlutusV2.PlutusV2 => {
+    return new PlutusV2.PlutusV2({ bytes: Bytes.fromHex(scriptHex) })
+  }
+
+  // Helper to create script address from CBOR-wrapped script bytes
+  const scriptToAddress = (scriptCbor: string): string => {
+    const coreScript = makePlutusV2Script(scriptCbor)
     const scriptHash = ScriptHash.fromScript(coreScript)
     const addressStruct = CoreAddress.Address.make({
       networkId: 0,
@@ -129,7 +137,7 @@ describe("TxBuilder Script Handling", () => {
   }
 
   it("should build transaction collecting from PlutusV2 script UTxO", async () => {
-    const alwaysSucceedsScript = Script.makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
+    const alwaysSucceedsScript = makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
     const scriptAddress = scriptToAddress(ALWAYS_SUCCEED_SCRIPT_CBOR)
 
     // Create script UTxO with inline datum
@@ -160,7 +168,7 @@ describe("TxBuilder Script Handling", () => {
         inputs: [scriptUtxo],
         redeemer: redeemerData
       })
-      .attachScript(alwaysSucceedsScript)
+      .attachScript({ script: alwaysSucceedsScript })
       .payToAddress({
         address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         assets: CoreAssets.fromLovelace(2_000_000n)
@@ -196,7 +204,7 @@ describe("TxBuilder Script Handling", () => {
     expect(tx.witnessSet.plutusData!.length).toBeGreaterThan(0)
   })
   it("should handle collateral inputs with multiassets and return excess to user as collateral return", async () => {
-    const alwaysSucceedsScript = Script.makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
+    const alwaysSucceedsScript = makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
     const scriptAddress = scriptToAddress(ALWAYS_SUCCEED_SCRIPT_CBOR)
 
     // Create script UTxO with inline datum
@@ -239,7 +247,7 @@ describe("TxBuilder Script Handling", () => {
         inputs: [scriptUtxo],
         redeemer: redeemerData
       })
-      .attachScript(alwaysSucceedsScript)
+      .attachScript({ script: alwaysSucceedsScript })
       .payToAddress({
         address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         assets: CoreAssets.fromLovelace(2_000_000n)
@@ -288,7 +296,7 @@ describe("TxBuilder Script Handling", () => {
     }
   })
   it("should fail when collateral return is below minimum UTxO", async () => {
-    const alwaysSucceedsScript = Script.makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
+    const alwaysSucceedsScript = makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
     const scriptAddress = scriptToAddress(ALWAYS_SUCCEED_SCRIPT_CBOR)
 
     // Create script UTxO with inline datum
@@ -333,7 +341,7 @@ describe("TxBuilder Script Handling", () => {
         inputs: [scriptUtxo],
         redeemer: redeemerData
       })
-      .attachScript(alwaysSucceedsScript)
+      .attachScript({ script: alwaysSucceedsScript })
       .payToAddress({
         address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         assets: CoreAssets.fromLovelace(2_000_000n)
@@ -351,7 +359,7 @@ describe("TxBuilder Script Handling", () => {
   })
 
   it("should fail when available utxos are insufficient to cover collateral", async () => {
-    const alwaysSucceedsScript = Script.makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
+    const alwaysSucceedsScript = makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
     const scriptAddress = scriptToAddress(ALWAYS_SUCCEED_SCRIPT_CBOR)
 
     // Create script UTxO with inline datum
@@ -392,7 +400,7 @@ describe("TxBuilder Script Handling", () => {
         inputs: [scriptUtxo],
         redeemer: redeemerData
       })
-      .attachScript(alwaysSucceedsScript)
+      .attachScript({ script: alwaysSucceedsScript })
       .payToAddress({
         address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         assets: CoreAssets.fromLovelace(2_000_000n)
@@ -410,7 +418,7 @@ describe("TxBuilder Script Handling", () => {
   })
 
   it("should not use utxos with reference script as collateral", async () => {
-    const alwaysSucceedsScript = Script.makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
+    const alwaysSucceedsScript = makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
     const scriptAddress = scriptToAddress(ALWAYS_SUCCEED_SCRIPT_CBOR)
 
     // Create script UTxO with inline datum
@@ -451,7 +459,7 @@ describe("TxBuilder Script Handling", () => {
         inputs: [scriptUtxo],
         redeemer: redeemerData
       })
-      .attachScript(alwaysSucceedsScript)
+      .attachScript({ script: alwaysSucceedsScript })
       .payToAddress({
         address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         assets: CoreAssets.fromLovelace(2_000_000n)
@@ -481,7 +489,7 @@ describe("TxBuilder Script Handling", () => {
   })
 
   it("should select collateral before creating change output (largest-first, exact match)", async () => {
-    const alwaysSucceedsScript = Script.makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
+    const alwaysSucceedsScript = makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
     const scriptAddress = scriptToAddress(ALWAYS_SUCCEED_SCRIPT_CBOR)
 
     // Create script UTxO with inline datum
@@ -520,7 +528,7 @@ describe("TxBuilder Script Handling", () => {
         inputs: [scriptUtxo],
         redeemer: redeemerData
       })
-      .attachScript(alwaysSucceedsScript)
+      .attachScript({ script: alwaysSucceedsScript })
       .payToAddress({
         address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         assets: CoreAssets.fromLovelace(2_000_000n) // 2 ADA payment
@@ -571,7 +579,7 @@ describe("TxBuilder Script Handling", () => {
   })
 
   it("should create collateral return when leftover ADA exists", async () => {
-    const alwaysSucceedsScript = Script.makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
+    const alwaysSucceedsScript = makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
     const scriptAddress = scriptToAddress(ALWAYS_SUCCEED_SCRIPT_CBOR)
 
     // Create script UTxO with inline datum
@@ -602,7 +610,7 @@ describe("TxBuilder Script Handling", () => {
         inputs: [scriptUtxo],
         redeemer: redeemerData
       })
-      .attachScript(alwaysSucceedsScript)
+      .attachScript({ script: alwaysSucceedsScript })
       .payToAddress({
         address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         assets: CoreAssets.fromLovelace(2_000_000n)
@@ -650,10 +658,7 @@ describe("TxBuilder Script Handling", () => {
     // Create a script UTxO with a 10KB reference script
     const scriptSize = 10_000 // 10KB in bytes
     const scriptHex = "48".repeat(scriptSize) // Each byte as hex (2 chars)
-    const referenceScript: Script.Script = {
-      type: "PlutusV2",
-      script: scriptHex
-    }
+    const referenceScript = makePlutusV2ScriptFromHex(scriptHex)
 
     // Create UTxO with reference script
     const refScriptUtxo = createCoreTestUtxo({
@@ -702,10 +707,7 @@ describe("TxBuilder Script Handling", () => {
     // Create a script UTxO with a 30KB reference script
     const scriptSize = 30_000 // 30KB in bytes
     const scriptHex = "48".repeat(scriptSize)
-    const referenceScript: Script.Script = {
-      type: "PlutusV2",
-      script: scriptHex
-    }
+    const referenceScript = makePlutusV2ScriptFromHex(scriptHex)
 
     const refScriptUtxo = createCoreTestUtxo({
       address: CHANGE_ADDRESS,
@@ -750,10 +752,7 @@ describe("TxBuilder Script Handling", () => {
     // Create a script UTxO with a 60KB reference script
     const scriptSize = 60_000 // 60KB in bytes
     const scriptHex = "48".repeat(scriptSize)
-    const referenceScript: Script.Script = {
-      type: "PlutusV2",
-      script: scriptHex
-    }
+    const referenceScript = makePlutusV2ScriptFromHex(scriptHex)
 
     const refScriptUtxo = createCoreTestUtxo({
       address: CHANGE_ADDRESS,
@@ -799,10 +798,7 @@ describe("TxBuilder Script Handling", () => {
     // Create a script UTxO with a 250KB reference script (exceeds limit)
     const scriptSize = 250_000 // 250KB in bytes
     const scriptHex = "48".repeat(scriptSize)
-    const referenceScript: Script.Script = {
-      type: "PlutusV2",
-      script: scriptHex
-    }
+    const referenceScript = makePlutusV2ScriptFromHex(scriptHex)
 
     const refScriptUtxo = createCoreTestUtxo({
       address: CHANGE_ADDRESS,
@@ -838,15 +834,9 @@ describe("TxBuilder Script Handling", () => {
     const script1Size = 15_000 // 15KB
     const script2Size = 20_000 // 20KB
     
-    const referenceScript1: Script.Script = {
-      type: "PlutusV2",
-      script: "48".repeat(script1Size)
-    }
+    const referenceScript1 = makePlutusV2ScriptFromHex("48".repeat(script1Size))
     
-    const referenceScript2: Script.Script = {
-      type: "PlutusV2",
-      script: "48".repeat(script2Size)
-    }
+    const referenceScript2 = makePlutusV2ScriptFromHex("48".repeat(script2Size))
 
     const refScriptUtxo1 = createCoreTestUtxo({
       address: CHANGE_ADDRESS,
@@ -938,7 +928,7 @@ describe("TxBuilder Script Handling", () => {
   it("should enforce maximum 3 collateral inputs even when more would help", async () => {
     // Create script UTxO that needs collateral
     const scriptAddress = scriptToAddress(ALWAYS_SUCCEED_SCRIPT_CBOR)
-    const alwaysSucceedsScript = Script.makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
+    const alwaysSucceedsScript = makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
 
     const scriptUtxo = createCoreTestUtxo({
       address: scriptAddress,
@@ -989,7 +979,7 @@ describe("TxBuilder Script Handling", () => {
         inputs: [scriptUtxo],
         redeemer: redeemerData
       })
-      .attachScript(alwaysSucceedsScript)
+      .attachScript({ script: alwaysSucceedsScript })
       .payToAddress({
         address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         assets: CoreAssets.fromLovelace(2_000_000n)
@@ -1023,7 +1013,7 @@ describe("TxBuilder Script Handling", () => {
   it("should successfully select collateral when exactly 3 inputs are sufficient", async () => {
     // Create script UTxO that needs collateral
     const scriptAddress = scriptToAddress(ALWAYS_SUCCEED_SCRIPT_CBOR)
-    const alwaysSucceedsScript = Script.makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
+    const alwaysSucceedsScript = makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
 
     const scriptUtxo = createCoreTestUtxo({
       address: scriptAddress,
@@ -1064,7 +1054,7 @@ describe("TxBuilder Script Handling", () => {
         inputs: [scriptUtxo],
         redeemer: redeemerData
       })
-      .attachScript(alwaysSucceedsScript)
+      .attachScript({ script: alwaysSucceedsScript })
       .payToAddress({
         address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         assets: CoreAssets.fromLovelace(2_000_000n)
@@ -1095,7 +1085,7 @@ describe("TxBuilder Script Handling", () => {
   it("should fail when max 3 collateral inputs are insufficient to cover target", async () => {
     // Create script UTxO that needs collateral
     const scriptAddress = scriptToAddress(ALWAYS_SUCCEED_SCRIPT_CBOR)
-    const alwaysSucceedsScript = Script.makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
+    const alwaysSucceedsScript = makePlutusV2Script(ALWAYS_SUCCEED_SCRIPT_CBOR)
 
     const scriptUtxo = createCoreTestUtxo({
       address: scriptAddress,
@@ -1125,7 +1115,7 @@ describe("TxBuilder Script Handling", () => {
         inputs: [scriptUtxo],
         redeemer: redeemerData
       })
-      .attachScript(alwaysSucceedsScript)
+      .attachScript({ script: alwaysSucceedsScript })
       .payToAddress({
         address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         assets: CoreAssets.fromLovelace(2_000_000n)

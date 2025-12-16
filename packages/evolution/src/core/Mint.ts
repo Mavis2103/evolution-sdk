@@ -200,6 +200,8 @@ export const fromEntries = (
 
 /**
  * Add or update an asset in the Mint.
+ * Uses content-based equality (Equal.equals) to find matching PolicyId and AssetName
+ * since JavaScript Maps use reference equality by default.
  *
  * @since 2.0.0
  * @category transformation
@@ -210,64 +212,159 @@ export const insert = (
   assetName: AssetName.AssetName,
   amount: NonZeroInt64.NonZeroInt64
 ): Mint => {
-  // Get existing asset map or create empty one
-  const existingAssetMap = mint.map.get(policyId)
-  const assetMap =
-    existingAssetMap !== undefined ? new Map(existingAssetMap).set(assetName, amount) : new Map([[assetName, amount]])
+  // Find existing policy by content equality
+  let existingPolicyKey: PolicyId.PolicyId | undefined
+  let existingAssetMap: Map<AssetName.AssetName, NonZeroInt64.NonZeroInt64> | undefined
 
+  for (const [key, value] of mint.map.entries()) {
+    if (Equal.equals(key, policyId)) {
+      existingPolicyKey = key
+      existingAssetMap = value
+      break
+    }
+  }
+
+  // Build the new asset map for this policy
+  let assetMap: Map<AssetName.AssetName, NonZeroInt64.NonZeroInt64>
+
+  if (existingAssetMap !== undefined) {
+    // Find existing asset by content equality
+    let existingAssetKey: AssetName.AssetName | undefined
+    for (const key of existingAssetMap.keys()) {
+      if (Equal.equals(key, assetName)) {
+        existingAssetKey = key
+        break
+      }
+    }
+
+    assetMap = new Map(existingAssetMap)
+    // Remove old key if exists (to ensure we use the new key reference)
+    if (existingAssetKey !== undefined) {
+      assetMap.delete(existingAssetKey)
+    }
+    assetMap.set(assetName, amount)
+  } else {
+    assetMap = new Map([[assetName, amount]])
+  }
+
+  // Build result map, replacing existing policy entry if found
   const result = new Map(mint.map)
+  if (existingPolicyKey !== undefined) {
+    result.delete(existingPolicyKey)
+  }
   result.set(policyId, assetMap)
   return new Mint({ map: result })
 }
 
 /**
- * Remove an asset from the Mint.
+ * Remove a policy from the Mint.
+ * Uses content-based equality (Equal.equals) to find matching PolicyId.
  *
  * @since 2.0.0
  * @category transformation
  */
 export const removePolicy = (mint: Mint, policyId: PolicyId.PolicyId): Mint => {
+  // Find existing policy by content equality
+  let existingPolicyKey: PolicyId.PolicyId | undefined
+  for (const key of mint.map.keys()) {
+    if (Equal.equals(key, policyId)) {
+      existingPolicyKey = key
+      break
+    }
+  }
+
+  if (existingPolicyKey === undefined) {
+    return mint // Policy not found, nothing to remove
+  }
+
   const result = new Map(mint.map)
-  result.delete(policyId)
+  result.delete(existingPolicyKey)
   return new Mint({ map: result })
 }
 
+/**
+ * Remove an asset from the Mint.
+ * Uses content-based equality (Equal.equals) to find matching PolicyId and AssetName.
+ *
+ * @since 2.0.0
+ * @category transformation
+ */
 export const removeAsset = (mint: Mint, policyId: PolicyId.PolicyId, assetName: AssetName.AssetName): Mint => {
-  const assets = mint.map.get(policyId)
-  if (assets === undefined) {
+  // Find existing policy by content equality
+  let existingPolicyKey: PolicyId.PolicyId | undefined
+  let existingAssetMap: Map<AssetName.AssetName, NonZeroInt64.NonZeroInt64> | undefined
+
+  for (const [key, value] of mint.map.entries()) {
+    if (Equal.equals(key, policyId)) {
+      existingPolicyKey = key
+      existingAssetMap = value
+      break
+    }
+  }
+
+  if (existingAssetMap === undefined || existingPolicyKey === undefined) {
     return mint // No assets for this policy, nothing to remove
   }
-  const updatedAssets = new Map(assets)
-  updatedAssets.delete(assetName)
+
+  // Find existing asset by content equality
+  let existingAssetKey: AssetName.AssetName | undefined
+  for (const key of existingAssetMap.keys()) {
+    if (Equal.equals(key, assetName)) {
+      existingAssetKey = key
+      break
+    }
+  }
+
+  if (existingAssetKey === undefined) {
+    return mint // Asset not found, nothing to remove
+  }
+
+  const updatedAssets = new Map(existingAssetMap)
+  updatedAssets.delete(existingAssetKey)
 
   if (updatedAssets.size === 0) {
     // If no assets left, remove the policyId entry
     const result = new Map(mint.map)
-    result.delete(policyId)
+    result.delete(existingPolicyKey)
     return new Mint({ map: result })
   }
 
   const result = new Map(mint.map)
-  result.set(policyId, updatedAssets)
+  result.delete(existingPolicyKey)
+  result.set(existingPolicyKey, updatedAssets)
   return new Mint({ map: result })
 }
 
 /**
  * Get the amount for a specific policy and asset.
+ * Uses content-based equality (Equal.equals) to find matching PolicyId and AssetName.
  *
  * @since 2.0.0
  * @category transformation
  */
 export const get = (mint: Mint, policyId: PolicyId.PolicyId, assetName: AssetName.AssetName) => {
-  const assets = mint.map.get(policyId)
-  if (assets === undefined) {
+  // Find policy by content equality
+  let existingAssetMap: Map<AssetName.AssetName, NonZeroInt64.NonZeroInt64> | undefined
+
+  for (const [key, value] of mint.map.entries()) {
+    if (Equal.equals(key, policyId)) {
+      existingAssetMap = value
+      break
+    }
+  }
+
+  if (existingAssetMap === undefined) {
     return undefined
   }
-  const amount = assets.get(assetName)
-  if (amount === undefined) {
-    return undefined
+
+  // Find asset by content equality
+  for (const [key, value] of existingAssetMap.entries()) {
+    if (Equal.equals(key, assetName)) {
+      return value
+    }
   }
-  return amount
+
+  return undefined
 }
 
 /**
@@ -278,6 +375,38 @@ export const get = (mint: Mint, policyId: PolicyId.PolicyId, assetName: AssetNam
  */
 export const has = (mint: Mint, policyId: PolicyId.PolicyId, assetName: AssetName.AssetName): boolean =>
   get(mint, policyId, assetName) !== undefined
+
+/**
+ * Get an asset amount by policy ID hex and asset name hex strings.
+ * Convenience function for tests and lookups using hex strings.
+ *
+ * @since 2.0.0
+ * @category lookup
+ */
+export const getByHex = (mint: Mint, policyIdHex: string, assetNameHex: string): NonZeroInt64.NonZeroInt64 | undefined => {
+  const policyId = PolicyId.fromHex(policyIdHex)
+  const assetName = AssetName.fromHex(assetNameHex)
+  return get(mint, policyId, assetName)
+}
+
+/**
+ * Get the asset map for a specific policy by hex string.
+ * Uses content-based equality (Equal.equals) to find matching PolicyId.
+ *
+ * @since 2.0.0
+ * @category lookup
+ */
+export const getAssetsByPolicyHex = (mint: Mint, policyIdHex: string): Map<AssetName.AssetName, NonZeroInt64.NonZeroInt64> | undefined => {
+  const policyId = PolicyId.fromHex(policyIdHex)
+  
+  for (const [key, value] of mint.map.entries()) {
+    if (Equal.equals(key, policyId)) {
+      return value
+    }
+  }
+  
+  return undefined
+}
 
 /**
  * Check if Mint is empty.
