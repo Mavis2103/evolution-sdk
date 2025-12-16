@@ -31,6 +31,7 @@ import type { Either } from "effect/Either"
 import type * as CoreAddress from "../../core/Address.js"
 import * as CoreAssets from "../../core/Assets/index.js"
 import type * as Coin from "../../core/Coin.js"
+import type * as Mint from "../../core/Mint.js"
 import type * as Network from "../../core/Network.js"
 import type * as CoreScript from "../../core/Script.js"
 import * as Time from "../../core/Time/index.js"
@@ -41,12 +42,12 @@ import { runEffectPromise } from "../../utils/effect-runtime.js"
 import type { EvalRedeemer } from "../EvalRedeemer.js"
 import type * as ProtocolParametersSDK from "../ProtocolParameters.js"
 import type * as Provider from "../provider/Provider.js"
-import type * as Script from "../Script.js"
 import type * as WalletNew from "../wallet/WalletNew.js"
 import type { CoinSelectionAlgorithm, CoinSelectionFunction } from "./CoinSelection.js"
 import { attachScriptToState } from "./operations/Attach.js"
 import { createCollectFromProgram } from "./operations/Collect.js"
-import type { CollectFromParams, PayToAddressParams, ReadFromParams } from "./operations/Operations.js"
+import { createMintProgram } from "./operations/Mint.js"
+import type { CollectFromParams, MintTokensParams, PayToAddressParams, ReadFromParams } from "./operations/Operations.js"
 import { createPayToAddressProgram } from "./operations/Pay.js"
 import { createReadFromProgram } from "./operations/ReadFrom.js"
 import { executeBalance } from "./phases/Balance.js"
@@ -1160,6 +1161,7 @@ export interface TxBuilderState {
   readonly totalInputAssets: CoreAssets.Assets // Asset totals for balancing
   readonly redeemers: Map<string, RedeemerData> // Redeemer data for script inputs
   readonly referenceInputs: ReadonlyArray<CoreUTxO.UTxO> // Reference inputs (UTxOs with reference scripts)
+  readonly mint?: Mint.Mint // Assets being minted/burned (positive = mint, negative = burn)
   readonly collateral?: {
     // Collateral data for script transactions
     readonly inputs: ReadonlyArray<CoreUTxO.UTxO>
@@ -1398,7 +1400,7 @@ export interface TransactionBuilderBase {
   readonly collectFrom: (params: CollectFromParams) => this
 
   /**
-   * Attach a Plutus script to the transaction.
+   * Attach a script to the transaction.
    *
    * Scripts must be attached before being referenced by transaction inputs, minting policies,
    * or certificate operations. The script is stored in the builder state and indexed by its hash
@@ -1409,20 +1411,63 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as Script from "./Script.js"
+   * import * as Script from "../../core/Script.js"
+   * import * as NativeScripts from "../../core/NativeScripts.js"
    *
-   * const script = Script.makePlutusV2Script("590a42590a3f01000...")
+   * const nativeScript = NativeScripts.makeScriptPubKey(keyHashBytes)
+   * const script = Script.fromNativeScript(nativeScript)
    *
    * const tx = await builder
-   *   .attachScript(script)
-   *   .collectFrom({ inputs: [scriptUtxo], redeemer: myRedeemer })
+   *   .attachScript({ script })
+   *   .mintAssets({ assets: { "<policyId><assetName>": 1000n } })
    *   .build()
    * ```
    *
    * @since 2.0.0
    * @category builder-methods
    */
-  readonly attachScript: (script: Script.Script) => this
+  readonly attachScript: (params: { script: CoreScript.Script }) => this
+
+  /**
+   * Mint or burn native tokens.
+   *
+   * Minting creates new tokens, burning destroys existing tokens.
+   * - Positive amounts: mint new tokens
+   * - Negative amounts: burn existing tokens
+   *
+   * Can be called multiple times; mints are merged by PolicyId and AssetName.
+   * If minting from a script policy, provide the redeemer and attach the script via attachScript().
+   *
+   * Queues a deferred operation that will be executed when build() is called.
+   * Returns the same builder for method chaining.
+   *
+   * @example
+   * ```typescript
+   * // Mint tokens from a native script policy
+   * const tx = await builder
+   *   .mintAssets({ 
+   *     assets: { 
+   *       "<policyId><assetName>": 1000n 
+   *     }
+   *   })
+   *   .build()
+   *
+   * // Mint from Plutus script policy with redeemer
+   * const tx = await builder
+   *   .attachScript(mintingScript)
+   *   .mintAssets({ 
+   *     assets: { 
+   *       "<policyId><assetName>": 1000n 
+   *     },
+   *     redeemer: myRedeemer
+   *   })
+   *   .build()
+   * ```
+   *
+   * @since 2.0.0
+   * @category builder-methods
+   */
+  readonly mintAssets: (params: MintTokensParams) => this
 
   /**
    * Add reference inputs to the transaction.
@@ -1656,6 +1701,13 @@ export function makeTxBuilder(config: TxBuilderConfig) {
       return txBuilder // Return same instance for chaining
     },
 
+    mintAssets: (params: MintTokensParams) => {
+      // Create ProgramStep for deferred execution
+      const program = createMintProgram(params)
+      programs.push(program)
+      return txBuilder // Return same instance for chaining
+    },
+
     readFrom: (params: ReadFromParams) => {
       // Create ProgramStep for deferred execution
       const program = createReadFromProgram(params)
@@ -1663,9 +1715,9 @@ export function makeTxBuilder(config: TxBuilderConfig) {
       return txBuilder // Return same instance for chaining
     },
 
-    attachScript: (script: Script.Script) => {
+    attachScript: (params: { script: CoreScript.Script }) => {
       // Create ProgramStep for deferred execution
-      const program = attachScriptToState(script)
+      const program = attachScriptToState(params.script)
       programs.push(program)
       return txBuilder // Return same instance for chaining
     },

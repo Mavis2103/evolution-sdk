@@ -9,6 +9,7 @@ import * as Bytes32 from "../../core/Bytes32.js"
 import * as PlutusData from "../../core/Data.js"
 import * as DatumOption from "../../core/DatumOption.js"
 import * as Ed25519Signature from "../../core/Ed25519Signature.js"
+import * as NativeScripts from "../../core/NativeScripts.js"
 import type * as PlutusV1 from "../../core/PlutusV1.js"
 import type * as PlutusV2 from "../../core/PlutusV2.js"
 import type * as PlutusV3 from "../../core/PlutusV3.js"
@@ -514,7 +515,8 @@ export const assembleTransaction = (
       collateralInputs, // Collateral inputs from Collateral phase
       collateralReturn, // Collateral return output from Collateral phase
       totalCollateral, // Total collateral amount from Collateral phase
-      referenceInputs // Reference inputs for reading on-chain data (undefined if none)
+      referenceInputs, // Reference inputs for reading on-chain data (undefined if none)
+      mint: state.mint && state.mint.map.size > 0 ? state.mint : undefined // Mint field from minting operations
       // Optional fields omitted for now:
       // - ttl: will be set if setValidityRange is called
       // - certificates: will be set if certificate operations added
@@ -804,14 +806,18 @@ const buildFakeVKeyWitness = (
  * Build a fake witness set for fee estimation from transaction inputs.
  * Extracts unique payment key hashes from input addresses and creates
  * fake witnesses to accurately estimate witness set size in CBOR.
+ * Includes any attached scripts from builder state for accurate size estimation.
  *
  * @since 2.0.0
  * @category fee-calculation
  */
 export const buildFakeWitnessSet = (
   inputUtxos: ReadonlyArray<CoreUTxO.UTxO>
-): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, TransactionBuilderError> =>
+): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, TransactionBuilderError, TxContext> =>
   Effect.gen(function* () {
+    const stateRef = yield* TxContext
+    const state = yield* Ref.get(stateRef)
+
     // Extract unique key hashes from input addresses (Core Address)
     const keyHashesSet = new Set<string>()
     const keyHashes: Array<Uint8Array> = []
@@ -827,7 +833,50 @@ export const buildFakeWitnessSet = (
       }
     }
 
-    // Build fake witnesses for each unique key hash
+    // Collect attached scripts from state and count required signers for native scripts
+    const nativeScripts: Array<NativeScripts.NativeScript> = []
+    const plutusV1Scripts: Array<PlutusV1.PlutusV1> = []
+    const plutusV2Scripts: Array<PlutusV2.PlutusV2> = []
+    const plutusV3Scripts: Array<PlutusV3.PlutusV3> = []
+
+    for (const script of state.scripts.values()) {
+      switch (script._tag) {
+        case "NativeScript": {
+          nativeScripts.push(script)
+          // Count required signers for this native script and add fake witnesses
+          const requiredSigners = NativeScripts.countRequiredSigners(script.script)
+          yield* Effect.logInfo(`[buildFakeWitnessSet] Native script requires ${requiredSigners} signers`)
+          
+          // Add fake witnesses for each required signer
+          // Use unique dummy key hashes to avoid duplicates with input witnesses
+          for (let i = 0; i < requiredSigners; i++) {
+            const dummyKeyHash = new Uint8Array(28)
+            // Fill with unique pattern: 0xFF prefix + counter to distinguish from real keys
+            dummyKeyHash[0] = 0xFF
+            dummyKeyHash[1] = (keyHashesSet.size + i) & 0xFF
+            const dummyHashHex = Buffer.from(dummyKeyHash).toString("hex")
+            
+            // Only add if not already in the set
+            if (!keyHashesSet.has(dummyHashHex)) {
+              keyHashesSet.add(dummyHashHex)
+              keyHashes.push(dummyKeyHash)
+            }
+          }
+          break
+        }
+        case "PlutusV1":
+          plutusV1Scripts.push(script)
+          break
+        case "PlutusV2":
+          plutusV2Scripts.push(script)
+          break
+        case "PlutusV3":
+          plutusV3Scripts.push(script)
+          break
+      }
+    }
+
+    // Build fake witnesses for each unique key hash (inputs + native script signers)
     const vkeyWitnesses: Array<TransactionWitnessSet.VKeyWitness> = []
     for (const keyHash of keyHashes) {
       const witness = yield* buildFakeVKeyWitness(keyHash)
@@ -836,13 +885,13 @@ export const buildFakeWitnessSet = (
 
     return new TransactionWitnessSet.TransactionWitnessSet({
       vkeyWitnesses,
-      nativeScripts: [],
+      nativeScripts,
       bootstrapWitnesses: [],
-      plutusV1Scripts: [],
+      plutusV1Scripts,
       plutusData: [],
       redeemers: [],
-      plutusV2Scripts: [],
-      plutusV3Scripts: []
+      plutusV2Scripts,
+      plutusV3Scripts
     })
   })
 
@@ -877,13 +926,20 @@ export const calculateFeeIteratively = (
     priceMem?: number
     priceStep?: number
   }
-): Effect.Effect<bigint, TransactionBuilderError> =>
+): Effect.Effect<bigint, TransactionBuilderError, TxContext> =>
   Effect.gen(function* () {
+    // Get state to access mint field
+    const stateRef = yield* TxContext
+    const state = yield* Ref.get(stateRef)
+    
     // Build fake witness set once for accurate size estimation
     const fakeWitnessSet = yield* buildFakeWitnessSet(inputUtxos)
 
     // Outputs are already Core TransactionOutputs
     const transactionOutputs = outputs as Array<TxOut.TransactionOutput>
+    
+    // Get mint field from state (if present)
+    const mint = state.mint && state.mint.map.size > 0 ? state.mint : undefined
 
     let currentFee = 0n
     let previousSize = 0
@@ -896,7 +952,8 @@ export const calculateFeeIteratively = (
       const body = new TransactionBody.TransactionBody({
         inputs: inputs as Array<TransactionInput.TransactionInput>,
         outputs: transactionOutputs,
-        fee: currentFee
+        fee: currentFee,
+        mint // Include mint field for accurate size calculation
       })
 
       const transaction = new Transaction.Transaction({

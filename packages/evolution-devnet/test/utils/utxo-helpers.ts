@@ -2,100 +2,20 @@ import { Core } from "@evolution-sdk/evolution"
 import * as CoreAddress from "@evolution-sdk/evolution/core/Address"
 import * as CoreData from "@evolution-sdk/evolution/core/Data"
 import * as CoreDatumOption from "@evolution-sdk/evolution/core/DatumOption"
-import * as CorePlutusV1 from "@evolution-sdk/evolution/core/PlutusV1"
-import * as CorePlutusV2 from "@evolution-sdk/evolution/core/PlutusV2"
-import * as CorePlutusV3 from "@evolution-sdk/evolution/core/PlutusV3"
 import * as CoreScript from "@evolution-sdk/evolution/core/Script"
 import * as CoreScriptRef from "@evolution-sdk/evolution/core/ScriptRef"
 import * as CoreTransactionHash from "@evolution-sdk/evolution/core/TransactionHash"
 import * as CoreUTxO from "@evolution-sdk/evolution/core/UTxO"
-import type * as Assets from "@evolution-sdk/evolution/sdk/Assets"
 import type * as Datum from "@evolution-sdk/evolution/sdk/Datum"
-import type * as Script from "@evolution-sdk/evolution/sdk/Script"
-import type * as UTxO from "@evolution-sdk/evolution/sdk/UTxO"
 
 // Alias for Core.Assets
 const CoreAssets = Core.Assets
-
-/**
- * Options for creating a test UTxO.
- */
-export type CreateTestUtxoOptions = {
-  /**
-   * The address of the UTxO. Defaults to a test address.
-   * @default "addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgs68faae"
-   */
-  address?: string
-  /**
-   * Optional datum to attach to the UTxO.
-   */
-  datumOption?: Datum.Datum
-  /**
-   * The amount of lovelace in the UTxO.
-   */
-  lovelace: bigint
-  /**
-   * Optional native assets to include in the UTxO.
-   * Map of policyId+assetName (hex encoded) to quantity.
-   */
-  nativeAssets?: Record<string, bigint>
-  /**
-   * The output index. Defaults to 0.
-   * @default 0
-   */
-  outputIndex?: number
-  /**
-   * Optional reference script to attach to the UTxO.
-   */
-  scriptRef?: Script.Script
-  /**
-   * The transaction hash. Defaults to 64 zeros.
-   * @default "0".repeat(64)
-   */
-  txHash?: string
-}
 
 /**
  * Default test address used when no address is provided.
  */
 const DEFAULT_TEST_ADDRESS =
   "addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgs68faae"
-
-/**
- * Creates a test UTxO with the specified parameters (SDK format).
- */
-export const createTestUtxo = (options: CreateTestUtxoOptions): UTxO.UTxO => {
-  const {
-    address = DEFAULT_TEST_ADDRESS,
-    datumOption,
-    lovelace,
-    nativeAssets,
-    outputIndex = 0,
-    scriptRef,
-    txHash = "0".repeat(64)
-  } = options
-
-  // Ensure txHash is 64 hex characters (convert short IDs to valid hex)
-  const paddedTxHash = txHash.length === 64 && /^[0-9a-fA-F]+$/.test(txHash)
-    ? txHash
-    : Array.from(txHash)
-        .map(c => c.charCodeAt(0).toString(16).padStart(2, '0'))
-        .join('')
-        .padEnd(64, '0')
-
-  const assets: Assets.Assets = nativeAssets
-    ? { lovelace, ...nativeAssets }
-    : { lovelace }
-
-  return {
-    address,
-    assets,
-    datumOption,
-    outputIndex,
-    scriptRef,
-    txHash: paddedTxHash
-  }
-}
 
 /**
  * Options for creating a Core test UTxO.
@@ -127,9 +47,9 @@ export type CreateCoreTestUtxoOptions = {
    */
   datumOption?: Datum.Datum
   /**
-   * Optional reference script.
+   * Optional reference script (Core Script type).
    */
-  scriptRef?: Script.Script
+  scriptRef?: CoreScript.Script
 }
 
 /**
@@ -183,32 +103,11 @@ export const createCoreTestUtxo = (options: CreateCoreTestUtxoOptions): CoreUTxO
     }
   }
 
-  // Convert SDK Script to Core ScriptRef
+  // Convert Core Script to ScriptRef
   let coreScriptRef: CoreScriptRef.ScriptRef | undefined
   if (scriptRef) {
-    // Convert SDK script format { type: "PlutusV2", script: "hex" } to Core Script
-    let coreScript: CoreScript.Script
-    switch (scriptRef.type) {
-      case "PlutusV1":
-        coreScript = new CorePlutusV1.PlutusV1({ 
-          bytes: new Uint8Array(scriptRef.script.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)))
-        })
-        break
-      case "PlutusV2":
-        coreScript = new CorePlutusV2.PlutusV2({ 
-          bytes: new Uint8Array(scriptRef.script.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)))
-        })
-        break
-      case "PlutusV3":
-        coreScript = new CorePlutusV3.PlutusV3({ 
-          bytes: new Uint8Array(scriptRef.script.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)))
-        })
-        break
-      default:
-        throw new Error(`Unsupported script type for scriptRef: ${(scriptRef as Script.Script).type}`)
-    }
     // Convert Script to ScriptRef bytes (CBOR-encoded script)
-    const scriptBytes = CoreScript.toCBOR(coreScript)
+    const scriptBytes = CoreScript.toCBOR(scriptRef)
     coreScriptRef = new CoreScriptRef.ScriptRef({ bytes: scriptBytes })
   }
 

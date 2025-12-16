@@ -14,6 +14,7 @@ import type * as CoreAddress from "../../../core/Address.js"
 import * as CoreAssets from "../../../core/Assets/index.js"
 import type * as TxOut from "../../../core/TxOut.js"
 import * as CoreUTxO from "../../../core/UTxO.js"
+import { mintToAssets } from "../operations/Mint.js"
 import {
   AvailableUtxosTag,
   BuildOptionsTag,
@@ -163,11 +164,16 @@ export const executeChangeCreation = (): Effect.Effect<
 
     yield* Effect.logDebug(`[ChangeCreation] Fee from context: ${buildCtx.calculatedFee}`)
 
-    // Step 2: Calculate leftover assets
+    // Step 2: Calculate leftover assets (inputs + mint - outputs - fee)
     const state = yield* Ref.get(stateRef)
     const inputAssets = state.totalInputAssets
     const outputAssets = state.totalOutputAssets
-    const leftoverBeforeFee = CoreAssets.subtract(inputAssets, outputAssets)
+    const mintAssets = mintToAssets(state.mint)
+    // Minted assets add to available (positive), burned assets subtract (negative)
+    const leftoverBeforeFee = CoreAssets.subtract(
+      CoreAssets.merge(inputAssets, mintAssets),
+      outputAssets
+    )
 
     // Subtract fee and filter out zero-quantity tokens (they shouldn't go into change output)
     const rawLeftover = CoreAssets.subtractLovelace(leftoverBeforeFee, buildCtx.calculatedFee)

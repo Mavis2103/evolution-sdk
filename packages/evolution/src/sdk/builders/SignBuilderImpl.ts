@@ -70,19 +70,33 @@ export const makeSignBuilder = (params: {
         yield* Effect.logDebug("Starting transaction signing (delegating to wallet Effect)")
 
         // Delegate to wallet's Effect.signTx with UTxO context
-        const witnessSet = yield* wallet.Effect.signTx(transaction, { utxos }).pipe(
+        const walletWitnessSet = yield* wallet.Effect.signTx(transaction, { utxos }).pipe(
           Effect.mapError(
             (walletError) =>
               new TransactionBuilderError({ message: "Failed to sign transaction", cause: walletError })
           )
         )
 
-        yield* Effect.logDebug(`Received witness set from wallet: ${witnessSet.vkeyWitnesses?.length ?? 0} VKey witnesses`)
+        yield* Effect.logDebug(`Received witness set from wallet: ${walletWitnessSet.vkeyWitnesses?.length ?? 0} VKey witnesses`)
 
-        // Create signed transaction by combining transaction body with witness set
+        // Merge wallet's witness set with existing transaction witness set (which may contain attached scripts)
+        const mergedWitnessSet = new TransactionWitnessSet.TransactionWitnessSet({
+          vkeyWitnesses: [...(transaction.witnessSet.vkeyWitnesses ?? []), ...(walletWitnessSet.vkeyWitnesses ?? [])],
+          nativeScripts: transaction.witnessSet.nativeScripts, // Keep attached scripts
+          bootstrapWitnesses: [...(transaction.witnessSet.bootstrapWitnesses ?? []), ...(walletWitnessSet.bootstrapWitnesses ?? [])],
+          plutusV1Scripts: transaction.witnessSet.plutusV1Scripts, // Keep attached scripts
+          plutusV2Scripts: transaction.witnessSet.plutusV2Scripts, // Keep attached scripts
+          plutusV3Scripts: transaction.witnessSet.plutusV3Scripts, // Keep attached scripts
+          plutusData: transaction.witnessSet.plutusData, // Keep datum information
+          redeemers: transaction.witnessSet.redeemers // Keep redeemers
+        })
+
+        yield* Effect.logDebug(`Merged witness set: ${mergedWitnessSet.vkeyWitnesses?.length ?? 0} VKey witnesses, ${mergedWitnessSet.nativeScripts?.length ?? 0} native scripts`)
+
+        // Create signed transaction by combining transaction body with merged witness set
         const signedTransaction = new Transaction.Transaction({
           body: transaction.body,
-          witnessSet,
+          witnessSet: mergedWitnessSet,
           isValid: transaction.isValid,
           auxiliaryData: transaction.auxiliaryData
         })
@@ -90,7 +104,7 @@ export const makeSignBuilder = (params: {
         yield* Effect.logDebug("Transaction signed successfully")
 
         // Return SubmitBuilder
-        return makeSubmitBuilder(signedTransaction, witnessSet, provider)
+        return makeSubmitBuilder(signedTransaction, mergedWitnessSet, provider)
       }),
 
     /**
