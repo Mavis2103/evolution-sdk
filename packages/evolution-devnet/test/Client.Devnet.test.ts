@@ -2,19 +2,21 @@ import { describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import * as Address from "@evolution-sdk/evolution/core/AddressEras"
-import * as Assets from "@evolution-sdk/evolution/sdk/Assets"
+import { Core } from "@evolution-sdk/evolution"
+import * as CoreAddress from "@evolution-sdk/evolution/core/Address"
 import { createClient } from "@evolution-sdk/evolution/sdk/client/ClientImpl"
 import type { ProtocolParameters } from "@evolution-sdk/evolution/sdk/ProtocolParameters"
-import type { UTxO } from "@evolution-sdk/evolution/sdk/UTxO"
 import { afterAll, beforeAll } from "vitest"
+
+// Alias for Core.Assets
+const CoreAssets = Core.Assets
 
 /**
  * Client integration tests with local Devnet
  */
 describe("Client with Devnet", () => {
   let devnetCluster: Cluster.Cluster | undefined
-  let genesisUtxos: Array<UTxO> = []
+  let genesisUtxos: Array<Core.UTxO.UTxO> = []
   let genesisConfig: Config.ShelleyGenesis
 
   const TEST_MNEMONIC =
@@ -41,8 +43,8 @@ describe("Client with Devnet", () => {
       wallet: { type: "seed", mnemonic: TEST_MNEMONIC, accountIndex: 0 }
     })
 
-    const testAddressBech32 = await testClient.address()
-    const testAddressHex = Address.toHex(Address.fromBech32(testAddressBech32))
+    const testAddress = await testClient.address()
+    const testAddressHex = CoreAddress.toHex(testAddress)
 
     genesisConfig = {
       ...Config.DEFAULT_SHELLEY_GENESIS,
@@ -78,11 +80,11 @@ describe("Client with Devnet", () => {
     expect(calculatedUtxos.length).toBe(1)
 
     const utxo = calculatedUtxos[0]
-    expect(utxo.txHash).toBeDefined()
-    expect(utxo.txHash.length).toBe(64)
-    expect(utxo.outputIndex).toBe(0)
-    expect(utxo.address).toMatch(/^addr_test/)
-    expect(Assets.getAsset(utxo.assets, "lovelace")).toBe(900_000_000_000n)
+    expect(utxo.transactionId).toBeDefined()
+    expect(Core.TransactionHash.toHex(utxo.transactionId).length).toBe(64)
+    expect(utxo.index).toBe(0n)
+    expect(CoreAddress.toBech32(utxo.address)).toMatch(/^addr_test/)
+    expect(utxo.assets.lovelace).toBe(900_000_000_000n)
 
     genesisUtxos = [...calculatedUtxos]
   })
@@ -92,7 +94,8 @@ describe("Client with Devnet", () => {
 
     const address = await client.address()
     expect(address).toBeDefined()
-    expect(address).toMatch(/^addr_test/)
+    const addressBech32 = CoreAddress.toBech32(address)
+    expect(addressBech32).toMatch(/^addr_test/)
   })
 
   it("should query wallet UTxOs", { timeout: 30_000 }, async () => {
@@ -123,7 +126,8 @@ describe("Client with Devnet", () => {
 
     const client = createTestClient()
     const genesisAddress = await client.address()
-    const genesisUtxo = genesisUtxos.find((u) => u.address === genesisAddress)
+    const genesisAddressBech32 = CoreAddress.toBech32(genesisAddress)
+    const genesisUtxo = genesisUtxos.find((u) => CoreAddress.toBech32(u.address) === genesisAddressBech32)
 
     if (!genesisUtxo) {
       throw new Error("Genesis UTxO not found")
@@ -134,7 +138,7 @@ describe("Client with Devnet", () => {
 
     const signBuilder = await client
       .newTx()
-      .payToAddress({ address: receiverAddress, assets: Assets.fromLovelace(5_000_000n) })
+      .payToAddress({ address: CoreAddress.fromBech32(receiverAddress), assets: CoreAssets.fromLovelace(5_000_000n) })
       .build({ availableUtxos: [genesisUtxo] })
 
     const tx = await signBuilder.toTransaction()
@@ -153,12 +157,12 @@ describe("Client with Devnet", () => {
     const utxos = await client.getWalletUtxos()
     expect(utxos.length).toBeGreaterThan(0)
 
-    const totalInput = Assets.getAsset(genesisUtxo.assets, "lovelace")
+    const totalInput = genesisUtxo.assets.lovelace
     const payment = 5_000_000n
     const fee = await signBuilder.estimateFee()
     const expectedChange = totalInput - payment - fee
 
-    const changeUtxo = utxos.find((u) => Assets.getAsset(u.assets, "lovelace") === expectedChange)
+    const changeUtxo = utxos.find((u) => u.assets.lovelace === expectedChange)
     expect(changeUtxo).toBeDefined()
   })
 })

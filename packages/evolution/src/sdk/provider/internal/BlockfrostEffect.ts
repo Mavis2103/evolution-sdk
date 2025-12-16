@@ -5,15 +5,16 @@
 
 import { Effect, Schedule, Schema } from "effect"
 
+import * as CoreAddress from "../../../core/Address.js"
 import * as Bytes from "../../../core/Bytes.js"
-import type * as Address from "../../Address.js"
+import type * as CoreUTxO from "../../../core/UTxO.js"
 import type * as Credential from "../../Credential.js"
 import type * as OutRef from "../../OutRef.js"
 import type * as RewardAddress from "../../RewardAddress.js"
-import type { UTxO } from "../../UTxO.js"
 import { ProviderError } from "../Provider.js"
 import * as Blockfrost from "./Blockfrost.js"
 import * as HttpUtils from "./HttpUtils.js"
+import * as Ogmios from "./Ogmios.js"
 
 // ============================================================================
 // Rate Limiting Configuration
@@ -49,10 +50,13 @@ const wrapError = (operation: string) => (error: unknown) =>
 /**
  * Convert address or credential to appropriate Blockfrost endpoint path
  */
-const getAddressPath = (addressOrCredential: Address.Address | Credential.Credential): string => {
-  // For now, assume it's an address string
-  // In a full implementation, you'd need to handle credential conversion
-  return typeof addressOrCredential === "string" ? addressOrCredential : addressOrCredential.toString()
+const getAddressPath = (addressOrCredential: CoreAddress.Address | Credential.Credential): string => {
+  // For Core Address, convert to bech32 string
+  if (addressOrCredential instanceof CoreAddress.Address) {
+    return CoreAddress.toBech32(addressOrCredential)
+  }
+  // For Credential, convert to string representation
+  return addressOrCredential.toString()
 }
 
 // ============================================================================
@@ -80,7 +84,7 @@ export const getProtocolParameters = (baseUrl: string, projectId?: string) =>
  * Returns: (baseUrl, projectId?) => (addressOrCredential) => Effect<UTxO[], ProviderError>
  */
 export const getUtxos = (baseUrl: string, projectId?: string) => 
-  (addressOrCredential: Address.Address | Credential.Credential) => {
+  (addressOrCredential: CoreAddress.Address | Credential.Credential) => {
     const addressPath = getAddressPath(addressOrCredential)
     
     return withRateLimit(
@@ -102,7 +106,7 @@ export const getUtxos = (baseUrl: string, projectId?: string) =>
  * Returns: (baseUrl, projectId?) => (addressOrCredential, unit) => Effect<UTxO[], ProviderError>
  */
 export const getUtxosWithUnit = (baseUrl: string, projectId?: string) =>
-  (addressOrCredential: Address.Address | Credential.Credential, unit: string) => {
+  (addressOrCredential: CoreAddress.Address | Credential.Credential, unit: string) => {
     const addressPath = getAddressPath(addressOrCredential)
     
     return withRateLimit(
@@ -269,7 +273,7 @@ export const submitTx = (baseUrl: string, projectId?: string) =>
  * Returns: (baseUrl, projectId?) => (tx, additionalUTxOs?) => Effect<EvalRedeemer[], ProviderError>
  */
 export const evaluateTx = (baseUrl: string, projectId?: string) =>
-  (tx: string, additionalUTxOs?: Array<UTxO>) => {
+  (tx: string, additionalUTxOs?: Array<CoreUTxO.UTxO>) => {
     
     // If additional UTxOs provided, use the /utils/txs/evaluate/utxos endpoint with JSON payload
     if (additionalUTxOs && additionalUTxOs.length > 0) {
@@ -279,34 +283,23 @@ export const evaluateTx = (baseUrl: string, projectId?: string) =>
         "Content-Type": "application/json"
       }
       
-      // Format additional UTxOs as Ogmios format: [[TxIn, TxOut], ...]
-      // See: https://ogmios.dev/mini-protocols/local-tx-submission/#additional-utxo-set
-      const additionalUtxoSet = additionalUTxOs.map(utxo => {
-        // TxIn format: { txId: string, index: number }
+      // Use Ogmios format for additional UTxOs
+      const additionalUtxoSet = Ogmios.toOgmiosUTxOs(additionalUTxOs).map(utxo => {
         const txIn = {
-          txId: utxo.txHash,
-          index: utxo.outputIndex
+          txId: utxo.transaction.id,
+          index: utxo.index
         }
         
-        // TxOut format: { address: string, value: {...}, datum?: ..., script?: ... }
         const txOut: Record<string, unknown> = {
           address: utxo.address,
-          value: {
-            ada: { lovelace: Number(utxo.assets.lovelace) },
-            // Add other assets if present
-            ...(Object.keys(utxo.assets).length > 1 ? {
-              // Format multi-assets as Ogmios expects
-            } : {})
-          }
+          value: utxo.value
         }
         
         // Add datum if present
-        if (utxo.datumOption) {
-          if (utxo.datumOption.type === "inlineDatum") {
-            txOut.datum = utxo.datumOption.inline
-          } else if (utxo.datumOption.type === "datumHash") {
-            txOut.datumHash = utxo.datumOption.hash
-          }
+        if (utxo.datum) {
+          txOut.datum = utxo.datum
+        } else if (utxo.datumHash) {
+          txOut.datumHash = utxo.datumHash
         }
         
         return [txIn, txOut]

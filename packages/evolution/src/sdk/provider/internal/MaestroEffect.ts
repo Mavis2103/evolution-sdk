@@ -5,12 +5,15 @@
 
 import { Effect, Schema } from "effect"
 
+import * as CoreAddress from "../../../core/Address.js"
+import type * as CoreUTxO from "../../../core/UTxO.js"
 import type * as Credential from "../../Credential.js"
 import type { EvalRedeemer } from "../../EvalRedeemer.js"
 import type * as OutRef from "../../OutRef.js"
 import { ProviderError } from "../Provider.js"
 import * as HttpUtils from "./HttpUtils.js"
 import * as Maestro from "./Maestro.js"
+import * as Ogmios from "./Ogmios.js"
 
 // ============================================================================
 // Helper Functions
@@ -74,11 +77,11 @@ export const getProtocolParameters = (baseUrl: string, apiKey: string) =>
 /**
  * Get UTxOs by address with cursor pagination
  */
-export const getUtxos = (baseUrl: string, apiKey: string) => (addressOrCredential: string | Credential.Credential) =>
+export const getUtxos = (baseUrl: string, apiKey: string) => (addressOrCredential: CoreAddress.Address | Credential.Credential) =>
   Effect.gen(function* () {
     // Extract address string from Address or Credential
-    const addressStr = typeof addressOrCredential === "string" 
-      ? addressOrCredential
+    const addressStr = addressOrCredential instanceof CoreAddress.Address 
+      ? CoreAddress.toBech32(addressOrCredential)
       : addressOrCredential.hash // Use credential hash directly
     
     // Get all pages of UTxOs
@@ -93,7 +96,7 @@ export const getUtxos = (baseUrl: string, apiKey: string) => (addressOrCredentia
 /**
  * Get UTxOs by unit with cursor pagination
  */
-export const getUtxosWithUnit = (baseUrl: string, apiKey: string) => (addressOrCredential: string | Credential.Credential, unit: string) =>
+export const getUtxosWithUnit = (baseUrl: string, apiKey: string) => (addressOrCredential: CoreAddress.Address | Credential.Credential, unit: string) =>
   Effect.gen(function* () {
     // For Maestro, we get UTxOs by unit and then filter by address if needed
     // This is different from address-first approach but matches the API design
@@ -106,12 +109,13 @@ export const getUtxosWithUnit = (baseUrl: string, apiKey: string) => (addressOrC
     const transformedUtxos = allUtxos.map(Maestro.transformUTxO)
     
     // Filter by address if addressOrCredential is provided
-    const addressStr = typeof addressOrCredential === "string" 
-      ? addressOrCredential
+    const addressStr = addressOrCredential instanceof CoreAddress.Address 
+      ? CoreAddress.toBech32(addressOrCredential)
       : addressOrCredential.hash
     
     // Filter UTxOs that belong to the specified address/credential
-    return transformedUtxos.filter(utxo => utxo.address === addressStr)
+    // Use CoreAddress.toBech32 to convert Core Address to string for comparison
+    return transformedUtxos.filter(utxo => CoreAddress.toBech32(utxo.address) === addressStr)
   })
 
 /**
@@ -187,14 +191,17 @@ export const submitTx = (baseUrl: string, apiKey: string, turboSubmit?: boolean)
 /**
  * Evaluate transaction with Maestro
  */
-export const evaluateTx = (baseUrl: string, apiKey: string) => (tx: string, additionalUTxOs?: Array<{ txHash: string; outputIndex: number }>) =>
+export const evaluateTx = (baseUrl: string, apiKey: string) => (tx: string, additionalUTxOs?: Array<CoreUTxO.UTxO>) =>
   Effect.gen(function* () {
+    // Use Ogmios format for additional UTxOs
+    const ogmiosUtxos = additionalUTxOs ? Ogmios.toOgmiosUTxOs(additionalUTxOs) : undefined
+    
     const requestBody = {
       transaction: tx,
-      ...(additionalUTxOs && { 
-        additional_utxo_set: additionalUTxOs.map(utxo => ({
-          txHash: utxo.txHash,
-          outputIndex: utxo.outputIndex
+      ...(ogmiosUtxos && { 
+        additional_utxo_set: ogmiosUtxos.map(utxo => ({
+          txHash: utxo.transaction.id,
+          outputIndex: utxo.index
         }))
       })
     }

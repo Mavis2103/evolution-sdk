@@ -1,11 +1,11 @@
 import { Data, type Effect } from "effect"
 
+import type * as CoreAddress from "../../core/Address.js"
 import type * as Transaction from "../../core/Transaction.js"
 import type * as TransactionWitnessSet from "../../core/TransactionWitnessSet.js"
-import type * as Address from "../Address.js"
+import type * as CoreUTxO from "../../core/UTxO.js"
 import type * as RewardAddress from "../RewardAddress.js"
 import type { EffectToPromiseAPI } from "../Type.js"
-import type * as UTxO from "../UTxO.js"
 
 /**
  * Error class for wallet-related operations.
@@ -55,7 +55,7 @@ export type Network = "Mainnet" | "Testnet" | "Custom"
  * @category model
  */
 export interface ReadOnlyWalletEffect {
-  readonly address: () => Effect.Effect<Address.Address, WalletError>
+  readonly address: () => Effect.Effect<CoreAddress.Address, WalletError>
   readonly rewardAddress: () => Effect.Effect<RewardAddress.RewardAddress | null, WalletError>
 }
 
@@ -86,10 +86,10 @@ export interface SigningWalletEffect extends ReadOnlyWalletEffect {
    */
   readonly signTx: (
     tx: Transaction.Transaction | string,
-    context?: { utxos?: ReadonlyArray<UTxO.UTxO> }
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ) => Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletError>
   readonly signMessage: (
-    address: Address.Address | RewardAddress.RewardAddress,
+    address: CoreAddress.Address | RewardAddress.RewardAddress,
     payload: Payload
   ) => Effect.Effect<SignedMessage, WalletError>
 }
@@ -134,10 +134,10 @@ export interface WalletApi {
 export interface ApiWalletEffect extends ReadOnlyWalletEffect {
   readonly signTx: (
     tx: Transaction.Transaction | string,
-    context?: { utxos?: ReadonlyArray<UTxO.UTxO> }
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ) => Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletError>
   readonly signMessage: (
-    address: Address.Address | RewardAddress.RewardAddress,
+    address: CoreAddress.Address | RewardAddress.RewardAddress,
     payload: Payload
   ) => Effect.Effect<SignedMessage, WalletError>
   /**
@@ -207,5 +207,5 @@ export declare function makeWalletFromAPI(api: WalletApi): ApiWallet
  */
 export declare function makeWalletFromAddress(
   network: Network,
-  address: Address.Address
+  address: CoreAddress.Address
 ): ReadOnlyWallet

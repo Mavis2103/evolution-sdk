@@ -2,14 +2,14 @@ import { describe, expect, it } from "@effect/vitest"
 import { Effect, FastCheck, Schema } from "effect"
 
 import * as CoreAddress from "../src/core/Address.js"
+import * as CoreAssets from "../src/core/Assets/index.js"
 import * as KeyHash from "../src/core/KeyHash.js"
-import * as Assets from "../src/sdk/Assets.js"
+import * as CoreUTxO from "../src/core/UTxO.js"
 import type { TxBuilderConfig } from "../src/sdk/builders/TransactionBuilder.js"
 import { makeTxBuilder } from "../src/sdk/builders/TransactionBuilder.js"
 import { calculateTransactionSize } from "../src/sdk/builders/TxBuilderImpl.js"
-import type * as UTxO from "../src/sdk/UTxO.js"
 import * as FeeValidation from "../src/utils/FeeValidation.js"
-import { createTestUtxo } from "./utils/utxo-helpers.js"
+import { createCoreTestUtxo } from "./utils/utxo-helpers.js"
 
 describe("TxBuilder Re-selection Loop", () => {
   // ============================================================================
@@ -23,7 +23,7 @@ describe("TxBuilder Re-selection Loop", () => {
     maxTxSize: 16_384
   }
 
-  // Sample testnet addresses
+  // Sample testnet addresses (bech32 strings)
   const TESTNET_ADDRESSES = [
     "addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgs68faae",
     "addr_test1qpw0djgj0x59ngrjvqthn7enhvruxnsavsw5th63la3mjel3tkc974sr23jmlzgq5zda4gtv8k9cy38756r9y3qgmkqqjz6aa7",
@@ -32,6 +32,7 @@ describe("TxBuilder Re-selection Loop", () => {
     "addr_test1qpm9q3v5gnvjwx7kw0ml7dxqxd6h9fqxgu2s7umd9je3c5s3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgslxdxms"
   ] as const
 
+  // Keep as bech32 strings - use CoreAddress.fromBech32() at point of use
   const CHANGE_ADDRESS = TESTNET_ADDRESSES[0]
   const RECEIVER_ADDRESS = TESTNET_ADDRESSES[1]
 
@@ -63,20 +64,20 @@ describe("TxBuilder Re-selection Loop", () => {
 
   describe("Basic Re-selection Scenarios", () => {
     it("should build transaction with single UTxO - sufficient funds", async () => {
-      const utxo: UTxO.UTxO = createTestUtxo({
-        txHash: "a".repeat(64),
-        outputIndex: 0,
+      const utxo = createCoreTestUtxo({
+        transactionId: "a".repeat(64),
+        index: 0,
         address: CHANGE_ADDRESS,
         lovelace: 10_000_000n
       })
 
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: Assets.fromLovelace(2_000_000n)
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: CoreAssets.fromLovelace(2_000_000n)
       })
 
       const signBuilder = await builder.build({
-        changeAddress: CHANGE_ADDRESS,
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
         availableUtxos: [utxo],
         protocolParameters: PROTOCOL_PARAMS
       })
@@ -103,35 +104,35 @@ describe("TxBuilder Re-selection Loop", () => {
 
     it("should trigger re-selection with tight balance", async () => {
       // Create scenario where first selection seems sufficient but becomes insufficient after fee
-      const utxo1: UTxO.UTxO = createTestUtxo({
-        txHash: "a".repeat(64),
-        outputIndex: 0,
+      const utxo1 = createCoreTestUtxo({
+        transactionId: "a".repeat(64),
+        index: 0,
         address: CHANGE_ADDRESS,
         lovelace: 2_200_000n
       })
 
-      const utxo2: UTxO.UTxO = createTestUtxo({
-        txHash: "b".repeat(64),
-        outputIndex: 0,
+      const utxo2 = createCoreTestUtxo({
+        transactionId: "b".repeat(64),
+        index: 0,
         address: CHANGE_ADDRESS,
         lovelace: 1_000_000n
       })
 
-      const utxo3: UTxO.UTxO = createTestUtxo({
-        txHash: "c".repeat(64),
-        outputIndex: 0,
+      const utxo3 = createCoreTestUtxo({
+        transactionId: "c".repeat(64),
+        index: 0,
         address: CHANGE_ADDRESS,
         lovelace: 1_000_000n
       })
 
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: Assets.fromLovelace(2_000_000n) // 2 ADA payment
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: CoreAssets.fromLovelace(2_000_000n) // 2 ADA payment
       })
 
       const signBuilder = await builder.build({
         drainTo: 0,
-        changeAddress: CHANGE_ADDRESS,
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
         availableUtxos: [utxo1, utxo2, utxo3],
         protocolParameters: PROTOCOL_PARAMS
       })
@@ -157,21 +158,21 @@ describe("TxBuilder Re-selection Loop", () => {
     })
 
     it("should throw error when insufficient total funds", async () => {
-      const utxo: UTxO.UTxO = createTestUtxo({
-        txHash: "a".repeat(64),
-        outputIndex: 0,
+      const utxo = createCoreTestUtxo({
+        transactionId: "a".repeat(64),
+        index: 0,
         address: CHANGE_ADDRESS,
         lovelace: 1_000_000n
       })
 
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: Assets.fromLovelace(2_000_000n) // Requesting 2 ADA
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: CoreAssets.fromLovelace(2_000_000n) // Requesting 2 ADA
       })
 
       await expect(
         builder.build({
-          changeAddress: CHANGE_ADDRESS,
+          changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
           availableUtxos: [utxo],
           protocolParameters: PROTOCOL_PARAMS
         })
@@ -184,21 +185,21 @@ describe("TxBuilder Re-selection Loop", () => {
       const estimatedFee = 170_000n
       const exactAmount = paymentAmount + estimatedFee
 
-      const utxo: UTxO.UTxO = createTestUtxo({
-        txHash: "a".repeat(64),
-        outputIndex: 0,
+      const utxo = createCoreTestUtxo({
+        transactionId: "a".repeat(64),
+        index: 0,
         address: CHANGE_ADDRESS,
         lovelace: exactAmount
       })
 
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: Assets.fromLovelace(paymentAmount)
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: CoreAssets.fromLovelace(paymentAmount)
       })
 
       const signBuilder = await builder.build({
         drainTo: 0,
-        changeAddress: CHANGE_ADDRESS,
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
         availableUtxos: [utxo],
         protocolParameters: PROTOCOL_PARAMS
       })
@@ -227,30 +228,31 @@ describe("TxBuilder Re-selection Loop", () => {
 
       const TOKEN_POLICY = "c".repeat(56)
       const TOKEN_NAME_1 = "544f4b454e31" // "TOKEN1" in hex
-      const TOKEN_UNIT_1 = `${TOKEN_POLICY}${TOKEN_NAME_1}`
 
       // UTxO with sufficient lovelace + token
-      const utxo: UTxO.UTxO = createTestUtxo({
-        txHash: "a".repeat(64),
-        outputIndex: 0,
+      let assets = CoreAssets.fromLovelace(3_000_000n)
+      assets = CoreAssets.addByHex(assets, TOKEN_POLICY, TOKEN_NAME_1, 100n)
+      const utxo = createCoreTestUtxo({
+        transactionId: "a".repeat(64),
+        index: 0,
         address: CHANGE_ADDRESS,
-        lovelace: 3_000_000n,
-        nativeAssets: { [TOKEN_UNIT_1]: 100n }
+        lovelace: 3_000_000n
       })
+      const utxoWithTokens = new CoreUTxO.UTxO({ ...utxo, assets })
 
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         // Payment leaves leftover + token
         // 3_000_000 - 2_000_000 - fee(~170k) = ~830k leftover + token
-        assets: Assets.fromLovelace(2_000_000n)
+        assets: CoreAssets.fromLovelace(2_000_000n)
       })
 
       // DrainTo requested, but should create change output instead (native assets present)
       // Expected: Transaction succeeds with change output preserving native asset
       const signBuilder = await builder.build({
         drainTo: 0,
-        changeAddress: CHANGE_ADDRESS,
-        availableUtxos: [utxo],
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
+        availableUtxos: [utxoWithTokens],
         protocolParameters: PROTOCOL_PARAMS
       })
       expect(signBuilder).toBeDefined()
@@ -272,37 +274,37 @@ describe("TxBuilder Re-selection Loop", () => {
   describe("Multi-Asset Re-selection", () => {
     const TOKEN_POLICY = "c".repeat(56)
     const TOKEN_NAME = "544f4b454e" // "TOKEN" in hex
-    const TOKEN_UNIT = `${TOKEN_POLICY}${TOKEN_NAME}`
 
     it("should handle native tokens with partial payment", async () => {
       // UTxO with 2 ADA + 100 tokens (from first address)
-      const utxo1: UTxO.UTxO = createTestUtxo({
-        txHash: "a".repeat(64),
-        outputIndex: 0,
+      let assets1 = CoreAssets.fromLovelace(2_000_000n)
+      assets1 = CoreAssets.addByHex(assets1, TOKEN_POLICY, TOKEN_NAME, 100n)
+      const utxo1Base = createCoreTestUtxo({
+        transactionId: "a".repeat(64),
+        index: 0,
         address: TESTNET_ADDRESSES[0],
-        lovelace: 2_000_000n,
-        nativeAssets: { [TOKEN_UNIT]: 100n }
+        lovelace: 2_000_000n
       })
+      const utxo1 = new CoreUTxO.UTxO({ ...utxo1Base, assets: assets1 })
 
       // Additional pure ADA UTxO for fee coverage (from second address)
-      const utxo2: UTxO.UTxO = createTestUtxo({
-        txHash: "b".repeat(64),
-        outputIndex: 0,
+      const utxo2 = createCoreTestUtxo({
+        transactionId: "b".repeat(64),
+        index: 0,
         address: TESTNET_ADDRESSES[1],
         lovelace: 3_000_000n
       })
 
       // Pay 2 ADA + 50 tokens
+      let paymentAssets = CoreAssets.fromLovelace(2_000_000n)
+      paymentAssets = CoreAssets.addByHex(paymentAssets, TOKEN_POLICY, TOKEN_NAME, 50n)
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: {
-          lovelace: 2_000_000n,
-          [TOKEN_UNIT]: 50n
-        }
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: paymentAssets
       })
 
       const signBuilder = await builder.build({
-        changeAddress: CHANGE_ADDRESS,
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
         availableUtxos: [utxo1, utxo2],
         protocolParameters: PROTOCOL_PARAMS
       })
@@ -336,24 +338,25 @@ describe("TxBuilder Re-selection Loop", () => {
     it("should trigger coin selection when native assets are missing from inputs", async () => {
       const TOKEN_POLICY = "c".repeat(56)
       const TOKEN_NAME = "544f4b454e" // "TOKEN" in hex
-      const TOKEN_UNIT = `${TOKEN_POLICY}${TOKEN_NAME}`
 
       // UTxO with ONLY ADA (no tokens)
-      const utxo1: UTxO.UTxO = createTestUtxo({
-        txHash: "a".repeat(64),
-        outputIndex: 0,
+      const utxo1 = createCoreTestUtxo({
+        transactionId: "a".repeat(64),
+        index: 0,
         address: TESTNET_ADDRESSES[0],
         lovelace: 10_000_000n
       })
 
       // UTxO with tokens (available for coin selection)
-      const utxo2: UTxO.UTxO = createTestUtxo({
-        txHash: "b".repeat(64),
-        outputIndex: 0,
+      let assets2 = CoreAssets.fromLovelace(3_000_000n)
+      assets2 = CoreAssets.addByHex(assets2, TOKEN_POLICY, TOKEN_NAME, 200n)
+      const utxo2Base = createCoreTestUtxo({
+        transactionId: "b".repeat(64),
+        index: 0,
         address: TESTNET_ADDRESSES[1],
-        lovelace: 3_000_000n,
-        nativeAssets: { [TOKEN_UNIT]: 200n }
+        lovelace: 3_000_000n
       })
+      const utxo2 = new CoreUTxO.UTxO({ ...utxo2Base, assets: assets2 })
 
       // Config with both utxos available for automatic selection
       const builderConfig: TxBuilderConfig = {
@@ -361,17 +364,16 @@ describe("TxBuilder Re-selection Loop", () => {
       }
 
       // Payment requires tokens that utxo1 doesn't have
+      let paymentAssets = CoreAssets.fromLovelace(2_000_000n)
+      paymentAssets = CoreAssets.addByHex(paymentAssets, TOKEN_POLICY, TOKEN_NAME, 100n)
       const builder = makeTxBuilder(builderConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: {
-          lovelace: 2_000_000n,
-          [TOKEN_UNIT]: 100n // Requires tokens!
-        }
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: paymentAssets // Requires tokens!
       })
 
       const signBuilder = await builder.build({
         availableUtxos: [utxo1, utxo2],
-        changeAddress: CHANGE_ADDRESS,
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
         protocolParameters: PROTOCOL_PARAMS
       })
       const tx = await signBuilder.toTransaction()
@@ -399,22 +401,22 @@ describe("TxBuilder Re-selection Loop", () => {
   describe("Transaction Size Validation", () => {
     it("should pass size check with same address (1 witness)", async () => {
       // Single address = 1 witness
-      const utxos: Array<UTxO.UTxO> = Array.from({ length: 5 }, (_, i) =>
-        createTestUtxo({
-          txHash: i.toString().padStart(64, "0"),
-          outputIndex: 0,
+      const utxos: Array<CoreUTxO.UTxO> = Array.from({ length: 5 }, (_, i) =>
+        createCoreTestUtxo({
+          transactionId: i.toString().padStart(64, "0"),
+          index: 0,
           address: CHANGE_ADDRESS,
           lovelace: 2_000_000n
         })
       )
 
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: Assets.fromLovelace(5_000_000n) // 5 ADA
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: CoreAssets.fromLovelace(5_000_000n) // 5 ADA
       })
 
       const signBuilder = await builder.build({
-        changeAddress: CHANGE_ADDRESS,
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
         availableUtxos: utxos,
         protocolParameters: PROTOCOL_PARAMS
       })
@@ -439,27 +441,27 @@ describe("TxBuilder Re-selection Loop", () => {
     })
 
     it("should pass size check with 2 different addresses (2 witnesses)", async () => {
-      const utxo1: UTxO.UTxO = createTestUtxo({
-        txHash: "a".repeat(64),
-        outputIndex: 0,
+      const utxo1 = createCoreTestUtxo({
+        transactionId: "a".repeat(64),
+        index: 0,
         address: TESTNET_ADDRESSES[0],
         lovelace: 5_000_000n
       })
 
-      const utxo2: UTxO.UTxO = createTestUtxo({
-        txHash: "b".repeat(64),
-        outputIndex: 0,
+      const utxo2 = createCoreTestUtxo({
+        transactionId: "b".repeat(64),
+        index: 0,
         address: TESTNET_ADDRESSES[1],
         lovelace: 5_000_000n
       })
 
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: Assets.fromLovelace(6_000_000n)
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: CoreAssets.fromLovelace(6_000_000n)
       })
 
       const signBuilder = await builder.build({
-        changeAddress: CHANGE_ADDRESS,
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
         availableUtxos: [utxo1, utxo2],
         protocolParameters: PROTOCOL_PARAMS
       })
@@ -503,27 +505,27 @@ describe("TxBuilder Re-selection Loop", () => {
 
       // Create 150 UTxOs with truly unique addresses
       // This will require 150 unique witnesses when selected
-      const utxos: Array<UTxO.UTxO> = uniqueAddresses.slice(0, 150).map((address, i) => {
-        return createTestUtxo({
-          txHash: i.toString().padStart(64, "0"),
-          outputIndex: 0,
+      const utxos: Array<CoreUTxO.UTxO> = uniqueAddresses.slice(0, 150).map((address, i) => {
+        return createCoreTestUtxo({
+          transactionId: i.toString().padStart(64, "0"),
+          index: 0,
           address,
           lovelace: 2_000_000n
         })
       })
 
       const builder = makeTxBuilder({ ...baseConfig }).payToAddress({
-        address: RECEIVER_ADDRESS,
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
         // Request 280M to force selection of 140+ UTxOs (each 2M), which will create 140+ witnesses
         // This will exceed the 16KB transaction size limit
-        assets: Assets.fromLovelace(280_000_000n)
+        assets: CoreAssets.fromLovelace(280_000_000n)
       })
 
       // Should throw error due to transaction size exceeding limit
       // With 140+ unique addresses selected, we get 140+ fake witnesses pushing size over 16384 bytes
       await expect(
         builder.build({
-          changeAddress: CHANGE_ADDRESS,
+          changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
           availableUtxos: utxos,
           protocolParameters: PROTOCOL_PARAMS
         })
@@ -538,32 +540,32 @@ describe("TxBuilder Re-selection Loop", () => {
   describe("Multiple Reselection Attempts", () => {
     it("should trigger multiple reselection attempts with incremental coin selection", async () => {
       // Create a mix of UTxO sizes - largest-first will pick bigger ones initially
-      const utxos: Array<UTxO.UTxO> = [
+      const utxos: Array<CoreUTxO.UTxO> = [
         // Large UTxOs (selected first)
-        createTestUtxo({ txHash: "a".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 1_500_000n }),
-        createTestUtxo({ txHash: "b".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 1_200_000n }),
+        createCoreTestUtxo({ transactionId: "a".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 1_500_000n }),
+        createCoreTestUtxo({ transactionId: "b".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 1_200_000n }),
 
         // Medium UTxOs (for reselection)
-        createTestUtxo({ txHash: "c".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 600_000n }),
-        createTestUtxo({ txHash: "d".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 600_000n }),
-        createTestUtxo({ txHash: "e".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 600_000n }),
+        createCoreTestUtxo({ transactionId: "c".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 600_000n }),
+        createCoreTestUtxo({ transactionId: "d".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 600_000n }),
+        createCoreTestUtxo({ transactionId: "e".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 600_000n }),
 
-        // Small UTxOs (for additional reselections if needed)
-        createTestUtxo({ txHash: "f".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 400_000n }),
-        createTestUtxo({ txHash: "g".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 400_000n }),
-        createTestUtxo({ txHash: "h".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 400_000n })
+        // Small UTxOs (for additional reselections if needed) - using valid hex chars 1, 2, 3
+        createCoreTestUtxo({ transactionId: "1".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 400_000n }),
+        createCoreTestUtxo({ transactionId: "2".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 400_000n }),
+        createCoreTestUtxo({ transactionId: "3".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 400_000n })
       ]
 
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: Assets.fromLovelace(2_500_000n) // 2.5 ADA payment
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: CoreAssets.fromLovelace(2_500_000n) // 2.5 ADA payment
       })
 
       // Build uses default largest-first algorithm
       // Use drainTo since the change will be small (33K < minUTxO)
       const signBuilder = await builder.build({
         drainTo: 0,
-        changeAddress: CHANGE_ADDRESS,
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
         availableUtxos: utxos,
         protocolParameters: PROTOCOL_PARAMS
       })
@@ -601,10 +603,10 @@ describe("TxBuilder Re-selection Loop", () => {
 
       // Create 20 small UTxOs, each with just enough to pass minUTxO
       // Using ~350K lovelace each (slightly above minUTxO of ~280K)
-      const tinyUtxos: Array<UTxO.UTxO> = Array.from({ length: 20 }, (_, i) =>
-        createTestUtxo({
-          txHash: i.toString().padStart(64, "0"),
-          outputIndex: 0,
+      const tinyUtxos: Array<CoreUTxO.UTxO> = Array.from({ length: 20 }, (_, i) =>
+        createCoreTestUtxo({
+          transactionId: i.toString().padStart(64, "0"),
+          index: 0,
           address: CHANGE_ADDRESS,
           lovelace: 350_000n
         })
@@ -614,13 +616,13 @@ describe("TxBuilder Re-selection Loop", () => {
       // Each UTxO contributes 350K, minus ~2K fee overhead = ~348K net
       // To get 3M payment, need ~9 UTxOs initially, but fee will increase
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: Assets.fromLovelace(3_000_000n) // 3 ADA
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: CoreAssets.fromLovelace(3_000_000n) // 3 ADA
       })
 
       // Build should succeed after multiple reselection attempts
       const signBuilder = await builder.build({
-        changeAddress: CHANGE_ADDRESS,
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
         availableUtxos: tinyUtxos,
         protocolParameters: PROTOCOL_PARAMS
       })
@@ -649,27 +651,27 @@ describe("TxBuilder Re-selection Loop", () => {
     })
 
     it("should handle reselection with mixed-size UTxOs", async () => {
-      const utxos: Array<UTxO.UTxO> = [
+      const utxos: Array<CoreUTxO.UTxO> = [
         // First pass: Large UTxO insufficient by itself
-        createTestUtxo({ txHash: "a".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 1_500_000n }),
+        createCoreTestUtxo({ transactionId: "a".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 1_500_000n }),
 
         // Second pass: Medium UTxOs
-        createTestUtxo({ txHash: "b".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 800_000n }),
-        createTestUtxo({ txHash: "c".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 800_000n }),
+        createCoreTestUtxo({ transactionId: "b".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 800_000n }),
+        createCoreTestUtxo({ transactionId: "c".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 800_000n }),
 
         // Third pass: Small UTxOs for fine-tuning
-        createTestUtxo({ txHash: "d".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 400_000n }),
-        createTestUtxo({ txHash: "e".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 400_000n }),
-        createTestUtxo({ txHash: "f".repeat(64), outputIndex: 0, address: CHANGE_ADDRESS, lovelace: 400_000n })
+        createCoreTestUtxo({ transactionId: "d".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 400_000n }),
+        createCoreTestUtxo({ transactionId: "e".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 400_000n }),
+        createCoreTestUtxo({ transactionId: "f".repeat(64), index: 0, address: CHANGE_ADDRESS, lovelace: 400_000n })
       ]
 
       const builder = makeTxBuilder(baseConfig).payToAddress({
-        address: RECEIVER_ADDRESS,
-        assets: Assets.fromLovelace(2_500_000n) // 2.5 ADA - requires reselection
+        address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+        assets: CoreAssets.fromLovelace(2_500_000n) // 2.5 ADA - requires reselection
       })
 
       const signBuilder = await builder.build({
-        changeAddress: CHANGE_ADDRESS,
+        changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
         availableUtxos: utxos,
         protocolParameters: PROTOCOL_PARAMS
       })
@@ -713,20 +715,20 @@ describe("TxBuilder Reselection After Change", () => {
    * The balance equation (inputs = outputs + fee) must hold.
    */
   it("should calculate fee with change output included in transaction structure", async () => {
-    const largeUtxo: UTxO.UTxO = createTestUtxo({
-      txHash: "a",
-      outputIndex: 0,
+    const largeUtxo = createCoreTestUtxo({
+      transactionId: "a".repeat(64),
+      index: 0,
       address: CHANGE_ADDRESS,
       lovelace: 10_000_000n // 10 ADA
     })
 
     const builder = makeTxBuilder(baseConfig).payToAddress({
-      address: RECEIVER_ADDRESS,
-      assets: Assets.fromLovelace(5_000_000n) // 5 ADA payment
+      address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+      assets: CoreAssets.fromLovelace(5_000_000n) // 5 ADA payment
     })
 
     const signBuilder = await builder.build({
-      changeAddress: CHANGE_ADDRESS,
+      changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
       availableUtxos: [largeUtxo],
       protocolParameters: PROTOCOL_PARAMS
     })
@@ -757,32 +759,32 @@ describe("TxBuilder Reselection After Change", () => {
    * Verifies that UTxO reselection uses accurate fee calculation that includes change output size.
    */
   it("should reselect UTxOs based on actual fee (after change creation)", async () => {
-    const utxo1: UTxO.UTxO = createTestUtxo({
-      txHash: "a",
-      outputIndex: 0,
+    const utxo1 = createCoreTestUtxo({
+      transactionId: "a".repeat(64),
+      index: 0,
       address: CHANGE_ADDRESS,
       lovelace: 2_000_000n
     })
-    const utxo2: UTxO.UTxO = createTestUtxo({
-      txHash: "b",
-      outputIndex: 0,
+    const utxo2 = createCoreTestUtxo({
+      transactionId: "b".repeat(64),
+      index: 0,
       address: CHANGE_ADDRESS,
       lovelace: 2_000_000n
     })
-    const utxo3: UTxO.UTxO = createTestUtxo({
-      txHash: "c",
-      outputIndex: 0,
+    const utxo3 = createCoreTestUtxo({
+      transactionId: "c".repeat(64),
+      index: 0,
       address: CHANGE_ADDRESS,
       lovelace: 2_000_000n
     })
 
     const builder = makeTxBuilder(baseConfig).payToAddress({
-      address: RECEIVER_ADDRESS,
-      assets: Assets.fromLovelace(3_500_000n) // Needs 2 UTxOs
+      address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+      assets: CoreAssets.fromLovelace(3_500_000n) // Needs 2 UTxOs
     })
 
     const signBuilder = await builder.build({
-      changeAddress: CHANGE_ADDRESS,
+      changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
       availableUtxos: [utxo1, utxo2, utxo3],
       protocolParameters: PROTOCOL_PARAMS
     })
@@ -809,21 +811,23 @@ describe("TxBuilder Reselection After Change", () => {
     const policyId = "a".repeat(56)
     const assetName = "544f4b454e" // "TOKEN" in hex
 
-    const utxoWithAssets: UTxO.UTxO = createTestUtxo({
-      txHash: "c",
-      outputIndex: 0,
+    let assets = CoreAssets.fromLovelace(10_000_000n)
+    assets = CoreAssets.addByHex(assets, policyId, assetName, 1000n)
+    const utxoBase = createCoreTestUtxo({
+      transactionId: "c".repeat(64),
+      index: 0,
       address: CHANGE_ADDRESS,
-      lovelace: 10_000_000n,
-      nativeAssets: { [`${policyId}${assetName}`]: 1000n } // Native assets increase change size
+      lovelace: 10_000_000n
     })
+    const utxoWithAssets = new CoreUTxO.UTxO({ ...utxoBase, assets })
 
     const builder = makeTxBuilder(baseConfig).payToAddress({
-      address: RECEIVER_ADDRESS,
-      assets: Assets.fromLovelace(3_000_000n) // Send only lovelace
+      address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+      assets: CoreAssets.fromLovelace(3_000_000n) // Send only lovelace
     })
 
     const signBuilder = await builder.build({
-      changeAddress: CHANGE_ADDRESS,
+      changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
       availableUtxos: [utxoWithAssets],
       protocolParameters: PROTOCOL_PARAMS
     })
@@ -854,26 +858,26 @@ describe("TxBuilder Reselection After Change", () => {
    * Verifies correct fee calculation when using multiple small UTxOs and change output affects transaction size.
    */
   it("should handle case where change output affects fee calculation", async () => {
-    const utxo1: UTxO.UTxO = createTestUtxo({
-      txHash: "a",
-      outputIndex: 0,
+    const utxo1 = createCoreTestUtxo({
+      transactionId: "a".repeat(64),
+      index: 0,
       address: CHANGE_ADDRESS,
       lovelace: 2_000_000n
     })
-    const utxo2: UTxO.UTxO = createTestUtxo({
-      txHash: "b",
-      outputIndex: 0,
+    const utxo2 = createCoreTestUtxo({
+      transactionId: "b".repeat(64),
+      index: 0,
       address: CHANGE_ADDRESS,
       lovelace: 2_000_000n
     })
 
     const builder = makeTxBuilder(baseConfig).payToAddress({
-      address: RECEIVER_ADDRESS,
-      assets: Assets.fromLovelace(3_000_000n)
+      address: CoreAddress.fromBech32(RECEIVER_ADDRESS),
+      assets: CoreAssets.fromLovelace(3_000_000n)
     })
 
     const signBuilder = await builder.build({
-      changeAddress: CHANGE_ADDRESS,
+      changeAddress: CoreAddress.fromBech32(CHANGE_ADDRESS),
       availableUtxos: [utxo1, utxo2],
       protocolParameters: PROTOCOL_PARAMS
     })

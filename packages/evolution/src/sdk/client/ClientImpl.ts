@@ -1,14 +1,15 @@
 import { Effect, Equal, ParseResult } from "effect"
 
+import * as CoreAddress from "../../core/Address.js"
 import * as KeyHash from "../../core/KeyHash.js"
 import * as PrivateKey from "../../core/PrivateKey.js"
 import * as Transaction from "../../core/Transaction.js"
 import * as TransactionHash from "../../core/TransactionHash.js"
 import * as TransactionWitnessSet from "../../core/TransactionWitnessSet.js"
+import * as CoreUTxO from "../../core/UTxO.js"
 import * as VKey from "../../core/VKey.js"
 import { runEffectPromise } from "../../utils/effect-runtime.js"
 import { hashTransaction } from "../../utils/Hash.js"
-import type * as Address from "../Address.js"
 import {
   makeTxBuilder,
   type ReadOnlyTransactionBuilder,
@@ -20,7 +21,6 @@ import * as Kupmios from "../provider/Kupmios.js"
 import * as Maestro from "../provider/Maestro.js"
 import * as Provider from "../provider/Provider.js"
 import * as RewardAddress from "../RewardAddress.js"
-import type * as UTxO from "../UTxO.js"
 import * as Derivation from "../wallet/Derivation.js"
 import * as WalletNew from "../wallet/WalletNew.js"
 import {
@@ -114,13 +114,14 @@ const createReadOnlyWallet = (
   address: string,
   rewardAddress?: string
 ): WalletNew.ReadOnlyWallet => {
+  const coreAddress = CoreAddress.fromBech32(address)
   const walletEffect: WalletNew.ReadOnlyWalletEffect = {
-    address: () => Effect.succeed(address),
+    address: () => Effect.succeed(coreAddress),
     rewardAddress: () => Effect.succeed(rewardAddress ?? null)
   }
 
   return {
-    address: () => Promise.resolve(address),
+    address: () => Promise.resolve(coreAddress),
     rewardAddress: () => Promise.resolve(rewardAddress ?? null),
     Effect: walletEffect,
     type: "read-only"
@@ -167,12 +168,14 @@ const createReadOnlyClient = (
   const provider = createProvider(providerConfig)
   const walletNetwork = toWalletNetwork(network)
   const wallet = createReadOnlyWallet(walletNetwork, walletConfig.address, walletConfig.rewardAddress)
+  // Parse the bech32 address to Core Address for provider calls
+  const coreAddress = CoreAddress.fromBech32(walletConfig.address)
 
   const result = {
     ...provider,
     address: wallet.address,
     rewardAddress: wallet.rewardAddress,
-    getWalletUtxos: () => provider.getUtxos(walletConfig.address),
+    getWalletUtxos: () => provider.getUtxos(coreAddress),
     getWalletDelegation: async () => {
       const rewardAddr = walletConfig.rewardAddress
       if (!rewardAddr) throw new Error("No reward address configured")
@@ -187,7 +190,7 @@ const createReadOnlyClient = (
     Effect: {
       ...provider.Effect,
       ...wallet.Effect,
-      getWalletUtxos: () => provider.Effect.getUtxos(walletConfig.address),
+      getWalletUtxos: () => provider.Effect.getUtxos(coreAddress),
       getWalletDelegation: () => {
         const rewardAddr = walletConfig.rewardAddress
         if (!rewardAddr)
@@ -211,7 +214,7 @@ const computeRequiredKeyHashesSync = (params: {
   rewardAddress?: RewardAddress.RewardAddress | null
   stakeKhHex?: string
   tx: Transaction.Transaction
-  utxos: ReadonlyArray<UTxO.UTxO>
+  utxos: ReadonlyArray<CoreUTxO.UTxO>
 }): Set<string> => {
   const required = new Set<string>()
 
@@ -219,7 +222,7 @@ const computeRequiredKeyHashesSync = (params: {
     for (const kh of params.tx.body.requiredSigners) required.add(KeyHash.toHex(kh))
   }
 
-  const ownedRefs = new Set<string>(params.utxos.map((u) => `${u.txHash}#${u.outputIndex}`))
+  const ownedRefs = new Set<string>(params.utxos.map((u) => CoreUTxO.toOutRefString(u)))
 
   const checkInputs = (inputs?: ReadonlyArray<Transaction.Transaction["body"]["inputs"][number]>) => {
     if (!inputs || !params.paymentKhHex) return
@@ -282,7 +285,7 @@ const createSigningWallet = (network: WalletNew.Network, config: SeedWalletConfi
   const effectInterface: WalletNew.SigningWalletEffect = {
     address: () => Effect.map(derivationEffect, (d) => d.address),
     rewardAddress: () => Effect.map(derivationEffect, (d) => d.rewardAddress ?? null),
-    signTx: (txOrHex: Transaction.Transaction | string, context?: { utxos?: ReadonlyArray<UTxO.UTxO> }) =>
+    signTx: (txOrHex: Transaction.Transaction | string, context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
       Effect.gen(function* () {
         const derivation = yield* derivationEffect
 
@@ -324,7 +327,7 @@ const createSigningWallet = (network: WalletNew.Network, config: SeedWalletConfi
 
         return witnesses.length > 0 ? TransactionWitnessSet.fromVKeyWitnesses(witnesses) : TransactionWitnessSet.empty()
       }),
-    signMessage: (_address: Address.Address | RewardAddress.RewardAddress, payload: WalletNew.Payload) =>
+    signMessage: (_address: CoreAddress.Address | RewardAddress.RewardAddress, payload: WalletNew.Payload) =>
       Effect.map(derivationEffect, (derivation) => {
         // For now, always use payment key for message signing
         const paymentSk = PrivateKey.fromBech32(derivation.paymentKey)
@@ -366,7 +369,7 @@ const createPrivateKeyWallet = (
   const effectInterface: WalletNew.SigningWalletEffect = {
     address: () => Effect.map(derivationEffect, (d) => d.address),
     rewardAddress: () => Effect.map(derivationEffect, (d) => d.rewardAddress ?? null),
-    signTx: (txOrHex: Transaction.Transaction | string, context?: { utxos?: ReadonlyArray<UTxO.UTxO> }) =>
+    signTx: (txOrHex: Transaction.Transaction | string, context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
       Effect.gen(function* () {
         const derivation = yield* derivationEffect
 
@@ -406,7 +409,7 @@ const createPrivateKeyWallet = (
 
         return witnesses.length > 0 ? TransactionWitnessSet.fromVKeyWitnesses(witnesses) : TransactionWitnessSet.empty()
       }),
-    signMessage: (_address: Address.Address | RewardAddress.RewardAddress, payload: WalletNew.Payload) =>
+    signMessage: (_address: CoreAddress.Address | RewardAddress.RewardAddress, payload: WalletNew.Payload) =>
       Effect.map(derivationEffect, (derivation) => {
         const paymentSk = PrivateKey.fromBech32(derivation.paymentKey)
         const vk = VKey.fromPrivateKey(paymentSk)
@@ -435,7 +438,7 @@ const createPrivateKeyWallet = (
  */
 const createApiWallet = (_network: WalletNew.Network, config: ApiWalletConfig): WalletNew.ApiWallet => {
   const api = config.api
-  let cachedAddress: Address.Address | null = null
+  let cachedAddress: CoreAddress.Address | null = null
   let cachedReward: RewardAddress.RewardAddress | null = null
 
   const getPrimaryAddress = Effect.gen(function* () {
@@ -448,12 +451,13 @@ const createApiWallet = (_network: WalletNew.Network, config: ApiWalletConfig): 
       try: () => api.getUnusedAddresses(),
       catch: (cause) => new WalletNew.WalletError({ message: (cause as Error).message, cause: cause as Error })
     })
-    const addr = used[0] ?? unused[0]
-    if (!addr) {
+    const addrStr = used[0] ?? unused[0]
+    if (!addrStr) {
       return yield* Effect.fail(new WalletNew.WalletError({ message: "Wallet API returned no addresses", cause: null }))
     }
-    cachedAddress = addr
-    return addr
+    // Convert bech32 string to Core Address
+    cachedAddress = CoreAddress.fromBech32(addrStr)
+    return cachedAddress
   })
 
   const getPrimaryRewardAddress = Effect.gen(function* () {
@@ -470,7 +474,7 @@ const createApiWallet = (_network: WalletNew.Network, config: ApiWalletConfig): 
   const effectInterface: WalletNew.ApiWalletEffect = {
     address: () => getPrimaryAddress,
     rewardAddress: () => getPrimaryRewardAddress,
-    signTx: (txOrHex: Transaction.Transaction | string, _context?: { utxos?: ReadonlyArray<UTxO.UTxO> }) =>
+    signTx: (txOrHex: Transaction.Transaction | string, _context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
       Effect.gen(function* () {
         const cbor = typeof txOrHex === "string" ? txOrHex : Transaction.toCBORHex(txOrHex)
         const witnessHex = yield* Effect.tryPromise({
@@ -483,10 +487,12 @@ const createApiWallet = (_network: WalletNew.Network, config: ApiWalletConfig): 
           )
         )
       }),
-    signMessage: (address: Address.Address | RewardAddress.RewardAddress, payload: WalletNew.Payload) =>
+    signMessage: (address: CoreAddress.Address | RewardAddress.RewardAddress, payload: WalletNew.Payload) =>
       Effect.gen(function* () {
+        // Convert Core Address to bech32 string for the CIP-30 API
+        const addressStr = address instanceof CoreAddress.Address ? CoreAddress.toBech32(address) : address
         const result = yield* Effect.tryPromise({
-          try: () => api.signData(address, payload),
+          try: () => api.signData(addressStr, payload),
           catch: (cause) => new WalletNew.WalletError({ message: "User rejected message signing", cause })
         })
         return { payload, signature: result.signature }
