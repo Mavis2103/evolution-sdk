@@ -292,7 +292,7 @@ Pattern match on a Voter.
 
 ```ts
 export declare const matchVoter: <R>(patterns: {
-  ConstitutionalCommitteeVoter: (credential: Credential.CredentialSchema) => R
+  ConstitutionalCommitteeVoter: (credential: Credential.Credential) => R
   DRepVoter: (drep: DRep.DRep) => R
   StakePoolVoter: (poolKeyHash: PoolKeyHash.PoolKeyHash) => R
 }) => (voter: Voter) => R

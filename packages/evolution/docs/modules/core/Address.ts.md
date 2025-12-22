@@ -89,8 +89,8 @@ export interface AddressDetails {
     readonly bech32: string
     readonly hex: string
   }
-  readonly paymentCredential: Credential.CredentialSchema
-  readonly stakingCredential?: Credential.CredentialSchema
+  readonly paymentCredential: Credential.Credential
+  readonly stakingCredential?: Credential.Credential
 }
 ```
 
@@ -258,7 +258,7 @@ Returns undefined if the address cannot be parsed
 **Signature**
 
 ```ts
-export declare const getPaymentCredential: (address: string) => Credential.CredentialSchema | undefined
+export declare const getPaymentCredential: (address: string) => Credential.Credential | undefined
 ```
 
 Added in v1.0.0
@@ -271,7 +271,7 @@ Returns undefined if the address has no staking credential or cannot be parsed
 **Signature**
 
 ```ts
-export declare const getStakingCredential: (address: string) => Credential.CredentialSchema | undefined
+export declare const getStakingCredential: (address: string) => Credential.Credential | undefined
 ```
 
 Added in v1.0.0

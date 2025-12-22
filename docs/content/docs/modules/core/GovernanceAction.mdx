@@ -217,11 +217,8 @@ export declare const match: <R>(
     NoConfidenceAction: (govActionId: GovActionId | null) => R
     UpdateCommitteeAction: (
       govActionId: GovActionId | null,
-      membersToRemove: ReadonlyArray<typeof CommiteeColdCredential.CommitteeColdCredential.CredentialSchema.Type>,
-      membersToAdd: ReadonlyMap<
-        typeof CommiteeColdCredential.CommitteeColdCredential.CredentialSchema.Type,
-        EpochNo.EpochNo
-      >,
+      membersToRemove: ReadonlyArray<typeof CommiteeColdCredential.CommitteeColdCredential.Credential.Type>,
+      membersToAdd: ReadonlyMap<typeof CommiteeColdCredential.CommitteeColdCredential.Credential.Type, EpochNo.EpochNo>,
       threshold: UnitInterval.UnitInterval
     ) => R
     NewConstitutionAction: (govActionId: GovActionId | null, constitution: Constituion.Constitution) => R

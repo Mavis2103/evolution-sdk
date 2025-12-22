@@ -1,6 +1,6 @@
 ---
 title: sdk/builders/TxBuilderImpl.ts
-nav_order: 173
+nav_order: 175
 parent: Modules
 ---
 
@@ -99,8 +99,8 @@ and calculates the exact size to determine the minimum lovelace required.
 export declare const calculateMinimumUtxoLovelace: (params: {
   address: CoreAddress.Address
   assets: CoreAssets.Assets
-  datum?: Datum.Datum
-  scriptRef?: any
+  datum?: DatumOption.DatumOption
+  scriptRef?: TxOut.TransactionOutput["scriptRef"]
   coinsPerUtxoByte: bigint
 }) => Effect.Effect<bigint, TransactionBuilderError>
 ```
@@ -348,8 +348,8 @@ TransactionOutput represents an output being created in a transaction.
 export declare const makeTxOutput: (params: {
   address: CoreAddress.Address
   assets: CoreAssets.Assets
-  datum?: Datum.Datum
-  scriptRef?: any
+  datum?: DatumOption.DatumOption
+  scriptRef?: TxOut.TransactionOutput["scriptRef"]
 }) => Effect.Effect<TxOut.TransactionOutput, TransactionBuilderError>
 ```
 

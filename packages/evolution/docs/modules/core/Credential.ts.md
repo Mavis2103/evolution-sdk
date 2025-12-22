@@ -14,20 +14,20 @@ parent: Modules
   - [toCBORBytes](#tocborbytes)
   - [toCBORHex](#tocborhex)
 - [model](#model)
-  - [CredentialSchema (type alias)](#credentialschema-type-alias)
+  - [Credential (type alias)](#credential-type-alias)
 - [parsing](#parsing)
   - [fromCBORBytes](#fromcborbytes)
   - [fromCBORHex](#fromcborhex)
 - [predicates](#predicates)
   - [is](#is)
 - [schemas](#schemas)
-  - [CredentialSchema](#credentialschema)
+  - [Credential](#credential)
   - [FromCDDL](#fromcddl)
 - [testing](#testing)
   - [arbitrary](#arbitrary)
 - [utils](#utils)
   - [CDDLSchema](#cddlschema)
-  - [Credential (type alias)](#credential-type-alias)
+  - [CredentialEncoded (type alias)](#credentialencoded-type-alias)
   - [FromCBORBytes](#fromcborbytes-1)
   - [FromCBORHex](#fromcborhex-1)
   - [makeKeyHash](#makekeyhash)
@@ -44,7 +44,7 @@ Convert a Credential to CBOR bytes.
 **Signature**
 
 ```ts
-export declare const toCBORBytes: (credential: CredentialSchema, options?: CBOR.CodecOptions) => Uint8Array
+export declare const toCBORBytes: (credential: Credential, options?: CBOR.CodecOptions) => Uint8Array
 ```
 
 Added in v2.0.0
@@ -56,14 +56,14 @@ Convert a Credential to CBOR hex string.
 **Signature**
 
 ```ts
-export declare const toCBORHex: (credential: CredentialSchema, options?: CBOR.CodecOptions) => string
+export declare const toCBORHex: (credential: Credential, options?: CBOR.CodecOptions) => string
 ```
 
 Added in v2.0.0
 
 # model
 
-## CredentialSchema (type alias)
+## Credential (type alias)
 
 Type representing a credential that can be either a key hash or script hash
 Used in various address formats to identify ownership
@@ -71,7 +71,7 @@ Used in various address formats to identify ownership
 **Signature**
 
 ```ts
-export type CredentialSchema = typeof CredentialSchema.Type
+export type Credential = typeof Credential.Type
 ```
 
 Added in v2.0.0
@@ -85,7 +85,7 @@ Parse a Credential from CBOR bytes.
 **Signature**
 
 ```ts
-export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => CredentialSchema
+export declare const fromCBORBytes: (bytes: Uint8Array, options?: CBOR.CodecOptions) => Credential
 ```
 
 Added in v2.0.0
@@ -97,7 +97,7 @@ Parse a Credential from CBOR hex string.
 **Signature**
 
 ```ts
-export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => CredentialSchema
+export declare const fromCBORHex: (hex: string, options?: CBOR.CodecOptions) => Credential
 ```
 
 Added in v2.0.0
@@ -121,7 +121,7 @@ Added in v2.0.0
 
 # schemas
 
-## CredentialSchema
+## Credential
 
 Credential schema representing either a key hash or script hash
 credential = [0, addr_keyhash // 1, script_hash]
@@ -130,7 +130,7 @@ Used to identify ownership of addresses or stake rights
 **Signature**
 
 ```ts
-export declare const CredentialSchema: Schema.Union<[typeof KeyHash.KeyHash, typeof ScriptHash.ScriptHash]>
+export declare const Credential: Schema.Union<[typeof KeyHash.KeyHash, typeof ScriptHash.ScriptHash]>
 ```
 
 Added in v2.0.0
@@ -177,12 +177,12 @@ Added in v2.0.0
 export declare const CDDLSchema: Schema.Tuple2<Schema.Literal<[0n, 1n]>, typeof Schema.Uint8ArrayFromSelf>
 ```
 
-## Credential (type alias)
+## CredentialEncoded (type alias)
 
 **Signature**
 
 ```ts
-export type Credential = typeof CredentialSchema.Encoded
+export type CredentialEncoded = typeof Credential.Encoded
 ```
 
 ## FromCBORBytes
@@ -235,7 +235,7 @@ export declare const FromCBORHex: (
 **Signature**
 
 ```ts
-export declare const makeKeyHash: (hash: Uint8Array) => CredentialSchema
+export declare const makeKeyHash: (hash: Uint8Array) => Credential
 ```
 
 ## makeScriptHash
@@ -243,5 +243,5 @@ export declare const makeKeyHash: (hash: Uint8Array) => CredentialSchema
 **Signature**
 
 ```ts
-export declare const makeScriptHash: (hash: Uint8Array) => CredentialSchema
+export declare const makeScriptHash: (hash: Uint8Array) => Credential
 ```
