@@ -32,8 +32,14 @@ Implementation:
 2. Checks if any inputs are script-locked (require redeemers)
 3. Validates redeemer is provided for script-locked UTxOs
 4. Adds UTxOs to state.selectedUtxos
-5. Tracks redeemer information for script spending
+5. Tracks redeemer information for script spending (supports deferred resolution)
 6. Updates total input assets for balancing
+
+**RedeemerBuilder Support:**
+
+- Static: Direct Data value stored immediately
+- Self: Callback stored for per-input resolution after coin selection
+- Batch: Callback + input set stored for multi-input resolution
 
 **Signature**
 

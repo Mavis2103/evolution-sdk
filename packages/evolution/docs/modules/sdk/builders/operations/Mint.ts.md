@@ -33,6 +33,12 @@ Implementation:
 3. Merges with existing mint state
 4. Tracks redeemer information for script-based minting policies (by PolicyId)
 
+**RedeemerBuilder Support:**
+
+- Static: Direct Data value stored immediately
+- Self: Callback stored for per-policy resolution after coin selection
+- Batch: Callback + input set stored for multi-policy resolution
+
 **Signature**
 
 ```ts

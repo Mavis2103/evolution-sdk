@@ -1,6 +1,6 @@
 ---
 title: sdk/Credential.ts
-nav_order: 177
+nav_order: 179
 parent: Modules
 ---
 
@@ -26,7 +26,7 @@ parent: Modules
 **Signature**
 
 ```ts
-export type Credential = typeof CoreCredential.CredentialSchema.Encoded
+export type Credential = typeof CoreCredential.Credential.Encoded
 ```
 
 ## KeyHash (type alias)
