@@ -57,14 +57,6 @@ export interface SignBuilder extends TransactionResultBase, EffectToPromiseAPI<S
    * Contains consumed UTxOs, available UTxOs (remaining + created), and txHash.
    * 
    * Result is memoized - computed once on first call, cached for subsequent calls.
-   * 
-   * @example
-   * ```typescript
-   * const tx1 = await client.newTx().payToAddress(...).build({ availableUtxos: walletUtxos })
-   * const tx2 = await client.newTx().payToAddress(...).build({ availableUtxos: tx1.chainResult().available })
-   * await tx1.sign().submit()
-   * await tx2.sign().submit()
-   * ```
    */
   readonly chainResult: () => ChainResult
 }

@@ -519,19 +519,6 @@ const buildPartialEffectCore = (
  *
  * Accessed via `SignBuilder.chainResult()` after calling `build()`.
  *
- * @example
- * ```ts
- * const tx1 = await TxBuilder.create(sdk)
- *   .payTo({ address, value: { lovelace: 5_000_000n } })
- *   .build({ availableUtxos: walletUtxos })
- *
- * // tx1.chainResult().available contains remaining unspent + new UTxOs with computed txHash
- *
- * const tx2 = await TxBuilder.create(sdk)
- *   .payTo({ address, value: { lovelace: 3_000_000n } })
- *   .build({ availableUtxos: tx1.chainResult().available })
- * ```
- *
  * @since 2.0.0
  * @category model
  */
