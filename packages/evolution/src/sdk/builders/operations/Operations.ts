@@ -5,9 +5,10 @@ import type * as Credential from "../../../core/Credential.js"
 import type * as CoreDatumOption from "../../../core/DatumOption.js"
 import type * as DRep from "../../../core/DRep.js"
 import type * as EpochNo from "../../../core/EpochNo.js"
+import type * as KeyHash from "../../../core/KeyHash.js"
 import type * as PoolKeyHash from "../../../core/PoolKeyHash.js"
 import type * as PoolParams from "../../../core/PoolParams.js"
-import type * as CoreScriptRef from "../../../core/ScriptRef.js"
+import type * as CoreScript from "../../../core/Script.js"
 import type * as Time from "../../../core/Time/index.js"
 import type * as UTxO from "../../../core/UTxO.js"
 import type * as RedeemerBuilder from "../RedeemerBuilder.js"
@@ -39,7 +40,8 @@ export interface PayToAddressParams {
   readonly address: CoreAddress.Address
   readonly assets: CoreAssets.Assets
   readonly datum?: CoreDatumOption.DatumOption
-  readonly scriptRef?: CoreScriptRef.ScriptRef
+  /** Optional script to store as a reference script in the output */
+  readonly script?: CoreScript.Script
 }
 
 /**
@@ -318,4 +320,22 @@ export interface RetirePoolParams {
   readonly poolKeyHash: PoolKeyHash.PoolKeyHash
   /** Epoch at which retirement takes effect */
   readonly epoch: EpochNo.EpochNo
+}
+
+// ============================================================================
+// Required Signers
+// ============================================================================
+
+/**
+ * Parameters for adding a required signer to the transaction.
+ *
+ * Required signers must sign the transaction even if they don't control any inputs.
+ * This is commonly used for scripts that check for specific signers in their validation logic.
+ *
+ * @since 2.0.0
+ * @category signers
+ */
+export interface AddSignerParams {
+  /** The key hash that must sign the transaction */
+  readonly keyHash: KeyHash.KeyHash
 }

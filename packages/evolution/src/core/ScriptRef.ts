@@ -18,7 +18,7 @@ import * as Script from "./Script.js"
  * @category schemas
  */
 export class ScriptRef extends Schema.TaggedClass<ScriptRef>()("ScriptRef", {
-  bytes: Schema.Uint8ArrayFromHex.pipe(Schema.filter((b) => b.length > 0))
+  bytes: Schema.Uint8ArrayFromHex
 }) {
   toJSON() {
     return {
