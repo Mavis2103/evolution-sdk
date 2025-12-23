@@ -33,7 +33,7 @@ export const createPayToAddressProgram = (params: PayToAddressParams) =>
       address: params.address,
       assets: params.assets,
       datum: params.datum,
-      scriptRef: params.scriptRef
+      scriptRef: params.script  // Script is now directly compatible with UTxO.scriptRef
     })
 
     // 2. Add output to state

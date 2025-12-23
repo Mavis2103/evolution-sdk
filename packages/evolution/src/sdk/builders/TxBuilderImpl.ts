@@ -12,6 +12,7 @@ import * as CostModel from "../../core/CostModel.js"
 import * as PlutusData from "../../core/Data.js"
 import * as DatumOption from "../../core/DatumOption.js"
 import * as Ed25519Signature from "../../core/Ed25519Signature.js"
+import type * as KeyHash from "../../core/KeyHash.js"
 import * as NativeScripts from "../../core/NativeScripts.js"
 import type * as PlutusV1 from "../../core/PlutusV1.js"
 import type * as PlutusV2 from "../../core/PlutusV2.js"
@@ -19,7 +20,9 @@ import type * as PlutusV3 from "../../core/PlutusV3.js"
 import * as PolicyId from "../../core/PolicyId.js"
 import * as Redeemer from "../../core/Redeemer.js"
 import type * as RewardAccount from "../../core/RewardAccount.js"
+import * as CoreScript from "../../core/Script.js"
 import * as ScriptDataHash from "../../core/ScriptDataHash.js"
+import * as ScriptRef from "../../core/ScriptRef.js"
 import * as Time from "../../core/Time/index.js"
 import * as Transaction from "../../core/Transaction.js"
 import * as TransactionBody from "../../core/TransactionBody.js"
@@ -36,7 +39,7 @@ import * as Address from "../Address.js"
 import type * as Datum from "../Datum.js"
 // Internal imports
 import type { UnfrackOptions } from "./TransactionBuilder.js"
-import { TransactionBuilderError, TxBuilderConfigTag,TxContext } from "./TransactionBuilder.js"
+import { BuildOptionsTag, TransactionBuilderError, TxBuilderConfigTag,TxContext } from "./TransactionBuilder.js"
 import * as Unfrack from "./Unfrack.js"
 
 // ============================================================================
@@ -155,8 +158,7 @@ export const calculateReferenceScriptFee = (
     for (const utxo of referenceInputs) {
       if (utxo.scriptRef) {
         // Get script CBOR bytes length from Core Script type
-        // Core scripts have a 'bytes' property with the raw script bytes
-        const scriptBytes = utxo.scriptRef.bytes.length
+        const scriptBytes = CoreScript.toCBOR(utxo.scriptRef).length
         totalScriptSize += scriptBytes
       }
     }
@@ -247,15 +249,20 @@ export const makeTxOutput = (params: {
   address: CoreAddress.Address
   assets: CoreAssets.Assets
   datum?: DatumOption.DatumOption
-  scriptRef?: TxOut.TransactionOutput["scriptRef"]
+  scriptRef?: CoreScript.Script
 }): Effect.Effect<TxOut.TransactionOutput, TransactionBuilderError> =>
   Effect.gen(function* () {
+    // Convert Script to ScriptRef for CBOR encoding if provided
+    const scriptRefEncoded = params.scriptRef
+      ? new ScriptRef.ScriptRef({ bytes: CoreScript.toCBOR(params.scriptRef) })
+      : undefined
+
     // Create Core TransactionOutput directly with core types
     const output = new TxOut.TransactionOutput({
       address: params.address,
       assets: params.assets,
       datumOption: params.datum,
-      scriptRef: params.scriptRef
+      scriptRef: scriptRefEncoded
     })
 
     return output
@@ -282,15 +289,20 @@ export const txOutputToTransactionOutput = (params: {
   address: CoreAddress.Address
   assets: CoreAssets.Assets
   datum?: DatumOption.DatumOption
-  scriptRef?: TxOut.TransactionOutput["scriptRef"]
+  scriptRef?: CoreScript.Script
 }): Effect.Effect<TxOut.TransactionOutput, TransactionBuilderError> =>
   Effect.gen(function* () {
+    // Convert Script to ScriptRef for CBOR encoding if provided
+    const scriptRefEncoded = params.scriptRef
+      ? new ScriptRef.ScriptRef({ bytes: CoreScript.toCBOR(params.scriptRef) })
+      : undefined
+
     // Create TransactionOutput directly with core types
     const output = new TxOut.TransactionOutput({
       address: params.address,
       assets: params.assets,
       datumOption: params.datum,
-      scriptRef: params.scriptRef
+      scriptRef: scriptRefEncoded
     })
 
     return output
@@ -449,7 +461,7 @@ export const assembleTransaction = (
   inputs: ReadonlyArray<TransactionInput.TransactionInput>,
   outputs: ReadonlyArray<TxOut.TransactionOutput>,
   fee: bigint
-): Effect.Effect<Transaction.Transaction, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
+): Effect.Effect<Transaction.Transaction, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
   Effect.gen(function* () {
     // Get state ref to access scripts and redeemers
     const stateRef = yield* TxContext
@@ -727,8 +739,9 @@ export const assembleTransaction = (
         : undefined
 
     // Convert validity interval from Unix time to slots
-    const config = yield* TxBuilderConfigTag
-    const slotConfig = Time.SLOT_CONFIG_NETWORK[config.network ?? "Mainnet"]
+    // Use resolved slot config from BuildOptionsTag (respects BuildOptions > TxBuilderConfig > network default priority)
+    const buildOptions = yield* BuildOptionsTag
+    const slotConfig = buildOptions.slotConfig!
     
     let ttl: bigint | undefined
     let validityIntervalStart: bigint | undefined
@@ -740,6 +753,16 @@ export const assembleTransaction = (
     if (state.validity?.from !== undefined) {
       validityIntervalStart = Time.unixTimeToSlot(state.validity.from, slotConfig)
       yield* Effect.logDebug(`[Assembly] Validity start: ${validityIntervalStart} (from unix ${state.validity.from})`)
+    }
+
+    // Build required signers (NonEmptyArray or undefined)
+    const requiredSigners =
+      state.requiredSigners.length > 0
+        ? (state.requiredSigners as [KeyHash.KeyHash, ...Array<KeyHash.KeyHash>])
+        : undefined
+
+    if (requiredSigners) {
+      yield* Effect.logDebug(`[Assembly] Required signers: ${requiredSigners.length}`)
     }
 
     const body = new TransactionBody.TransactionBody({
@@ -755,7 +778,8 @@ export const assembleTransaction = (
       mint: state.mint && state.mint.map.size > 0 ? state.mint : undefined, // Mint field from minting operations
       scriptDataHash, // Hash of redeemers + datums + cost models (required for Plutus scripts)
       certificates, // Certificates for staking operations
-      withdrawals // Withdrawals for claiming staking rewards
+      withdrawals, // Withdrawals for claiming staking rewards
+      requiredSigners // Extra signers required for script validation
     })
 
     // Create witness set with scripts and redeemers
@@ -969,29 +993,32 @@ export const buildFakeWitnessSet = (
     const plutusV2Scripts: Array<PlutusV2.PlutusV2> = []
     const plutusV3Scripts: Array<PlutusV3.PlutusV3> = []
 
+    // Helper to add dummy witnesses for native script required signers
+    const addNativeScriptWitnesses = (script: NativeScripts.NativeScript) => {
+      const requiredSigners = NativeScripts.countRequiredSigners(script.script)
+      for (let i = 0; i < requiredSigners; i++) {
+        const dummyKeyHash = new Uint8Array(28)
+        // Fill with unique pattern: 0xFF prefix + counter to distinguish from real keys
+        dummyKeyHash[0] = 0xFF
+        dummyKeyHash[1] = (keyHashesSet.size + i) & 0xFF
+        const dummyHashHex = Bytes.toHex(dummyKeyHash)
+        
+        // Only add if not already in the set
+        if (!keyHashesSet.has(dummyHashHex)) {
+          keyHashesSet.add(dummyHashHex)
+          keyHashes.push(dummyKeyHash)
+        }
+      }
+      return requiredSigners
+    }
+
     for (const script of state.scripts.values()) {
       switch (script._tag) {
         case "NativeScript": {
           nativeScripts.push(script)
           // Count required signers for this native script and add fake witnesses
-          const requiredSigners = NativeScripts.countRequiredSigners(script.script)
-          yield* Effect.logInfo(`[buildFakeWitnessSet] Native script requires ${requiredSigners} signers`)
-          
-          // Add fake witnesses for each required signer
-          // Use unique dummy key hashes to avoid duplicates with input witnesses
-          for (let i = 0; i < requiredSigners; i++) {
-            const dummyKeyHash = new Uint8Array(28)
-            // Fill with unique pattern: 0xFF prefix + counter to distinguish from real keys
-            dummyKeyHash[0] = 0xFF
-            dummyKeyHash[1] = (keyHashesSet.size + i) & 0xFF
-            const dummyHashHex = Bytes.toHex(dummyKeyHash)
-            
-            // Only add if not already in the set
-            if (!keyHashesSet.has(dummyHashHex)) {
-              keyHashesSet.add(dummyHashHex)
-              keyHashes.push(dummyKeyHash)
-            }
-          }
+          const requiredSigners = addNativeScriptWitnesses(script)
+          yield* Effect.logDebug(`[buildFakeWitnessSet] Native script requires ${requiredSigners} signers`)
           break
         }
         case "PlutusV1":
@@ -1003,6 +1030,14 @@ export const buildFakeWitnessSet = (
         case "PlutusV3":
           plutusV3Scripts.push(script)
           break
+      }
+    }
+
+    // Also count required signers from reference scripts (scripts in referenceInputs)
+    for (const refUtxo of state.referenceInputs) {
+      if (refUtxo.scriptRef && refUtxo.scriptRef._tag === "NativeScript") {
+        const requiredSigners = addNativeScriptWitnesses(refUtxo.scriptRef)
+        yield* Effect.logDebug(`[buildFakeWitnessSet] Reference native script requires ${requiredSigners} signers`)
       }
     }
 
@@ -1044,6 +1079,17 @@ export const buildFakeWitnessSet = (
           const witness = yield* buildFakeVKeyWitness(credential.hash)
           vkeyWitnesses.push(witness)
         }
+      }
+    }
+
+    // Add fake witnesses for required signers (from addSigner operation)
+    // These key hashes are explicitly required to sign the transaction
+    for (const keyHash of state.requiredSigners) {
+      const hashHex = Bytes.toHex(keyHash.hash)
+      if (!keyHashesSet.has(hashHex)) {
+        keyHashesSet.add(hashHex)
+        const witness = yield* buildFakeVKeyWitness(keyHash.hash)
+        vkeyWitnesses.push(witness)
       }
     }
 
@@ -1173,6 +1219,11 @@ export const calculateFeeIteratively = (
       ? new Withdrawals.Withdrawals({ withdrawals: state.withdrawals })
       : undefined
 
+    // Build requiredSigners for size estimation (NonEmptyArray or undefined)
+    const requiredSigners = state.requiredSigners.length > 0
+      ? (state.requiredSigners as [KeyHash.KeyHash, ...Array<KeyHash.KeyHash>])
+      : undefined
+
     while (iterations < maxIterations) {
       // Build transaction with current fee estimate
       const body = new TransactionBody.TransactionBody({
@@ -1185,7 +1236,8 @@ export const calculateFeeIteratively = (
         collateralReturn, // Include collateral return for accurate size
         totalCollateral, // Include total collateral for accurate size
         certificates, // Include certificates for accurate size calculation
-        withdrawals // Include withdrawals for accurate size calculation
+        withdrawals, // Include withdrawals for accurate size calculation
+        requiredSigners // Include requiredSigners for accurate size calculation
       })
 
       const transaction = new Transaction.Transaction({
@@ -1406,7 +1458,7 @@ export const calculateMinimumUtxoLovelace = (params: {
   address: CoreAddress.Address
   assets: CoreAssets.Assets
   datum?: DatumOption.DatumOption
-  scriptRef?: TxOut.TransactionOutput["scriptRef"]
+  scriptRef?: CoreScript.Script
   coinsPerUtxoByte: bigint
 }): Effect.Effect<bigint, TransactionBuilderError> =>
   Effect.gen(function* () {

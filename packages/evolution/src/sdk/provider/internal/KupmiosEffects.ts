@@ -6,7 +6,11 @@ import * as CoreAssets from "../../../core/Assets/index.js"
 import * as Bytes from "../../../core/Bytes.js"
 import * as PlutusData from "../../../core/Data.js"
 import * as DatumOption from "../../../core/DatumOption.js"
-import * as ScriptRef from "../../../core/ScriptRef.js"
+import * as NativeScripts from "../../../core/NativeScripts.js"
+import * as PlutusV1 from "../../../core/PlutusV1.js"
+import * as PlutusV2 from "../../../core/PlutusV2.js"
+import * as PlutusV3 from "../../../core/PlutusV3.js"
+import type * as CoreScript from "../../../core/Script.js"
 import * as TransactionHash from "../../../core/TransactionHash.js"
 import * as CoreUTxO from "../../../core/UTxO.js"
 import type * as Credential from "../../Credential.js"
@@ -98,7 +102,7 @@ const retrieveDatumEffect =
     })
 
 const getScriptEffect =
-  (kupoUrl: string, kupoHeader?: Record<string, string>) => (script_hash: Kupo.UTxO["script_hash"]): Effect.Effect<ScriptRef.ScriptRef | undefined, ProviderError> =>
+  (kupoUrl: string, kupoHeader?: Record<string, string>) => (script_hash: Kupo.UTxO["script_hash"]): Effect.Effect<CoreScript.Script | undefined, ProviderError> =>
     Effect.gen(function* () {
       if (script_hash) {
         const pattern = `${kupoUrl}/scripts/${script_hash}`
@@ -108,22 +112,29 @@ const getScriptEffect =
           Effect.flatMap(Effect.fromNullable),
           Effect.retry(Schedule.compose(Schedule.exponential(50), Schedule.recurs(5))),
           Effect.timeout(5_000),
-          Effect.map(({ language, script }) => {
-            // Apply appropriate CBOR encoding based on script type
-            let encodedScript: string
+          Effect.map(({ language, script }): CoreScript.Script => {
+            // Convert script hex to bytes
+            const rawScriptBytes = Bytes.fromHex(script)
+            
+            // Create the proper Script type based on language
             switch (language) {
-              case "native":
-                encodedScript = script // Native scripts don't need double encoding
-                break
-              case "plutus:v1":
-              case "plutus:v2":
-              case "plutus:v3":
-                encodedScript = Script.applyDoubleCborEncoding(script)
-                break
+              case "native": {
+                // Parse the native script from CBOR
+                return NativeScripts.fromCBORBytes(rawScriptBytes)
+              }
+              case "plutus:v1": {
+                const doubleCborHex = Script.applyDoubleCborEncoding(script)
+                return new PlutusV1.PlutusV1({ bytes: Bytes.fromHex(doubleCborHex) })
+              }
+              case "plutus:v2": {
+                const doubleCborHex = Script.applyDoubleCborEncoding(script)
+                return new PlutusV2.PlutusV2({ bytes: Bytes.fromHex(doubleCborHex) })
+              }
+              case "plutus:v3": {
+                const doubleCborHex = Script.applyDoubleCborEncoding(script)
+                return new PlutusV3.PlutusV3({ bytes: Bytes.fromHex(doubleCborHex) })
+              }
             }
-            // Convert hex script to bytes and wrap in ScriptRef
-            const scriptBytes = Bytes.fromHex(encodedScript)
-            return new ScriptRef.ScriptRef({ bytes: scriptBytes })
           }),
           Effect.catchAll((cause) => new ProviderError({ cause, message: "Failed to get script" }))
         )
@@ -285,7 +296,20 @@ export const submitTxEffect = (ogmiosUrl: string, headers?: { ogmiosHeader?: Rec
     const { result } = yield* pipe(
       HttpUtils.postJson(ogmiosUrl, data, schema, headers?.ogmiosHeader),
       Effect.timeout(TIMEOUT),
-      Effect.catchAll((cause) => new ProviderError({ cause, message: "Failed to submit transaction" })),
+      Effect.catchAll((cause) => {
+        // TODO: This is a workaround to extract meaningful error messages from Ogmios.
+        // Ogmios returns errors with a `description` field, but we don't have a proper
+        // error schema defined. The proper fix would be:
+        // 1. Define an OgmiosError schema that captures the actual error response shape
+        // 2. Use schema-validated error decoding instead of runtime duck-typing
+        // 3. Apply consistent error extraction across all provider methods
+        const errorMessage = cause instanceof Error 
+          ? cause.message 
+          : typeof cause === 'object' && cause !== null && 'description' in cause
+            ? String((cause as { description: unknown }).description)
+            : "Failed to submit transaction"
+        return Effect.fail(new ProviderError({ cause, message: errorMessage }))
+      }),
       Effect.provide(FetchHttpClient.layer)
     )
 

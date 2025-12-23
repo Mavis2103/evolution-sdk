@@ -11,7 +11,7 @@ import * as Bytes32 from "./Bytes32.js"
 import * as PlutusData from "./Data.js"
 import * as DatumOption from "./DatumOption.js"
 import * as Numeric from "./Numeric.js"
-import * as ScriptRef from "./ScriptRef.js"
+import * as Script from "./Script.js"
 import * as TransactionHash from "./TransactionHash.js"
 
 /**
@@ -33,9 +33,14 @@ export class UTxO extends Schema.TaggedClass<UTxO>()("UTxO", {
     })
   ),
   datumOption: Schema.optional(DatumOption.DatumOptionSchema),
-  scriptRef: Schema.optional(ScriptRef.ScriptRef)
+  scriptRef: Schema.optional(Script.Script)
 }) {
   toJSON() {
+    // Serialize Script to hex representation  
+    const scriptRefJson = this.scriptRef
+      ? { _tag: this.scriptRef._tag, cbor: Script.toCBORHex(this.scriptRef) }
+      : undefined
+    
     return {
       _tag: this._tag,
       transactionId: this.transactionId.toJSON(),
@@ -43,16 +48,12 @@ export class UTxO extends Schema.TaggedClass<UTxO>()("UTxO", {
       address: this.address.toJSON(),
       assets: this.assets.toJSON(),
       datumOption: this.datumOption?.toJSON(),
-      scriptRef: this.scriptRef?.toJSON()
+      scriptRef: scriptRefJson
     }
   }
 
   toString(): string {
     return Inspectable.format(this.toJSON())
-  }
-
-  [Inspectable.NodeInspectSymbol](): unknown {
-    return this.toJSON()
   }
 
   [Equal.symbol](that: unknown): boolean {
@@ -243,25 +244,35 @@ export const datumOptionToSDK = (datumOption: DatumOption.DatumOption): SDKDatum
 }
 
 /**
- * Convert SDK Script to Core ScriptRef.
+ * Convert SDK Script to Core Script.
  *
  * @since 2.0.0
  * @category conversions
  */
-export const scriptRefFromSDK = (
-  script: SDKScript.Script
-): Effect.Effect<ScriptRef.ScriptRef, ParseResult.ParseError> =>
-  Schema.decodeUnknown(ScriptRef.FromHex)(script.script)
+export const scriptFromSDK = (
+  sdkScript: SDKScript.Script
+): Effect.Effect<Script.Script, ParseResult.ParseError> =>
+  Schema.decodeUnknown(Script.FromCBORHex())(sdkScript.script)
 
 /**
- * Convert Core ScriptRef to SDK Script type string.
- * Note: We lose the script type information as ScriptRef only stores bytes.
+ * Convert Core Script to SDK Script.
  *
  * @since 2.0.0
  * @category conversions
  */
-export const scriptRefToSDKHex = (scriptRef: ScriptRef.ScriptRef): string =>
-  Schema.encodeSync(Schema.Uint8ArrayFromHex)(scriptRef.bytes)
+export const scriptToSDK = (script: Script.Script): SDKScript.Script => {
+  const hex = Script.toCBORHex(script)
+  switch (script._tag) {
+    case "NativeScript":
+      return { type: "Native", script: hex }
+    case "PlutusV1":
+      return { type: "PlutusV1", script: hex }
+    case "PlutusV2":
+      return { type: "PlutusV2", script: hex }
+    case "PlutusV3":
+      return { type: "PlutusV3", script: hex }
+  }
+}
 
 /**
  * Convert SDK UTxO to Core UTxO.
@@ -287,7 +298,7 @@ export const fromSDK = (
     const datumOption = utxo.datumOption ? yield* datumOptionFromSDK(utxo.datumOption) : undefined
 
     // Convert script ref if present
-    const scriptRef = utxo.scriptRef ? yield* scriptRefFromSDK(utxo.scriptRef) : undefined
+    const scriptRef = utxo.scriptRef ? yield* scriptFromSDK(utxo.scriptRef) : undefined
 
     return new UTxO({
       transactionId,
@@ -314,12 +325,7 @@ export const toSDK = (
   address: Schema.encodeSync(Address.FromBech32)(utxo.address),
   assets: fromCoreAssets(utxo.assets),
   datumOption: utxo.datumOption ? datumOptionToSDK(utxo.datumOption) : undefined,
-  scriptRef: utxo.scriptRef
-    ? {
-        type: "PlutusV3" as const, // Default type - we lose type info in ScriptRef
-        script: scriptRefToSDKHex(utxo.scriptRef)
-      }
-    : undefined
+  scriptRef: utxo.scriptRef ? scriptToSDK(utxo.scriptRef) : undefined
 })
 
 /**

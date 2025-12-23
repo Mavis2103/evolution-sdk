@@ -33,6 +33,7 @@ import * as CoreAssets from "../../core/Assets/index.js"
 import type * as Certificate from "../../core/Certificate.js"
 import type * as Coin from "../../core/Coin.js"
 import type * as PlutusData from "../../core/Data.js"
+import type * as KeyHash from "../../core/KeyHash.js"
 import type * as Mint from "../../core/Mint.js"
 import type * as Network from "../../core/Network.js"
 import type * as RewardAccount from "../../core/RewardAccount.js"
@@ -47,10 +48,11 @@ import type * as ProtocolParametersSDK from "../ProtocolParameters.js"
 import type * as Provider from "../provider/Provider.js"
 import type * as WalletNew from "../wallet/WalletNew.js"
 import type { CoinSelectionAlgorithm, CoinSelectionFunction } from "./CoinSelection.js"
+import { createAddSignerProgram } from "./operations/AddSigner.js"
 import { attachScriptToState } from "./operations/Attach.js"
 import { createCollectFromProgram } from "./operations/Collect.js"
 import { createMintProgram } from "./operations/Mint.js"
-import type { AuthCommitteeHotParams, CollectFromParams, DelegateToParams, DeregisterDRepParams, DeregisterStakeParams, MintTokensParams, PayToAddressParams, ReadFromParams, RegisterAndDelegateToParams, RegisterDRepParams, RegisterPoolParams, RegisterStakeParams, ResignCommitteeColdParams, RetirePoolParams, UpdateDRepParams, ValidityParams, WithdrawParams } from "./operations/Operations.js"
+import type { AddSignerParams, AuthCommitteeHotParams, CollectFromParams, DelegateToParams, DeregisterDRepParams, DeregisterStakeParams, MintTokensParams, PayToAddressParams, ReadFromParams, RegisterAndDelegateToParams, RegisterDRepParams, RegisterPoolParams, RegisterStakeParams, ResignCommitteeColdParams, RetirePoolParams, UpdateDRepParams, ValidityParams, WithdrawParams } from "./operations/Operations.js"
 import { createPayToAddressProgram } from "./operations/Pay.js"
 import { createReadFromProgram } from "./operations/ReadFrom.js"
 import { createDelegateToProgram, createDeregisterStakeProgram, createRegisterAndDelegateToProgram, createRegisterStakeProgram, createWithdrawProgram } from "./operations/Stake.js"
@@ -118,7 +120,8 @@ const initialTxBuilderState: TxBuilderState = {
   deferredRedeemers: new Map(),
   referenceInputs: [],
   certificates: [],
-  withdrawals: new Map()
+  withdrawals: new Map(),
+  requiredSigners: []
 }
 
 /**
@@ -290,6 +293,7 @@ const assembleFinalResult = (
         transactionWithFakeWitnesses: txWithFakeWitnesses,
         fee: buildCtx.calculatedFee,
         utxos: state.selectedUtxos,
+        referenceUtxos: state.referenceInputs,
         provider: config.provider!,
         wallet
       })
@@ -1286,6 +1290,7 @@ export interface TxBuilderState {
     readonly from?: Time.UnixTime // validityIntervalStart
     readonly to?: Time.UnixTime // ttl
   }
+  readonly requiredSigners: ReadonlyArray<KeyHash.KeyHash> // Extra signers required (for script validation)
 }
 
 /**
@@ -1872,6 +1877,41 @@ export interface TransactionBuilderBase {
    * @category validity-methods
    */
   readonly setValidity: (params: ValidityParams) => this
+
+  /**
+   * Add a required signer to the transaction.
+   *
+   * Adds a key hash to the transaction's requiredSigners field. This is used to
+   * require specific key signatures even when those keys don't control inputs.
+   * Common use cases include:
+   * - Multi-sig schemes requiring explicit signature verification
+   * - Plutus scripts that check for specific signers in the transaction
+   * - Governance transactions requiring DRep or committee member signatures
+   *
+   * Duplicate key hashes are automatically deduplicated.
+   *
+   * Queues a deferred operation that will be executed when build() is called.
+   * Returns the same builder for method chaining.
+   *
+   * @example
+   * ```typescript
+   * import * as KeyHash from "@evolution-sdk/core/KeyHash"
+   * import * as Address from "@evolution-sdk/core/Address"
+   *
+   * // Add signer from address credential
+   * const address = Address.fromBech32("addr_test1...")
+   * const cred = address.paymentCredential
+   * if (cred._tag === "KeyHash") {
+   *   const tx = await builder
+   *     .addSigner({ keyHash: cred })
+   *     .build()
+   * }
+   * ```
+   *
+   * @since 2.0.0
+   * @category builder-methods
+   */
+  readonly addSigner: (params: AddSignerParams) => this
 }
 
 /**
@@ -2139,6 +2179,10 @@ export function makeTxBuilder(config: TxBuilderConfig) {
     },
     setValidity: (params: ValidityParams) => {
       programs.push(createSetValidityProgram(params))
+      return txBuilder
+    },
+    addSigner: (params: AddSignerParams) => {
+      programs.push(createAddSignerProgram(params))
       return txBuilder
     },
 

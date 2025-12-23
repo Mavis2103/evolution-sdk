@@ -45,10 +45,11 @@ export const makeSignBuilder = (params: {
   transactionWithFakeWitnesses: Transaction.Transaction
   fee: bigint
   utxos: ReadonlyArray<CoreUTxO.UTxO>
+  referenceUtxos: ReadonlyArray<CoreUTxO.UTxO>
   provider: Provider.Provider
   wallet: Wallet
 }): SignBuilder => {
-  const { fee, provider, transaction, transactionWithFakeWitnesses, utxos, wallet } = params
+  const { fee, provider, referenceUtxos, transaction, transactionWithFakeWitnesses, utxos, wallet } = params
 
   // ============================================================================
   // Effect Namespace Implementation
@@ -70,7 +71,7 @@ export const makeSignBuilder = (params: {
         yield* Effect.logDebug("Starting transaction signing (delegating to wallet Effect)")
 
         // Delegate to wallet's Effect.signTx with UTxO context
-        const walletWitnessSet = yield* wallet.Effect.signTx(transaction, { utxos }).pipe(
+        const walletWitnessSet = yield* wallet.Effect.signTx(transaction, { utxos, referenceUtxos }).pipe(
           Effect.mapError(
             (walletError) =>
               new TransactionBuilderError({ message: "Failed to sign transaction", cause: walletError })
@@ -150,7 +151,8 @@ export const makeSignBuilder = (params: {
       Effect.gen(function* () {
         yield* Effect.logDebug(`Assembling transaction from ${witnesses.length} witness sets`)
 
-        // Merge all witness sets
+        // Start with the transaction's existing witness set (contains attached scripts, redeemers, etc.)
+        // Then merge in the provided witness sets (which contain signatures from multiple parties)
         const mergedWitnessSet = witnesses.reduce(
           (acc, ws) => new TransactionWitnessSet.TransactionWitnessSet({
             vkeyWitnesses: [...(acc.vkeyWitnesses ?? []), ...(ws.vkeyWitnesses ?? [])],
@@ -162,15 +164,16 @@ export const makeSignBuilder = (params: {
             plutusData: [...(acc.plutusData ?? []), ...(ws.plutusData ?? [])],
             redeemers: [...(acc.redeemers ?? [])]
           }),
+          // Start from transaction's witness set (NOT empty) to preserve attached scripts
           new TransactionWitnessSet.TransactionWitnessSet({
-            vkeyWitnesses: [],
-            nativeScripts: [],
-            bootstrapWitnesses: [],
-            plutusV1Scripts: [],
-            plutusV2Scripts: [],
-            plutusV3Scripts: [],
-            plutusData: [],
-            redeemers: []
+            vkeyWitnesses: transaction.witnessSet.vkeyWitnesses ?? [],
+            nativeScripts: transaction.witnessSet.nativeScripts ?? [],
+            bootstrapWitnesses: transaction.witnessSet.bootstrapWitnesses ?? [],
+            plutusV1Scripts: transaction.witnessSet.plutusV1Scripts ?? [],
+            plutusV2Scripts: transaction.witnessSet.plutusV2Scripts ?? [],
+            plutusV3Scripts: transaction.witnessSet.plutusV3Scripts ?? [],
+            plutusData: transaction.witnessSet.plutusData ?? [],
+            redeemers: transaction.witnessSet.redeemers ?? []
           })
         )
 
@@ -202,9 +205,10 @@ export const makeSignBuilder = (params: {
     partialSign: () =>
       Effect.gen(function* () {
         yield* Effect.logDebug("Creating partial signature (delegating to wallet Effect)")
+        yield* Effect.logDebug(`[partialSign] referenceUtxos count: ${referenceUtxos.length}`)
 
         // Delegate to wallet's Effect.signTx to get witness set
-        const witnessSet = yield* wallet.Effect.signTx(transaction, { utxos }).pipe(
+        const witnessSet = yield* wallet.Effect.signTx(transaction, { utxos, referenceUtxos }).pipe(
           Effect.mapError(
             (walletError) =>
               new TransactionBuilderError({ message: "Failed to create partial signature", cause: walletError })

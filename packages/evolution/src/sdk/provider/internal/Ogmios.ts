@@ -8,7 +8,7 @@ import * as Bytes from "../../../core/Bytes.js"
 import * as PlutusData from "../../../core/Data.js"
 import type * as DatumOption from "../../../core/DatumOption.js"
 import * as PolicyId from "../../../core/PolicyId.js"
-import type * as ScriptRef from "../../../core/ScriptRef.js"
+import * as CoreScript from "../../../core/Script.js"
 import * as TransactionHash from "../../../core/TransactionHash.js"
 import type * as CoreUTxO from "../../../core/UTxO.js"
 
@@ -121,7 +121,7 @@ export const Delegation = Schema.NullOr(
 )
 
 type Script = {
-  language: "plutus:v1" | "plutus:v2" | "plutus:v3"
+  language: "native" | "plutus:v1" | "plutus:v2" | "plutus:v3"
   cbor: string
 }
 
@@ -156,12 +156,19 @@ export const toOgmiosUTxOs = (utxos: Array<CoreUTxO.UTxO> | undefined): Array<Og
   // NOTE: Ogmios only works with single encoding, not double encoding.
   // You will get the following error:
   // "Invalid request: couldn't decode Plutus script."
-  const toOgmiosScript = (scriptRef: ScriptRef.ScriptRef | undefined): OgmiosUTxO["script"] | undefined => {
-    if (scriptRef) {
-      // ScriptRef contains raw script bytes - we need to detect the language from the CBOR
-      // For now, we return undefined as we'd need to decode the script to determine language
-      // TODO: Implement script language detection from bytes
-      return undefined
+  const toOgmiosScript = (script: CoreScript.Script | undefined): OgmiosUTxO["script"] | undefined => {
+    if (script) {
+      // Script type directly tells us the language
+      switch (script._tag) {
+        case "NativeScript":
+          return { language: "native", cbor: CoreScript.toCBORHex(script) }
+        case "PlutusV1":
+          return { language: "plutus:v1", cbor: CoreScript.toCBORHex(script) }
+        case "PlutusV2":
+          return { language: "plutus:v2", cbor: CoreScript.toCBORHex(script) }
+        case "PlutusV3":
+          return { language: "plutus:v3", cbor: CoreScript.toCBORHex(script) }
+      }
     }
     return undefined
   }

@@ -1,7 +1,9 @@
 import { Effect, Equal, ParseResult } from "effect"
 
 import * as CoreAddress from "../../core/Address.js"
+import * as Bytes from "../../core/Bytes.js"
 import * as KeyHash from "../../core/KeyHash.js"
+import type * as NativeScripts from "../../core/NativeScripts.js"
 import * as PrivateKey from "../../core/PrivateKey.js"
 import type * as Time from "../../core/Time/index.js"
 import * as Transaction from "../../core/Transaction.js"
@@ -16,6 +18,7 @@ import {
   type ReadOnlyTransactionBuilder,
   type SigningTransactionBuilder
 } from "../builders/TransactionBuilder.js"
+import * as OutRef from "../OutRef.js"
 import * as Blockfrost from "../provider/Blockfrost.js"
 import * as Koios from "../provider/Koios.js"
 import * as Kupmios from "../provider/Kupmios.js"
@@ -207,7 +210,41 @@ const createReadOnlyClient = (
 }
 
 /**
- * Determine key hashes that must sign a transaction based on inputs, withdrawals, and certificates.
+ * Extract all key hashes from a native script (recursively).
+ * This traverses ALL, ANY, and N-of-K scripts to find all ScriptPubKey key hashes.
+ *
+ * @since 2.0.0
+ * @category utilities
+ */
+const extractKeyHashesFromNativeScript = (script: NativeScripts.NativeScriptVariants): Set<string> => {
+  const keyHashes = new Set<string>()
+
+  const traverse = (s: NativeScripts.NativeScriptVariants): void => {
+    switch (s._tag) {
+      case "ScriptPubKey":
+        keyHashes.add(Bytes.toHex(s.keyHash))
+        break
+      case "ScriptAll":
+      case "ScriptAny":
+        for (const nested of s.scripts) traverse(nested)
+        break
+      case "ScriptNOfK":
+        for (const nested of s.scripts) traverse(nested)
+        break
+      case "InvalidBefore":
+      case "InvalidHereafter":
+        // Time-based scripts don't contain key hashes
+        break
+    }
+  }
+
+  traverse(script)
+  return keyHashes
+}
+
+/**
+ * Determine key hashes that must sign a transaction based on inputs, withdrawals, certificates,
+ * and native scripts attached to the transaction or in reference inputs.
  *
  * @since 2.0.0
  * @category predicates
@@ -218,11 +255,30 @@ const computeRequiredKeyHashesSync = (params: {
   stakeKhHex?: string
   tx: Transaction.Transaction
   utxos: ReadonlyArray<CoreUTxO.UTxO>
+  referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO>
 }): Set<string> => {
   const required = new Set<string>()
 
   if (params.tx.body.requiredSigners) {
     for (const kh of params.tx.body.requiredSigners) required.add(KeyHash.toHex(kh))
+  }
+
+  // Extract key hashes from native scripts in the witness set
+  if (params.tx.witnessSet.nativeScripts) {
+    for (const nativeScript of params.tx.witnessSet.nativeScripts) {
+      const scriptKeyHashes = extractKeyHashesFromNativeScript(nativeScript.script)
+      for (const kh of scriptKeyHashes) required.add(kh)
+    }
+  }
+
+  // Extract key hashes from native scripts in reference inputs
+  if (params.referenceUtxos) {
+    for (const utxo of params.referenceUtxos) {
+      if (utxo.scriptRef && utxo.scriptRef._tag === "NativeScript") {
+        const scriptKeyHashes = extractKeyHashesFromNativeScript(utxo.scriptRef.script)
+        for (const kh of scriptKeyHashes) required.add(kh)
+      }
+    }
   }
 
   const ownedRefs = new Set<string>(params.utxos.map((u) => CoreUTxO.toOutRefString(u)))
@@ -290,7 +346,7 @@ const createSigningWallet = (network: WalletNew.Network, config: SeedWalletConfi
   const effectInterface: WalletNew.SigningWalletEffect = {
     address: () => Effect.map(derivationEffect, (d) => d.address),
     rewardAddress: () => Effect.map(derivationEffect, (d) => d.rewardAddress ?? null),
-    signTx: (txOrHex: Transaction.Transaction | string, context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
+    signTx: (txOrHex: Transaction.Transaction | string, context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
       Effect.gen(function* () {
         const derivation = yield* derivationEffect
 
@@ -303,6 +359,7 @@ const createSigningWallet = (network: WalletNew.Network, config: SeedWalletConfi
               )
             : txOrHex
         const utxos = context?.utxos ?? []
+        const referenceUtxos = context?.referenceUtxos ?? []
 
         // Determine required key hashes for signing
         const required = computeRequiredKeyHashesSync({
@@ -310,7 +367,8 @@ const createSigningWallet = (network: WalletNew.Network, config: SeedWalletConfi
           rewardAddress: derivation.rewardAddress ?? null,
           stakeKhHex: derivation.stakeKhHex,
           tx,
-          utxos
+          utxos,
+          referenceUtxos
         })
 
         // Build witnesses for keys we have
@@ -374,7 +432,7 @@ const createPrivateKeyWallet = (
   const effectInterface: WalletNew.SigningWalletEffect = {
     address: () => Effect.map(derivationEffect, (d) => d.address),
     rewardAddress: () => Effect.map(derivationEffect, (d) => d.rewardAddress ?? null),
-    signTx: (txOrHex: Transaction.Transaction | string, context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
+    signTx: (txOrHex: Transaction.Transaction | string, context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
       Effect.gen(function* () {
         const derivation = yield* derivationEffect
 
@@ -387,13 +445,15 @@ const createPrivateKeyWallet = (
               )
             : txOrHex
         const utxos = context?.utxos ?? []
+        const referenceUtxos = context?.referenceUtxos ?? []
 
         const required = computeRequiredKeyHashesSync({
           paymentKhHex: derivation.paymentKhHex,
           rewardAddress: derivation.rewardAddress ?? null,
           stakeKhHex: derivation.stakeKhHex,
           tx,
-          utxos
+          utxos,
+          referenceUtxos
         })
 
         const txHash = hashTransaction(tx.body)
@@ -591,9 +651,46 @@ const createSigningClient = (
         ? createPrivateKeyWallet(walletNetwork, walletConfig)
         : createApiWallet(walletNetwork, walletConfig)
 
+  // Enhanced signTx that automatically fetches reference UTxOs from the network
+  const signTxWithAutoFetch = (
+    txOrHex: Transaction.Transaction | string,
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }
+  ): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletNew.WalletError> =>
+    Effect.gen(function* () {
+      const tx =
+        typeof txOrHex === "string"
+          ? yield* ParseResult.decodeUnknownEither(Transaction.FromCBORHex())(txOrHex).pipe(
+              Effect.mapError(
+                (cause) => new WalletNew.WalletError({ message: `Failed to decode transaction: ${cause}`, cause })
+              )
+            )
+          : txOrHex
+
+      // If referenceUtxos already provided, use them directly
+      if (context?.referenceUtxos && context.referenceUtxos.length > 0) {
+        return yield* wallet.Effect.signTx(tx, context)
+      }
+
+      // Auto-fetch reference UTxOs from the network if the transaction has reference inputs
+      let referenceUtxos: ReadonlyArray<CoreUTxO.UTxO> = []
+      if (tx.body.referenceInputs && tx.body.referenceInputs.length > 0) {
+        const outRefs = tx.body.referenceInputs.map((input) =>
+          OutRef.make(TransactionHash.toHex(input.transactionId), Number(input.index))
+        )
+        // Fetch reference UTxOs from the provider
+        referenceUtxos = yield* provider.Effect.getUtxosByOutRef(outRefs).pipe(
+          Effect.mapError((e) => new WalletNew.WalletError({ message: `Failed to fetch reference UTxOs: ${e.message}`, cause: e }))
+        )
+      }
+
+      return yield* wallet.Effect.signTx(tx, { ...context, referenceUtxos })
+    })
+
   const effectInterface = {
     ...wallet.Effect,
     ...provider.Effect,
+    // Override signTx with auto-fetch capability
+    signTx: signTxWithAutoFetch,
     getWalletUtxos: () => Effect.flatMap(wallet.Effect.address(), (addr) => provider.Effect.getUtxos(addr)),
     getWalletDelegation: () =>
       Effect.flatMap(wallet.Effect.rewardAddress(), (rewardAddr) => {
@@ -610,6 +707,9 @@ const createSigningClient = (
   return {
     ...provider,
     ...wallet,
+    // Override signTx with auto-fetch capability (must come after ...wallet to override)
+    signTx: (txOrHex: Transaction.Transaction | string, context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
+      Effect.runPromise(signTxWithAutoFetch(txOrHex, context)),
     // Promise methods call Effect implementations
     getWalletUtxos,
     getWalletDelegation: () => Effect.runPromise(effectInterface.getWalletDelegation()),

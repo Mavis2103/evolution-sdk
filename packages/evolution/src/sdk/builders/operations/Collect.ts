@@ -8,6 +8,7 @@
 import { Effect, Ref } from "effect"
 
 import * as CoreAssets from "../../../core/Assets/index.js"
+import * as ScriptHash from "../../../core/ScriptHash.js"
 import * as UTxO from "../../../core/UTxO.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
 import { TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
@@ -37,6 +38,7 @@ import type { CollectFromParams } from "./Operations.js"
 export const createCollectFromProgram = (params: CollectFromParams) =>
   Effect.gen(function* () {
     const ctx = yield* TxContext
+    const state = yield* Ref.get(ctx)
 
     // 1. Validate inputs exist
     if (params.inputs.length === 0) {
@@ -50,16 +52,32 @@ export const createCollectFromProgram = (params: CollectFromParams) =>
     // 2. Filter script-locked UTxOs
     const scriptUtxos = yield* filterScriptUtxos(params.inputs)
 
-    // 3. Validate redeemer for script UTxOs
-    if (scriptUtxos.length > 0 && !params.redeemer) {
+    // 3. Filter out native script UTxOs (those with attached native scripts don't need redeemers)
+    // Native scripts are validated by signatures, not redeemers
+    const plutusScriptUtxos = scriptUtxos.filter((utxo) => {
+      const credential = utxo.address.paymentCredential
+      if (credential?._tag !== "ScriptHash") return false
+      
+      const scriptHashHex = ScriptHash.toHex(credential)
+      const attachedScript = state.scripts.get(scriptHashHex)
+      
+      // If script is attached and is a NativeScript, no redeemer needed
+      if (attachedScript?._tag === "NativeScript") return false
+      
+      // Otherwise it's a Plutus script (or script not attached yet)
+      return true
+    })
+
+    // 4. Validate redeemer for Plutus script UTxOs only
+    if (plutusScriptUtxos.length > 0 && !params.redeemer) {
       return yield* Effect.fail(
         new TransactionBuilderError({
-          message: `Redeemer required for ${scriptUtxos.length} script-locked UTxO(s)`
+          message: `Redeemer required for ${plutusScriptUtxos.length} script-locked UTxO(s)`
         })
       )
     }
 
-    // 4. Add UTxOs to selected inputs and track redeemers and input assets
+    // 5. Add UTxOs to selected inputs and track redeemers and input assets
     const inputAssets = calculateTotalAssets(params.inputs)
 
     yield* Ref.update(ctx, (state) => {
