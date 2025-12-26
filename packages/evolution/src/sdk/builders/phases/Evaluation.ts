@@ -70,94 +70,21 @@ const costModelsToCBOR = (
   })
 
 /**
- * Ogmios error response structure for script failures.
- */
-interface OgmiosValidatorError {
-  validator: { index: number; purpose: string }
-  error: {
-    code: number
-    message: string
-    data: {
-      validationError: string
-      traces: Array<string>
-    }
-  }
-}
-
-/**
- * Parse Ogmios script evaluation error response and enrich with labels.
+ * Enrich raw script failures with labels and context from builder state.
  * 
- * Extracts structured failure information from the Ogmios JSON-RPC error response
- * and maps redeemer indices back to user-provided labels from the builder state.
+ * Takes raw failures (from evaluator) and adds user-provided labels,
+ * UTxO references, credentials, and policy IDs based on index mappings.
  */
-const parseOgmiosError = (
-  error: unknown,
+const enrichFailuresWithLabels = (
+  failures: ReadonlyArray<ScriptFailure>,
   redeemers: Map<string, RedeemerData>,
   inputIndexMapping: Map<number, string>,
   withdrawalIndexMapping: Map<number, string>,
   mintIndexMapping: Map<number, string>,
   certIndexMapping: Map<number, string>
 ): Array<ScriptFailure> => {
-  const failures: Array<ScriptFailure> = []
-
-  // Navigate through error chain to find the response body
-  const findErrorData = (e: unknown): Array<OgmiosValidatorError> | undefined => {
-    if (!e || typeof e !== "object") return undefined
-    
-    // Check for ResponseError with parsed body
-    const obj = e as Record<string, unknown>
-    
-    // Direct data property (from ProviderError cause chain)
-    if (obj.cause && typeof obj.cause === "object") {
-      const cause = obj.cause as Record<string, unknown>
-      
-      // ResponseError with response.body
-      if (cause.response && typeof cause.response === "object") {
-        const resp = cause.response as Record<string, unknown>
-        if (resp.body && typeof resp.body === "object") {
-          const body = resp.body as Record<string, unknown>
-          if (body.error && typeof body.error === "object") {
-            const err = body.error as Record<string, unknown>
-            if (Array.isArray(err.data)) {
-              return err.data as Array<OgmiosValidatorError>
-            }
-          }
-        }
-      }
-      
-      // Try description field which contains the JSON string
-      if (typeof cause.description === "string") {
-        try {
-          const match = cause.description.match(/\{.*\}/s)
-          if (match) {
-            const parsed = JSON.parse(match[0])
-            if (parsed.error?.data && Array.isArray(parsed.error.data)) {
-              return parsed.error.data as Array<OgmiosValidatorError>
-            }
-          }
-        } catch {
-          // JSON parse failed, continue looking
-        }
-      }
-      
-      // Recurse into cause
-      return findErrorData(cause)
-    }
-    
-    return undefined
-  }
-
-  const errorData = findErrorData(error)
-  
-  if (!errorData) {
-    return failures
-  }
-
-  // Process each validator error
-  for (const validatorError of errorData) {
-    const { error: err, validator } = validatorError
-    const { index, purpose } = validator
-    const { traces, validationError } = err.data
+  return failures.map((failure) => {
+    const { index, purpose } = failure
 
     // Look up the redeemer key based on purpose and index
     let redeemerKey: string | undefined
@@ -186,20 +113,15 @@ const parseOgmiosError = (
       label = redeemer?.label
     }
 
-    failures.push({
-      purpose,
-      index,
+    return {
+      ...failure,
       label,
       redeemerKey,
       utxoRef,
       credential,
-      policyId,
-      validationError,
-      traces: traces ?? []
-    })
-  }
-
-  return failures
+      policyId
+    }
+  })
 }
 
 /**
@@ -567,9 +489,10 @@ export const executeEvaluation = (): Effect.Effect<
     ).pipe(
       Effect.mapError(
         (evalError) => {
-          // Parse Ogmios error and enrich with labels
-          const failures = parseOgmiosError(
-            evalError,
+          // Enrich failures with labels from builder state
+          // evalError.failures contains raw failures from evaluator (provider or aiken)
+          const enrichedFailures = enrichFailuresWithLabels(
+            evalError.failures ?? [],
             updatedState.redeemers,
             inputIndexMapping,
             withdrawalIndexMapping,
@@ -577,11 +500,11 @@ export const executeEvaluation = (): Effect.Effect<
             certIndexMapping
           )
 
-          // Create enhanced evaluation error
+          // Create enhanced evaluation error with enriched failures
           const enhancedError = new EvaluationError({
             message: "Script evaluation failed",
-            cause: evalError,
-            failures
+            cause: evalError.cause,
+            failures: enrichedFailures
           })
 
           return new TransactionBuilderError({

@@ -13,12 +13,62 @@ import * as Transaction from "@evolution-sdk/evolution/core/Transaction"
 import * as TransactionInput from "@evolution-sdk/evolution/core/TransactionInput"
 import * as TxOut from "@evolution-sdk/evolution/core/TxOut"
 import type * as UTxO from "@evolution-sdk/evolution/core/UTxO"
-import type * as TransactionBuilder from "@evolution-sdk/evolution/sdk/builders/TransactionBuilder"
-import { EvaluationError } from "@evolution-sdk/evolution/sdk/builders/TransactionBuilder"
+import * as TransactionBuilder from "@evolution-sdk/evolution/sdk/builders/TransactionBuilder"
 import type * as EvalRedeemer from "@evolution-sdk/evolution/sdk/EvalRedeemer"
 import { Effect } from "effect"
 
 import type * as WasmLoader from "./WasmLoader.js"
+
+/**
+ * Parse Aiken UPLC error string into ScriptFailure array.
+ * 
+ * Aiken errors come as strings like:
+ * - "Spend(0): validation failed: ..." 
+ * - "Mint(1): ..." 
+ * - "Withdraw(0): ..."
+ * - "Publish(0): ..."
+ */
+function parseAikenError(error: unknown): Array<TransactionBuilder.ScriptFailure> {
+  const failures: Array<TransactionBuilder.ScriptFailure> = []
+  
+  const errorMessage = error instanceof Error ? error.message : String(error)
+  
+  // Pattern: Purpose(index): error message
+  // Examples: "Spend(0): validation failed", "Mint(1): budget exceeded"
+  const pattern = /\b(Spend|Mint|Withdraw|Publish|Reward|Cert)\s*\(\s*(\d+)\s*\)\s*:\s*(.+?)(?=\b(?:Spend|Mint|Withdraw|Publish|Reward|Cert)\s*\(|$)/gi
+  
+  let match
+  while ((match = pattern.exec(errorMessage)) !== null) {
+    const [, purposeRaw, indexStr, validationError] = match
+    const purpose = purposeRaw!.toLowerCase()
+    const index = parseInt(indexStr!, 10)
+    
+    // Normalize purpose names
+    const normalizedPurpose = 
+      purpose === "reward" ? "withdraw" :
+      purpose === "cert" ? "publish" :
+      purpose
+    
+    failures.push({
+      purpose: normalizedPurpose,
+      index,
+      validationError: validationError!.trim(),
+      traces: []
+    })
+  }
+  
+  // If no structured errors found, create a generic one
+  if (failures.length === 0 && errorMessage) {
+    failures.push({
+      purpose: "unknown",
+      index: 0,
+      validationError: errorMessage,
+      traces: []
+    })
+  }
+  
+  return failures
+}
 
 /**
  * Convert UTxO to input CBOR bytes (transaction hash + index).
@@ -146,9 +196,12 @@ export function makeEvaluator(wasmModule: WasmLoader.WasmModule): TransactionBui
               slotLength
             ),
           catch: (error) => {
-            return new EvaluationError({
+            const message = error instanceof Error ? error.message : "UPLC evaluation failed"
+            const failures = parseAikenError(error)
+            return new TransactionBuilder.EvaluationError({
               cause: error,
-              message: error instanceof Error ? error.message : "UPLC evaluation failed"
+              message,
+              failures
             })
           }
         })
@@ -158,7 +211,7 @@ export function makeEvaluator(wasmModule: WasmLoader.WasmModule): TransactionBui
         const evalRedeemers = yield* Effect.try({
           try: () => resultBytes.map(evalRedeemerFromCBOR),
           catch: (error) =>
-            new EvaluationError({
+            new TransactionBuilder.EvaluationError({
               cause: error,
               message: error instanceof Error ? error.message : "Failed to parse evaluation results"
             })

@@ -249,6 +249,97 @@ const resolveAvailableUtxos = (
 }
 
 /**
+ * Ogmios error response structure for script failures.
+ */
+interface OgmiosValidatorError {
+  validator: { index: number; purpose: string }
+  error: {
+    code: number
+    message: string
+    data: {
+      validationError: string
+      traces: Array<string>
+    }
+  }
+}
+
+/**
+ * Parse Ogmios/provider error response into raw ScriptFailure array.
+ * Returns failures without labels - enrichment happens in Evaluation phase.
+ */
+const parseProviderError = (error: unknown): Array<ScriptFailure> => {
+  const failures: Array<ScriptFailure> = []
+
+  // Navigate through error chain to find the response body
+  const findErrorData = (e: unknown): Array<OgmiosValidatorError> | undefined => {
+    if (!e || typeof e !== "object") return undefined
+
+    const obj = e as Record<string, unknown>
+
+    // Direct data property (from ProviderError cause chain)
+    if (obj.cause && typeof obj.cause === "object") {
+      const cause = obj.cause as Record<string, unknown>
+
+      // ResponseError with response.body
+      if (cause.response && typeof cause.response === "object") {
+        const resp = cause.response as Record<string, unknown>
+        if (resp.body && typeof resp.body === "object") {
+          const body = resp.body as Record<string, unknown>
+          if (body.error && typeof body.error === "object") {
+            const err = body.error as Record<string, unknown>
+            if (Array.isArray(err.data)) {
+              return err.data as Array<OgmiosValidatorError>
+            }
+          }
+        }
+      }
+
+      // Try description field which contains the JSON string
+      if (typeof cause.description === "string") {
+        try {
+          const match = cause.description.match(/\{.*\}/s)
+          if (match) {
+            const parsed = JSON.parse(match[0])
+            if (parsed.error?.data && Array.isArray(parsed.error.data)) {
+              return parsed.error.data as Array<OgmiosValidatorError>
+            }
+          }
+        } catch {
+          // JSON parse failed, continue looking
+        }
+      }
+
+      // Recurse into cause
+      return findErrorData(cause)
+    }
+
+    return undefined
+  }
+
+  const errorData = findErrorData(error)
+
+  if (!errorData) {
+    return failures
+  }
+
+  // Process each validator error (raw, without labels)
+  for (const validatorError of errorData) {
+    const { error: err, validator } = validatorError
+    const { index, purpose } = validator
+    const { traces, validationError } = err.data
+
+    failures.push({
+      purpose,
+      index,
+      validationError,
+      traces: traces ?? []
+    })
+  }
+
+  return failures
+}
+
+/**
  * Resolve evaluator from options, provider, or return undefined.
  * Priority: BuildOptions.evaluator > provider.evaluateTx (wrapped) > undefined
  *
@@ -272,13 +363,15 @@ const resolveEvaluator = (config: TxBuilderConfig, options?: BuildOptions): Eval
         // Serialize Transaction to CBOR hex for provider
         const txHex = Transaction.toCBORHex(tx)
         return config.provider!.Effect.evaluateTx(txHex, additionalUtxos as Array<CoreUTxO.UTxO> | undefined).pipe(
-          Effect.mapError(
-            (providerError) =>
-              new EvaluationError({
-                message: `Provider evaluation failed: ${providerError.message}`,
-                cause: providerError
-              })
-          )
+          Effect.mapError((providerError) => {
+            // Parse provider error into structured failures
+            const failures = parseProviderError(providerError)
+            return new EvaluationError({
+              message: `Provider evaluation failed: ${providerError.message}`,
+              cause: providerError,
+              failures
+            })
+          })
         )
       }
     }
