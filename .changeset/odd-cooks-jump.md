@@ -14,7 +14,7 @@ const mintBuilder = client.newTx()
   .attachScript({ script: mintingPolicy })
 
 const metadataBuilder = client.newTx()
-  .attachMetadata({ label: 674n, metadata: "Cross-chain tx" })
+  .attachMetadata({ label: 674n, metadata: "Composed transaction" })
 
 // Compose multiple builders into one transaction
 const tx = await client.newTx()
