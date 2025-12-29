@@ -70,6 +70,10 @@ export const createRegisterDRepProgram = (params: RegisterDRepParams): Effect.Ef
       ...state,
       certificates: [...state.certificates, certificate]
     }))
+
+    yield* Effect.logDebug(
+      `[RegisterDRep] Added RegDrepCert for DRep ${credentialToKey(params.drepCredential)} with deposit ${drepDeposit}`
+    )
   })
 
 /**
@@ -135,6 +139,10 @@ export const createUpdateDRepProgram = (params: UpdateDRepParams): Effect.Effect
         deferredRedeemers: newDeferredRedeemers
       }
     })
+
+    yield* Effect.logDebug(
+      `[UpdateDRep] Added UpdateDrepCert for DRep ${credentialToKey(params.drepCredential)}`
+    )
   })
 
 /**
@@ -217,6 +225,10 @@ export const createDeregisterDRepProgram = (params: DeregisterDRepParams): Effec
         deferredRedeemers: newDeferredRedeemers
       }
     })
+
+    yield* Effect.logDebug(
+      `[DeregisterDRep] Added UnregDrepCert for DRep ${credentialToKey(params.drepCredential)} with refund ${drepDeposit}`
+    )
   })
 
 // ============================================================================
@@ -287,6 +299,10 @@ export const createAuthCommitteeHotProgram = (params: AuthCommitteeHotParams): E
         deferredRedeemers: newDeferredRedeemers
       }
     })
+
+    yield* Effect.logDebug(
+      `[AuthCommitteeHot] Added AuthCommitteeHotCert for cold ${credentialToKey(params.coldCredential)} to hot ${credentialToKey(params.hotCredential)}`
+    )
   })
 
 /**
@@ -353,4 +369,8 @@ export const createResignCommitteeColdProgram = (params: ResignCommitteeColdPara
         deferredRedeemers: newDeferredRedeemers
       }
     })
+
+    yield* Effect.logDebug(
+      `[ResignCommitteeCold] Added ResignCommitteeColdCert for cold credential ${credentialToKey(params.coldCredential)}`
+    )
   })

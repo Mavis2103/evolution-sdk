@@ -89,4 +89,8 @@ export const createRetirePoolProgram = (params: RetirePoolParams): Effect.Effect
       ...state,
       certificates: [...state.certificates, certificate]
     }))
+
+    yield* Effect.logDebug(
+      `[RetirePool] Added PoolRetirement certificate for pool ${PoolKeyHash.toHex(params.poolKeyHash)} at epoch ${params.epoch}`
+    )
   })

@@ -22,7 +22,7 @@ import * as PoolKeyHash from "../../../core/PoolKeyHash.js"
  * Certificates with refunds (money IN):
  * - UnregCert: Stake deregistration refund
  * - UnregDrepCert: DRep deregistration refund
- * - RetirePoolCert: Pool retirement refund (PoolRetirement)
+ * - PoolRetirement: Pool retirement (no refund in Conway era; pool deposits are burned)
  *
  * @param certificates - Array of certificates to analyze
  * @param poolDeposits - Map of pool key hashes to their deposit amounts
