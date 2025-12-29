@@ -10,19 +10,14 @@ function buildUtxoMapCBOR(utxos: ReadonlyArray<UTxO.UTxO>): Uint8Array {
   return new Uint8Array([0xa0])
 }
 
-/**
- * Decode CBOR cost models to array format.
- */
 function decodeCostModels(context: TransactionBuilder.EvaluationContext): Array<Array<number>> {
+  // Scalus expects a flattened representation of the cost models
   const plutusV1 = []
   const plutusV2 = []
   const plutusV3 = []
   return [plutusV1, plutusV2, plutusV3]
 }
 
-/**
- * Create Scalus evaluator
- */
 export function makeEvaluator(): TransactionBuilder.Evaluator {
   return {
     evaluate: (
