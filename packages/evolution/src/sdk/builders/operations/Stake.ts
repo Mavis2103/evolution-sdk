@@ -12,7 +12,7 @@ import * as Certificate from "../../../core/Certificate.js"
 import * as RewardAccount from "../../../core/RewardAccount.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
 import { TransactionBuilderError, type TxBuilderConfig, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
-import type { DelegateToParams, DelegateToPoolParams, DelegateToDRepParams, DelegateToPoolAndDRepParams, DeregisterStakeParams, RegisterAndDelegateToParams, RegisterStakeParams, WithdrawParams } from "./Operations.js"
+import type { DelegateToDRepParams, DelegateToParams, DelegateToPoolAndDRepParams, DelegateToPoolParams, DeregisterStakeParams, RegisterAndDelegateToParams, RegisterStakeParams, WithdrawParams } from "./Operations.js"
 
 /**
  * Get hex string from credential hash for use as map key
