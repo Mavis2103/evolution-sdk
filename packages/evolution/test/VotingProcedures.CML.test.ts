@@ -58,12 +58,6 @@ describe("VotingProcedures CML Compatibility", () => {
     const cmlProcedureCborHex = cmlProcedure.to_cbor_hex()
     const evolutionCborHex = VotingProcedures.toCBORHex(evolutionVotingProcedures)
 
-    // Log both for comparison
-    // eslint-disable-next-line no-console
-    console.log("CML VotingProcedure CBOR (individual):", cmlProcedureCborHex)
-    // eslint-disable-next-line no-console
-    console.log("Evolution VotingProcedures CBOR:      ", evolutionCborHex)
-
     // For Conway governance, CML may not support full VotingProcedures collections yet
     // Focus on verifying Evolution SDK produces valid CBOR
     expect(evolutionCborHex).toMatch(/^[0-9a-fA-F]+$/)
@@ -108,14 +102,6 @@ describe("VotingProcedures CML Compatibility", () => {
     // Get CBOR hex from both implementations
     const cmlProcedureCborHex = cmlProcedure.to_cbor_hex()
     const evolutionCborHex = VotingProcedures.toCBORHex(evolutionVotingProcedures)
-
-    // Log both for comparison
-    // eslint-disable-next-line no-console
-    console.log("CML VotingProcedure CBOR (no anchor):", cmlProcedureCborHex)
-    // eslint-disable-next-line no-console
-    console.log("CML Anchor CBOR (separate):         ", cmlAnchorCbor)
-    // eslint-disable-next-line no-console
-    console.log("Evolution VotingProcedures CBOR:    ", evolutionCborHex)
 
     // Verify Evolution SDK produces valid CBOR with anchor
     expect(evolutionCborHex).toMatch(/^[0-9a-fA-F]+$/)
