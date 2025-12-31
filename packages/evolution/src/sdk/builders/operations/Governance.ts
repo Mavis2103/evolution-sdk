@@ -9,7 +9,6 @@ import { Effect, Ref } from "effect"
 
 import * as Bytes from "../../../core/Bytes.js"
 import * as Certificate from "../../../core/Certificate.js"
-import type * as Credential from "../../../core/Credential.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
 import { TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type {
