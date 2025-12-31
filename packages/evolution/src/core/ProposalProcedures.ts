@@ -190,3 +190,33 @@ export const toCBORBytes = (data: ProposalProcedures, options: CBOR.CodecOptions
  */
 export const toCBORHex = (data: ProposalProcedures, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
   Schema.encodeSync(FromCBORHex(options))(data)
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Create ProposalProcedures for a single proposal.
+ *
+ * Convenience function for the common case of submitting one governance action.
+ *
+ * @since 2.0.0
+ * @category helpers
+ */
+export const single = (
+  deposit: Coin.Coin,
+  rewardAccount: RewardAccount.RewardAccount,
+  governanceAction: GovernanceAction.GovernanceAction,
+  anchor: Anchor.Anchor | null
+): ProposalProcedures => {
+  return new ProposalProcedures({
+    procedures: [
+      new ProposalProcedure.ProposalProcedure({
+        deposit,
+        rewardAccount,
+        governanceAction,
+        anchor
+      })
+    ]
+  })
+}
