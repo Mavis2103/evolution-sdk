@@ -3,11 +3,11 @@ import { FetchHttpClient } from "@effect/platform"
 import { Effect, pipe, Schema } from "effect"
 import type { ParseError } from "effect/ParseResult"
 
-import * as CoreAddress from "../../../core/Address.js"
-import * as CoreAssets from "../../../core/Assets/index.js"
-import type * as Credential from "../../../core/Credential.js"
-import * as TransactionHash from "../../../core/TransactionHash.js"
-import * as CoreUTxO from "../../../core/UTxO.js"
+import * as CoreAddress from "../../../Address.js"
+import * as CoreAssets from "../../../Assets/index.js"
+import type * as Credential from "../../../Credential.js"
+import * as TransactionHash from "../../../TransactionHash.js"
+import * as CoreUTxO from "../../../UTxO.js"
 import * as HttpUtils from "./HttpUtils.js"
 
 export const ProtocolParametersSchema = Schema.Struct({

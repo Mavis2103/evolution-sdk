@@ -5,9 +5,9 @@
  * @since 2.0.0
  */
 
-import * as Bytes from "../../../core/Bytes.js"
-import type * as Certificate from "../../../core/Certificate.js"
-import * as PoolKeyHash from "../../../core/PoolKeyHash.js"
+import * as Bytes from "../../../Bytes.js"
+import type * as Certificate from "../../../Certificate.js"
+import * as PoolKeyHash from "../../../PoolKeyHash.js"
 
 /**
  * Calculate certificate deposits and refunds from a list of certificates.

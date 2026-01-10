@@ -7,8 +7,8 @@
 
 import { Effect, Ref } from "effect"
 
-import type * as GovernanceAction from "../../../core/GovernanceAction.js"
-import * as VotingProcedures from "../../../core/VotingProcedures.js"
+import type * as GovernanceAction from "../../../GovernanceAction.js"
+import * as VotingProcedures from "../../../VotingProcedures.js"
 import { voterToKey } from "../phases/utils.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
 import { TransactionBuilderError, TxContext } from "../TransactionBuilder.js"

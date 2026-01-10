@@ -10,8 +10,8 @@
 
 import { Effect, Ref } from "effect"
 
-import * as CoreAssets from "../../../core/Assets/index.js"
-import * as CoreUTxO from "../../../core/UTxO.js"
+import * as CoreAssets from "../../../Assets/index.js"
+import * as CoreUTxO from "../../../UTxO.js"
 import type { CoinSelectionAlgorithm, CoinSelectionFunction } from "../CoinSelection.js"
 import { largestFirstSelection } from "../CoinSelection.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
