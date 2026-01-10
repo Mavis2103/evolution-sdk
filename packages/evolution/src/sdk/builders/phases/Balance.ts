@@ -10,7 +10,7 @@
 
 import { Effect, Ref } from "effect"
 
-import * as CoreAssets from "../../../core/Assets/index.js"
+import * as CoreAssets from "../../../Assets/index.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
 import { mintToAssets } from "../operations/Mint.js"
 import {

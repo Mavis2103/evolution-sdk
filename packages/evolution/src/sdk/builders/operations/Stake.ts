@@ -7,9 +7,9 @@
 
 import { Effect, Ref } from "effect"
 
-import * as Bytes from "../../../core/Bytes.js"
-import * as Certificate from "../../../core/Certificate.js"
-import * as RewardAccount from "../../../core/RewardAccount.js"
+import * as Bytes from "../../../Bytes.js"
+import * as Certificate from "../../../Certificate.js"
+import * as RewardAccount from "../../../RewardAccount.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
 import { TransactionBuilderError, type TxBuilderConfig, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type { DelegateToDRepParams, DelegateToParams, DelegateToPoolAndDRepParams, DelegateToPoolParams, DeregisterStakeParams, RegisterAndDelegateToParams, RegisterStakeParams, WithdrawParams } from "./Operations.js"

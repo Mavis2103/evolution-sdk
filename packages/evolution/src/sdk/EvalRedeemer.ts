@@ -1,6 +1,6 @@
 // EvalRedeemer types and utilities for transaction evaluation
 
-import type * as Redeemer from "../core/Redeemer.js"
+import type * as Redeemer from "../Redeemer.js"
 
 /**
  * Evaluation result for a single redeemer from transaction evaluation.

@@ -10,10 +10,10 @@
 
 import { Effect, Ref } from "effect"
 
-import type * as CoreAddress from "../../../core/Address.js"
-import * as CoreAssets from "../../../core/Assets/index.js"
-import type * as TxOut from "../../../core/TxOut.js"
-import * as CoreUTxO from "../../../core/UTxO.js"
+import type * as CoreAddress from "../../../Address.js"
+import * as CoreAssets from "../../../Assets/index.js"
+import type * as TxOut from "../../../TxOut.js"
+import * as CoreUTxO from "../../../UTxO.js"
 import { mintToAssets } from "../operations/Mint.js"
 import {
   AvailableUtxosTag,

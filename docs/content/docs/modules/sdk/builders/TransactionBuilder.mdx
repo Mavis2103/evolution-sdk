@@ -1,6 +1,6 @@
 ---
 title: sdk/builders/TransactionBuilder.ts
-nav_order: 181
+nav_order: 148
 parent: Modules
 ---
 
@@ -268,8 +268,8 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as Script from "../../core/Script.js"
-   * import * as NativeScripts from "../../core/NativeScripts.js"
+   * import * as Script from "../../Script.js"
+   * import * as NativeScripts from "../../NativeScripts.js"
    *
    * const nativeScript = NativeScripts.makeScriptPubKey(keyHashBytes)
    * const script = Script.fromNativeScript(nativeScript)
@@ -346,7 +346,7 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as UTxO from "../../core/UTxO.js"
+   * import * as UTxO from "../../UTxO.js"
    *
    * // Use reference script stored on-chain instead of attaching to transaction
    * const refScriptUtxo = await provider.getUtxoByTxHash("abc123...")
@@ -619,7 +619,7 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as Time from "@evolution-sdk/core/Time"
+   * import * as Time from "@evolution-sdk/Time"
    *
    * // Transaction valid for 10 minutes from now
    * const tx = await builder
@@ -658,9 +658,9 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as VotingProcedures from "@evolution-sdk/core/VotingProcedures"
-   * import * as Vote from "@evolution-sdk/core/Vote"
-   * import * as Data from "@evolution-sdk/core/Data"
+   * import * as VotingProcedures from "@evolution-sdk/VotingProcedures"
+   * import * as Vote from "@evolution-sdk/Vote"
+   * import * as Data from "@evolution-sdk/Data"
    *
    * // Simple single vote with helper
    * await client.newTx()
@@ -716,8 +716,8 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as GovernanceAction from "@evolution-sdk/core/GovernanceAction"
-   * import * as RewardAccount from "@evolution-sdk/core/RewardAccount"
+   * import * as GovernanceAction from "@evolution-sdk/GovernanceAction"
+   * import * as RewardAccount from "@evolution-sdk/RewardAccount"
    *
    * // Submit single proposal (deposit auto-fetched)
    * await client.newTx()
@@ -769,8 +769,8 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as KeyHash from "@evolution-sdk/core/KeyHash"
-   * import * as Address from "@evolution-sdk/core/Address"
+   * import * as KeyHash from "@evolution-sdk/KeyHash"
+   * import * as Address from "@evolution-sdk/Address"
    *
    * // Add signer from address credential
    * const address = Address.fromBech32("addr_test1...")
@@ -805,7 +805,7 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import { fromEntries } from "@evolution-sdk/evolution/core/TransactionMetadatum"
+   * import { fromEntries } from "@evolution-sdk/evolution/TransactionMetadatum"
    *
    * // Attach a simple message (CIP-20)
    * const tx = await builder

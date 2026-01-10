@@ -11,7 +11,7 @@
 
 import { Effect } from "effect"
 
-import type * as Transaction from "../../core/Transaction.js"
+import type * as Transaction from "../../Transaction.js"
 import type { TransactionBuilderError } from "./TransactionBuilder.js"
 
 /**

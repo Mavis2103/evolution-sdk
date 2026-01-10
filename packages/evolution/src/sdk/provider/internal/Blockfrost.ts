@@ -5,12 +5,12 @@
 
 import { Schema } from "effect"
 
-import * as CoreAddress from "../../../core/Address.js"
-import * as CoreAssets from "../../../core/Assets/index.js"
-import * as PoolKeyHash from "../../../core/PoolKeyHash.js"
-import * as Redeemer from "../../../core/Redeemer.js"
-import * as TransactionHash from "../../../core/TransactionHash.js"
-import * as CoreUTxO from "../../../core/UTxO.js"
+import * as CoreAddress from "../../../Address.js"
+import * as CoreAssets from "../../../Assets/index.js"
+import * as PoolKeyHash from "../../../PoolKeyHash.js"
+import * as Redeemer from "../../../Redeemer.js"
+import * as TransactionHash from "../../../TransactionHash.js"
+import * as CoreUTxO from "../../../UTxO.js"
 import type { EvalRedeemer } from "../../EvalRedeemer.js"
 import type * as Provider from "../Provider.js"
 
