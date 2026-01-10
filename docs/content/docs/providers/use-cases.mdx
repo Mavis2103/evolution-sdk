@@ -132,7 +132,7 @@ export async function trackPortfolio(
 Backend API endpoint for transaction submission:
 
 ```typescript twoslash
-import { createClient } from "@evolution-sdk/evolution";
+import { Core, createClient } from "@evolution-sdk/evolution";
 
 const client = createClient({
   network: "mainnet",
@@ -155,7 +155,8 @@ export async function handleSubmission(
 ): Promise<SubmissionResponse> {
   try {
     // Submit transaction
-    const txHash = await client.submitTx(signedTxCbor);
+    const signedTx = Core.Transaction.fromCBORHex(signedTxCbor);
+    const txHash = await client.submitTx(signedTx);
     
     console.log("Transaction submitted:", txHash);
     
@@ -164,7 +165,7 @@ export async function handleSubmission(
     
     return {
       success: true,
-      txHash,
+      txHash: Core.TransactionHash.toHex(txHash),
       confirmed
     };
   } catch (error: any) {
@@ -356,7 +357,7 @@ export async function getCollectionStats(
 Track delegators to a specific stake pool:
 
 ```typescript twoslash
-import { createClient } from "@evolution-sdk/evolution";
+import { Core, createClient } from "@evolution-sdk/evolution";
 
 const client = createClient({
   network: "mainnet",
@@ -369,18 +370,18 @@ const client = createClient({
 
 interface Delegator {
   rewardAddress: string;
-  poolId: string | undefined;
+  poolId: Core.PoolKeyHash.PoolKeyHash | null;
   rewards: bigint;
 }
 
 export async function trackPoolDelegators(
   rewardAddresses: string[],
-  targetPoolId: string
+  targetPoolId: Core.PoolKeyHash.PoolKeyHash
 ): Promise<Delegator[]> {
   const delegators = await Promise.all(
     rewardAddresses.map(async (rewardAddress) => {
       try {
-        const delegation = await client.getDelegation(rewardAddress);
+        const delegation = await client.getDelegation(Core.RewardAddress.RewardAddress.make(rewardAddress));
         
         return {
           rewardAddress,
@@ -395,14 +396,14 @@ export async function trackPoolDelegators(
   
   // Filter to only target pool delegators
   return delegators.filter(
-    (d) => d !== null && d.poolId === targetPoolId
+    (d) => d !== null && d.poolId !== null && Core.PoolKeyHash.toHex(d.poolId) === Core.PoolKeyHash.toHex(targetPoolId)
   ) as Delegator[];
 }
 
 // Get pool statistics
 export async function getPoolStats(
   rewardAddresses: string[],
-  targetPoolId: string
+  targetPoolId: Core.PoolKeyHash.PoolKeyHash
 ) {
   const delegators = await trackPoolDelegators(
     rewardAddresses,
