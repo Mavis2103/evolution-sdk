@@ -75,22 +75,27 @@ const address = Core.Address.fromBech32("addr1qxy8sclc58rsck0pzsc0v4skmqjwuqsqpw
 const utxos = await client.getUtxos(address);
 const utxosWithAda = await client.getUtxosWithUnit(address, "lovelace");
 const utxosByRefs = await client.getUtxosByOutRef([
-  { txHash: "abc123def456...", outputIndex: 0 }
+  new Core.TransactionInput.TransactionInput({ 
+    transactionId: Core.TransactionHash.fromHex("abc123def456..."), 
+    index: 0n 
+  })
 ]);
 
 // Delegation
-const delegation = await client.getDelegation("stake1...");
+const delegation = await client.getDelegation(Core.RewardAddress.RewardAddress.make("stake1uxy..."));
 
 // Datum resolution
-const datum = await client.getDatum("datum-hash-here");
+const datum = await client.getDatum(new Core.DatumOption.DatumHash({ hash: Core.Bytes.fromHex("datum-hash-here") }));
 
 // Transaction operations
 const signedTxCbor = "84a300...";
-const txHash = await client.submitTx(signedTxCbor);
+const signedTx = Core.Transaction.fromCBORHex(signedTxCbor);
+const txHash = await client.submitTx(signedTx);
 const confirmed = await client.awaitTx(txHash);
 
 const unsignedTxCbor = "84a300...";
-const evaluated = await client.evaluateTx(unsignedTxCbor);
+const unsignedTx = Core.Transaction.fromCBORHex(unsignedTxCbor);
+const evaluated = await client.evaluateTx(unsignedTx);
 ```
 
 ## Querying Multiple Addresses
@@ -138,7 +143,7 @@ const portfolio = await getPortfolioBalance([
 Accept signed transactions and submit to blockchain:
 
 ```typescript twoslash
-import { createClient } from "@evolution-sdk/evolution";
+import { Core, createClient } from "@evolution-sdk/evolution";
 
 const client = createClient({
   network: "mainnet",
@@ -152,7 +157,8 @@ const client = createClient({
 // API endpoint
 export async function submitTransaction(signedTxCbor: string) {
   try {
-    const txHash = await client.submitTx(signedTxCbor);
+    const signedTx = Core.Transaction.fromCBORHex(signedTxCbor);
+    const txHash = await client.submitTx(signedTx);
     
     // Wait for confirmation
     const confirmed = await client.awaitTx(txHash, 5000);
@@ -244,7 +250,8 @@ const utxos = await client.getUtxos(address);
 
 // CAN submit pre-signed transactions
 const signedCbor = "84a400..."; // Example signed transaction CBOR
-const txHash = await client.submitTx(signedCbor);
+const signedTx = Core.Transaction.fromCBORHex(signedCbor);
+const txHash = await client.submitTx(signedTx);
 ```
 
 ## Upgrading to Full Client
