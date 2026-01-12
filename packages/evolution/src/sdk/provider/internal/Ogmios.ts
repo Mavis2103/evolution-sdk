@@ -9,7 +9,7 @@ import * as PlutusData from "../../../Data.js"
 import type * as DatumOption from "../../../DatumOption.js"
 import * as NativeScripts from "../../../NativeScripts.js"
 import * as PolicyId from "../../../PolicyId.js"
-import * as CoreScript from "../../../Script.js"
+import type * as CoreScript from "../../../Script.js"
 import * as TransactionHash from "../../../TransactionHash.js"
 import type * as CoreUTxO from "../../../UTxO.js"
 
