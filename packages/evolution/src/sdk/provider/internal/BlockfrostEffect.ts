@@ -246,17 +246,18 @@ export const getUtxos = (baseUrl: string, projectId?: string) =>
           )
         : Effect.succeed(undefined)
       
+      const dataHash = utxo.data_hash
       const datumEffect = utxo.inline_datum
         ? Effect.succeed(
             new DatumOption.InlineDatum({ 
               data: PlutusData.fromCBORHex(utxo.inline_datum) 
             }) as DatumOption.DatumOption | undefined
           )
-        : utxo.data_hash
-          ? fetchDatum(utxo.data_hash).pipe(
+        : dataHash
+          ? fetchDatum(dataHash).pipe(
               Effect.map((d) => d as DatumOption.DatumOption | undefined),
               Effect.catchAll(() => Effect.succeed(
-                new DatumOption.DatumHash({ hash: Bytes.fromHex(utxo.data_hash!) }) as DatumOption.DatumOption | undefined
+                new DatumOption.DatumHash({ hash: Bytes.fromHex(dataHash) }) as DatumOption.DatumOption | undefined
               ))
             )
           : Effect.succeed(undefined)
@@ -341,17 +342,18 @@ export const getUtxosWithUnit = (baseUrl: string, projectId?: string) =>
           )
         : Effect.succeed(undefined)
       
+      const dataHash = utxo.data_hash
       const datumEffect = utxo.inline_datum
         ? Effect.succeed(
             new DatumOption.InlineDatum({ 
               data: PlutusData.fromCBORHex(utxo.inline_datum) 
             }) as DatumOption.DatumOption | undefined
           )
-        : utxo.data_hash
-          ? fetchDatum(utxo.data_hash).pipe(
+        : dataHash
+          ? fetchDatum(dataHash).pipe(
               Effect.map((d) => d as DatumOption.DatumOption | undefined),
               Effect.catchAll(() => Effect.succeed(
-                new DatumOption.DatumHash({ hash: Bytes.fromHex(utxo.data_hash!) }) as DatumOption.DatumOption | undefined
+                new DatumOption.DatumHash({ hash: Bytes.fromHex(dataHash) }) as DatumOption.DatumOption | undefined
               ))
             )
           : Effect.succeed(undefined)
@@ -434,17 +436,18 @@ export const getUtxoByUnit = (baseUrl: string, projectId?: string) =>
                 )
               : Effect.succeed(undefined)
             
+            const dataHash = utxo.data_hash
             const datumEffect = utxo.inline_datum
               ? Effect.succeed(
                   new DatumOption.InlineDatum({ 
                     data: PlutusData.fromCBORHex(utxo.inline_datum) 
                   }) as DatumOption.DatumOption | undefined
                 )
-              : utxo.data_hash
-                ? fetchDatum(utxo.data_hash).pipe(
+              : dataHash
+                ? fetchDatum(dataHash).pipe(
                     Effect.map((d) => d as DatumOption.DatumOption | undefined),
                     Effect.catchAll(() => Effect.succeed(
-                      new DatumOption.DatumHash({ hash: Bytes.fromHex(utxo.data_hash!) }) as DatumOption.DatumOption | undefined
+                      new DatumOption.DatumHash({ hash: Bytes.fromHex(dataHash) }) as DatumOption.DatumOption | undefined
                     ))
                   )
                 : Effect.succeed(undefined)
@@ -506,16 +509,19 @@ export const getUtxosByOutRef = (baseUrl: string, projectId?: string) =>
                   )
                 : Effect.succeed(undefined)
               
+              const dataHash = output.data_hash
               const datumEffect = output.inline_datum
                 ? Effect.succeed(
                     new DatumOption.InlineDatum({ 
                       data: PlutusData.fromCBORHex(output.inline_datum) 
                     }) as DatumOption.DatumOption | undefined
                   )
-                : output.data_hash
-                  ? fetchDatum(output.data_hash).pipe(
+                : dataHash
+                  ? fetchDatum(dataHash).pipe(
                       Effect.map((d) => d as DatumOption.DatumOption | undefined),
-                      Effect.catchAll(() => Effect.succeed(undefined))
+                      Effect.catchAll(() => Effect.succeed(
+                        new DatumOption.DatumHash({ hash: Bytes.fromHex(dataHash) }) as DatumOption.DatumOption | undefined
+                      ))
                     )
                   : Effect.succeed(undefined)
               
@@ -536,7 +542,7 @@ export const getUtxosByOutRef = (baseUrl: string, projectId?: string) =>
                 })
               )
             },
-            { concurrency: "unbounded" }
+            { concurrency: 10 }
           )
         }),
         Effect.mapError(wrapError("getUtxosByOutRef"))

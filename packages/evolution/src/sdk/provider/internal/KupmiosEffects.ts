@@ -168,7 +168,7 @@ const kupmiosUtxosToUtxos =
           )
         )
       },
-      { concurrency: "unbounded" }
+      { concurrency: 10 }
     )
   }
 
