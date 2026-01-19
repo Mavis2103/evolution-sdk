@@ -163,9 +163,7 @@ interface PhaseContext {
   readonly canUnfrack: boolean
 }
 
-// const PhaseContextTag = Context.GenericTag<Ref.Ref<BuildContext>>("PhaseContext")
 export class PhaseContextTag extends Context.Tag("PhaseContextTag")<PhaseContextTag, Ref.Ref<PhaseContext>>() {}
-// export class TxContext extends Context.Tag("TxContext")<TxContext, TxContextData>() {}
 
 // Initial state for transaction builder
 const initialTxBuilderState: TxBuilderState = {
@@ -839,7 +837,8 @@ export interface UnfrackAdaOptions {
   readonly subdividePercentages?: ReadonlyArray<number>
 
   /**
-   * Maximum ADA-only UTxOs to consolidate in one transaction
+   * Maximum ADA-only UTxOs to consolidate in one transaction.
+   * NOTE: Not yet implemented. Will hook into coin selection to merge dust UTxOs.
    * @default 20
    */
   readonly maxUtxosToConsolidate?: number
@@ -1126,19 +1125,6 @@ export interface BuildOptions {
   readonly unfrack?: UnfrackOptions
 
   /**
-   * **EXPERIMENTAL**: Use state machine implementation instead of monolithic buildEffectCore
-   *
-   * When true, uses the experimental 6-phase state machine:
-   * - initialSelection → changeCreation → feeCalculation → balanceVerification → reselection → complete
-   *
-   * WARNING: Has known Context.Tag type inference issues. Use for testing only.
-   *
-   * @experimental
-   * @default false
-   */
-  readonly useStateMachine?: boolean
-
-  /**
    * Enable debug logging during transaction build.
    *
    * When `true`, applies pretty logger with DEBUG level:
@@ -1322,36 +1308,13 @@ export interface TxBuilderConfig {
 
 /**
  * Mutable state created FRESH on each build() call.
- * Uses Effect Ref for simple, sequential state updates within a single build.
+ * Contains all state needed during transaction construction.
  *
  * State lifecycle:
  * 1. Created fresh when build() is called
  * 2. Modified by ProgramSteps during execution
  * 3. Used to construct final transaction
  * 4. Discarded after build completes
- *
- * State modifications during execution:
- * - UTxOs selected from availableUtxos (config) → selectedUtxos (state)
- * - Outputs added during payToAddress operations
- * - Scripts attached when needed
- * - Assets tracked for balancing
- *
- * @since 2.0.0
- * @category state
- */
-/**
- * Mutable state created FRESH on each build() call.
- * Contains all Refs for transaction building state.
- *
- * Design: Stores Core types (CoreUTxO.UTxO, CoreAssets.Assets) for
- * coin selection and transaction assembly.
- *
- * @since 2.0.0
- * @category state
- */
-/**
- * Mutable state for transaction building.
- * Contains all state needed during transaction construction.
  *
  * @since 2.0.0
  * @category state
@@ -1425,20 +1388,8 @@ export interface DeferredRedeemerData {
 }
 
 /**
- * Combined transaction context containing all necessary data for building.
- *
- * @since 2.0.0
- * @category context
- */
-/**
- * Combined transaction context containing all necessary data for building.
- *
- * @since 2.0.0
- * @category context
- */
-/**
  * Context service providing transaction building state to programs.
- * Directly holds the mutable state Ref - config is passed as a regular parameter.
+ * Holds the mutable state Ref - config is passed as a regular parameter.
  *
  * @since 2.0.0
  * @category context
