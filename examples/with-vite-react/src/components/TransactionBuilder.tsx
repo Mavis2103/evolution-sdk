@@ -1,7 +1,7 @@
 import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet"
 import { NetworkType } from "@cardano-foundation/cardano-connect-with-wallet-core"
 import { useState } from "react"
-import { createClient, Core } from "@evolution-sdk/evolution"
+import { Address, Assets, createClient, TransactionHash } from "@evolution-sdk/evolution"
 
 export default function TransactionBuilder() {
   const [txHash, setTxHash] = useState<string | null>(null)
@@ -73,19 +73,19 @@ export default function TransactionBuilder() {
       const lovelaceAmount = BigInt(Math.floor(amountLovelace * 1_000_000))
 
       // Parse address - support both Bech32 (addr1...) and hex formats
-      let parsedAddress: Core.Address.Address
+      let parsedAddress: Address.Address
       try {
-        parsedAddress = Core.Address.fromBech32(recipientAddress)
+        parsedAddress = Address.fromBech32(recipientAddress)
       } catch {
         try {
-          parsedAddress = Core.Address.fromHex(recipientAddress)
+          parsedAddress = Address.fromHex(recipientAddress)
         } catch {
           throw new Error("Invalid address format. Use Bech32 (addr1...) or hex format.")
         }
       }
 
       // Create assets
-      const assetsToSend = Core.Assets.fromLovelace(lovelaceAmount)
+      const assetsToSend = Assets.fromLovelace(lovelaceAmount)
 
       // Build, sign, and submit transaction
       const tx = await client
@@ -99,7 +99,7 @@ export default function TransactionBuilder() {
       const signed = await tx.sign()
       const hash = await signed.submit()
 
-      setTxHash(hash)
+      setTxHash(TransactionHash.toHex(hash))
       setRecipientAddress("")
       setAmount("")
     } catch (err) {

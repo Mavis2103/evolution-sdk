@@ -303,6 +303,9 @@ importers:
       '@evolution-sdk/evolution':
         specifier: workspace:*
         version: link:../evolution
+      '@evolution-sdk/scalus-uplc':
+        specifier: workspace:*
+        version: link:../scalus-uplc
       '@noble/hashes':
         specifier: ^1.8.0
         version: 1.8.0
@@ -319,6 +322,22 @@ importers:
       tsx:
         specifier: ^4.20.4
         version: 4.20.4
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+
+  packages/scalus-uplc:
+    dependencies:
+      '@evolution-sdk/evolution':
+        specifier: workspace:*
+        version: link:../evolution
+      effect:
+        specifier: ^3.19.3
+        version: 3.19.3
+      scalus:
+        specifier: ^0.14.2
+        version: 0.14.2
+    devDependencies:
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
@@ -6084,6 +6103,9 @@ packages:
 
   sax@1.4.3:
     resolution: {integrity: sha512-yqYn1JhPczigF94DMS+shiDMjDowYO6y9+wB/4WgO0Y19jWYk0lQ4tuG5KI7kj4FTp1wxPj5IFfcrz/s1c3jjQ==}
+
+  scalus@0.14.2:
+    resolution: {integrity: sha512-dobDMIUDUVhtxoX3ceGlaykKQGkph4HOE9hjkLsmwVgYf24fIik6YrZzVFrZSNCTvI2WN7hjEknehIrEJo1CMQ==}
 
   scheduler@0.23.2:
     resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
@@ -13807,6 +13829,8 @@ snapshots:
       enhanced-resolve: 5.18.3
 
   sax@1.4.3: {}
+
+  scalus@0.14.2: {}
 
   scheduler@0.23.2:
     dependencies:
