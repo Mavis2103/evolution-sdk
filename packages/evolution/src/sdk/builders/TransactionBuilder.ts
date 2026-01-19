@@ -1089,19 +1089,6 @@ export interface BuildOptions {
   readonly unfrack?: UnfrackOptions
 
   /**
-   * **EXPERIMENTAL**: Use state machine implementation instead of monolithic buildEffectCore
-   *
-   * When true, uses the experimental 6-phase state machine:
-   * - initialSelection → changeCreation → feeCalculation → balanceVerification → reselection → complete
-   *
-   * WARNING: Has known Context.Tag type inference issues. Use for testing only.
-   *
-   * @experimental
-   * @default false
-   */
-  readonly useStateMachine?: boolean
-
-  /**
    * Enable debug logging during transaction build.
    *
    * When `true`, applies pretty logger with DEBUG level:
