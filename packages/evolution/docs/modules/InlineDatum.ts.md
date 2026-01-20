@@ -1,61 +1,58 @@
 ---
-title: PlutusV1.ts
-nav_order: 95
+title: InlineDatum.ts
+nav_order: 61
 parent: Modules
 ---
 
-## PlutusV1 overview
+## InlineDatum overview
 
 ---
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [arbitrary](#arbitrary)
-  - [arbitrary](#arbitrary-1)
-- [model](#model)
-  - [PlutusV1 (class)](#plutusv1-class)
+- [predicates](#predicates)
+  - [isInlineDatum](#isinlinedatum)
+- [schemas](#schemas)
+  - [InlineDatum (class)](#inlinedatum-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
     - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
     - [[Equal.symbol] (method)](#equalsymbol-method)
     - [[Hash.symbol] (method)](#hashsymbol-method)
-- [schemas](#schemas)
-  - [CDDLSchema](#cddlschema)
-  - [FromCDDL](#fromcddl)
+- [testing](#testing)
+  - [arbitrary](#arbitrary)
 
 ---
 
-# arbitrary
+# predicates
 
-## arbitrary
+## isInlineDatum
 
-FastCheck arbitrary for PlutusV1.
+Type guard to check if a value is an InlineDatum.
 
 **Signature**
 
 ```ts
-export declare const arbitrary: FastCheck.Arbitrary<PlutusV1>
+export declare const isInlineDatum: (u: unknown, overrideOptions?: ParseOptions | number) => u is InlineDatum
 ```
 
 Added in v2.0.0
 
-# model
+# schemas
 
-## PlutusV1 (class)
+## InlineDatum (class)
 
-Plutus V1 script wrapper (raw bytes).
+Schema for InlineDatum representing inline plutus data embedded directly in the transaction output.
 
 **Signature**
 
 ```ts
-export declare class PlutusV1
+export declare class InlineDatum
 ```
 
 Added in v2.0.0
 
 ### toJSON (method)
-
-Convert to JSON representation.
 
 **Signature**
 
@@ -67,8 +64,6 @@ Added in v2.0.0
 
 ### toString (method)
 
-Convert to string representation.
-
 **Signature**
 
 ```ts
@@ -78,8 +73,6 @@ toString(): string
 Added in v2.0.0
 
 ### [Inspectable.NodeInspectSymbol] (method)
-
-Custom inspect for Node.js REPL.
 
 **Signature**
 
@@ -91,8 +84,6 @@ Added in v2.0.0
 
 ### [Equal.symbol] (method)
 
-Structural equality check.
-
 **Signature**
 
 ```ts
@@ -103,8 +94,6 @@ Added in v2.0.0
 
 ### [Hash.symbol] (method)
 
-Hash code generation.
-
 **Signature**
 
 ```ts
@@ -113,31 +102,16 @@ Hash code generation.
 
 Added in v2.0.0
 
-# schemas
+# testing
 
-## CDDLSchema
+## arbitrary
 
-CDDL schema for PlutusV1 scripts as raw bytes.
-
-**Signature**
-
-```ts
-export declare const CDDLSchema: typeof Schema.Uint8ArrayFromSelf
-```
-
-Added in v2.0.0
-
-## FromCDDL
-
-CDDL transformation schema for PlutusV1.
+FastCheck arbitrary for generating random InlineDatum instances.
 
 **Signature**
 
 ```ts
-export declare const FromCDDL: Schema.transform<
-  typeof Schema.Uint8ArrayFromSelf,
-  Schema.SchemaClass<PlutusV1, PlutusV1, never>
->
+export declare const arbitrary: Arbitrary<InlineDatum>
 ```
 
 Added in v2.0.0

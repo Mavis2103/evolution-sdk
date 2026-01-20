@@ -1,17 +1,15 @@
 ---
-title: IPv6.ts
-nav_order: 63
+title: DatumHash.ts
+nav_order: 47
 parent: Modules
 ---
 
-## IPv6 overview
+## DatumHash overview
 
 ---
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [arbitrary](#arbitrary)
-  - [arbitrary](#arbitrary-1)
 - [encoding](#encoding)
   - [toBytes](#tobytes)
   - [toHex](#tohex)
@@ -19,56 +17,43 @@ parent: Modules
   - [fromBytes](#frombytes)
   - [fromHex](#fromhex)
 - [predicates](#predicates)
-  - [isIPv6](#isipv6)
+  - [isDatumHash](#isdatumhash)
 - [schemas](#schemas)
-  - [IPv6 (class)](#ipv6-class)
+  - [DatumHash (class)](#datumhash-class)
     - [toJSON (method)](#tojson-method)
     - [toString (method)](#tostring-method)
     - [[Inspectable.NodeInspectSymbol] (method)](#inspectablenodeinspectsymbol-method)
     - [[Equal.symbol] (method)](#equalsymbol-method)
     - [[Hash.symbol] (method)](#hashsymbol-method)
-- [utils](#utils)
   - [FromBytes](#frombytes-1)
   - [FromHex](#fromhex-1)
+- [testing](#testing)
+  - [arbitrary](#arbitrary)
 
 ---
-
-# arbitrary
-
-## arbitrary
-
-FastCheck arbitrary for generating random IPv6 instances.
-
-**Signature**
-
-```ts
-export declare const arbitrary: FastCheck.Arbitrary<IPv6>
-```
-
-Added in v2.0.0
 
 # encoding
 
 ## toBytes
 
-Encode IPv6 to bytes.
+Encode DatumHash to bytes.
 
 **Signature**
 
 ```ts
-export declare const toBytes: (a: IPv6, overrideOptions?: ParseOptions) => Uint8Array
+export declare const toBytes: (a: DatumHash, overrideOptions?: ParseOptions) => Uint8Array
 ```
 
 Added in v2.0.0
 
 ## toHex
 
-Encode IPv6 to hex string.
+Encode DatumHash to hex string.
 
 **Signature**
 
 ```ts
-export declare const toHex: (a: IPv6, overrideOptions?: ParseOptions) => string
+export declare const toHex: (a: DatumHash, overrideOptions?: ParseOptions) => string
 ```
 
 Added in v2.0.0
@@ -77,52 +62,52 @@ Added in v2.0.0
 
 ## fromBytes
 
-Parse IPv6 from bytes.
+Parse DatumHash from bytes.
 
 **Signature**
 
 ```ts
-export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => IPv6
+export declare const fromBytes: (i: Uint8Array, overrideOptions?: ParseOptions) => DatumHash
 ```
 
 Added in v2.0.0
 
 ## fromHex
 
-Parse IPv6 from hex string.
+Parse DatumHash from hex string.
 
 **Signature**
 
 ```ts
-export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => IPv6
+export declare const fromHex: (i: string, overrideOptions?: ParseOptions) => DatumHash
 ```
 
 Added in v2.0.0
 
 # predicates
 
-## isIPv6
+## isDatumHash
 
-Predicate for IPv6 instances
+Type guard to check if a value is a DatumHash.
 
 **Signature**
 
 ```ts
-export declare const isIPv6: (u: unknown, overrideOptions?: ParseOptions | number) => u is IPv6
+export declare const isDatumHash: (u: unknown, overrideOptions?: ParseOptions | number) => u is DatumHash
 ```
 
 Added in v2.0.0
 
 # schemas
 
-## IPv6 (class)
+## DatumHash (class)
 
-IPv6 model stored as 16 raw bytes (network byte order).
+Schema for DatumHash representing a reference to datum data stored elsewhere via its hash.
 
 **Signature**
 
 ```ts
-export declare class IPv6
+export declare class DatumHash
 ```
 
 Added in v2.0.0
@@ -135,6 +120,8 @@ Added in v2.0.0
 toJSON()
 ```
 
+Added in v2.0.0
+
 ### toString (method)
 
 **Signature**
@@ -142,6 +129,8 @@ toJSON()
 ```ts
 toString(): string
 ```
+
+Added in v2.0.0
 
 ### [Inspectable.NodeInspectSymbol] (method)
 
@@ -151,6 +140,8 @@ toString(): string
 [Inspectable.NodeInspectSymbol](): unknown
 ```
 
+Added in v2.0.0
+
 ### [Equal.symbol] (method)
 
 **Signature**
@@ -158,6 +149,8 @@ toString(): string
 ```ts
 [Equal.symbol](that: unknown): boolean
 ```
+
+Added in v2.0.0
 
 ### [Hash.symbol] (method)
 
@@ -167,26 +160,48 @@ toString(): string
 [Hash.symbol](): number
 ```
 
-# utils
+Added in v2.0.0
 
 ## FromBytes
+
+Schema for transforming bytes to DatumHash.
 
 **Signature**
 
 ```ts
 export declare const FromBytes: Schema.transform<
   Schema.SchemaClass<Uint8Array, Uint8Array, never>,
-  Schema.SchemaClass<IPv6, IPv6, never>
+  Schema.SchemaClass<DatumHash, DatumHash, never>
 >
 ```
 
+Added in v2.0.0
+
 ## FromHex
+
+Schema for transforming hex string to DatumHash.
 
 **Signature**
 
 ```ts
 export declare const FromHex: Schema.transform<
   Schema.filter<Schema.Schema<Uint8Array, string, never>>,
-  Schema.transform<Schema.SchemaClass<Uint8Array, Uint8Array, never>, Schema.SchemaClass<IPv6, IPv6, never>>
+  Schema.transform<Schema.SchemaClass<Uint8Array, Uint8Array, never>, Schema.SchemaClass<DatumHash, DatumHash, never>>
 >
 ```
+
+Added in v2.0.0
+
+# testing
+
+## arbitrary
+
+FastCheck arbitrary for generating random DatumHash instances.
+
+**Signature**
+
+```ts
+export declare const arbitrary: FastCheck.Arbitrary<DatumHash>
+```
+
+Added in v2.0.0
