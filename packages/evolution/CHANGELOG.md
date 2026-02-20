@@ -1,5 +1,41 @@
 # @evolution-sdk/evolution
 
+## 0.3.18
+
+### Patch Changes
+
+- [#147](https://github.com/IntersectMBO/evolution-sdk/pull/147) [`16fdf5d`](https://github.com/IntersectMBO/evolution-sdk/commit/16fdf5df0587d373c8006437bfc26a9c60b657ee) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Add `TSchema.PlutusData` schema for opaque PlutusData fields inside TSchema combinators.
+
+  Previously, using `Data.DataSchema` inside `TSchema.Struct` caused a `ParseError` because its encoding layer transforms `Data` into `DataEncoded`, which is incompatible with how TSchema assembles `Constr.fields`. `TSchema.PlutusData` uses `Schema.typeSchema` to strip the encoding layer, matching the same pattern used by `TSchema.ByteArray` and `TSchema.Integer`.
+
+  ```ts
+  import * as TSchema from "@evolution-sdk/evolution/TSchema"
+  import * as Data from "@evolution-sdk/evolution/Data"
+
+  // Define a struct with an opaque PlutusData field
+  const FooSchema = TSchema.Struct({
+    foo: TSchema.PlutusData // accepts any PlutusData value
+  })
+
+  // Extract the TypeScript type from the schema
+  type Foo = typeof FooSchema.Type
+
+  // Create a serialiser using the schema
+  const serialise = (d: Foo) => Data.withSchema(FooSchema).toCBORHex(d)
+
+  // Encode a struct containing arbitrary PlutusData (e.g. Constr(0, []))
+  serialise({ foo: Data.fromCBORHex("d87980") })
+  // => "d8799fd87980ff"
+  ```
+
+  Fixes #146
+
+- [#149](https://github.com/IntersectMBO/evolution-sdk/pull/149) [`d31f1d4`](https://github.com/IntersectMBO/evolution-sdk/commit/d31f1d43a9555b9dfda244867c4c1173b3298bde) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Fix blueprint codegen ignoring constructor index for empty constructors.
+
+  `generateTypeScript` now emits `{ index: N }` for `TSchema.Literal` when the constructor index is non-zero (e.g. `Never` with `index: 1`).
+
+  Fixes #148
+
 ## 0.3.17
 
 ### Patch Changes
