@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest"
 import { Schema } from "effect"
+import { describe, expect, it } from "vitest"
 
 import * as Bytes from "../src/Bytes.js"
 import { fromHex } from "../src/Bytes.js"
@@ -360,9 +360,7 @@ describe("TypeTaggedSchema Tests", () => {
           stakeCredential: TSchema.NullOr(TSchema.Integer)
         })
 
-        const Foo = TSchema.Union(
-          TSchema.Struct({ foo: AddressSchema }, { flatFields: true })
-        )
+        const Foo = TSchema.Union(TSchema.Struct({ foo: AddressSchema }, { flatFields: true }))
 
         const input = {
           foo: {
@@ -574,7 +572,7 @@ describe("TypeTaggedSchema Tests", () => {
   describe("PlutusData Schema", () => {
     it("should encode/decode PlutusData inside Struct via TSchema.PlutusData", () => {
       const FooSchema = TSchema.Struct({
-        foo: TSchema.PlutusData,
+        foo: TSchema.PlutusData
       })
 
       type Foo = typeof FooSchema.Type
@@ -583,8 +581,8 @@ describe("TypeTaggedSchema Tests", () => {
 
       expect(
         serialise({
-          foo: Data.fromCBORHex("d87980"),
-        }),
+          foo: Data.fromCBORHex("d87980")
+        })
       ).toEqual("d8799fd87980ff")
     })
 
@@ -592,7 +590,7 @@ describe("TypeTaggedSchema Tests", () => {
       const OpaqueData = Schema.typeSchema(Data.DataSchema)
 
       const FooSchema = TSchema.Struct({
-        foo: OpaqueData,
+        foo: OpaqueData
       })
 
       type Foo = typeof FooSchema.Type
@@ -601,8 +599,8 @@ describe("TypeTaggedSchema Tests", () => {
 
       expect(
         serialise({
-          foo: Data.fromCBORHex("d87980"),
-        }),
+          foo: Data.fromCBORHex("d87980")
+        })
       ).toEqual("d8799fd87980ff")
     })
 

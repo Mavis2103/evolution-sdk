@@ -4,7 +4,7 @@ import type * as BlueprintTypes from "./types.js"
 
 /**
  * Generate TSchema definitions from a Blueprint
- * 
+ *
  * @since 2.0.0
  * @category blueprint
  */
@@ -35,7 +35,7 @@ function getNamespacePath(name: string): string {
     const wrapper = name.split("$")[0]
     return wrapper.toLowerCase()
   }
-  
+
   const parts = name.split("/")
   if (parts.length === 1) return "" // Primitive
   return parts.slice(0, -1).join("/")
@@ -45,7 +45,7 @@ function getNamespacePath(name: string): string {
  * Get type name from a definition name
  * e.g., "cardano/address/Credential" -> "Credential"
  * e.g., "ByteArray" -> "ByteArray"
- * e.g., "List$cardano/address/Address" -> "OfAddress" 
+ * e.g., "List$cardano/address/Address" -> "OfAddress"
  * e.g., "Option$ByteArray" -> "OfByteArray"
  * e.g., "Pairs$cardano/assets/AssetName_Int" -> "OfAssetName_Int"
  */
@@ -54,21 +54,21 @@ function getTypeName(name: string): string {
   if (name.includes("$")) {
     const [wrapper, rest] = name.split("$")
     if (!rest) return wrapper
-    
+
     // For Pairs: "Pairs$cardano/assets/AssetName_Int" -> "OfAssetName_Int"
     if (wrapper === "Pairs") {
-      const typeNames = rest.split("_").map(t => {
+      const typeNames = rest.split("_").map((t) => {
         const parts = t.split("/")
         return parts[parts.length - 1]
       })
       return `Of${typeNames.join("_")}`
     }
-    
+
     // For List/Option: "OfTypeName"
     const parts = rest.split("/")
     return `Of${parts[parts.length - 1]}`
   }
-  
+
   const parts = name.split("/")
   return parts[parts.length - 1]
 }
@@ -81,12 +81,12 @@ function getTypeName(name: string): string {
  */
 function toNamespaceRef(namespacePath: string): string {
   if (!namespacePath) return ""
-  
+
   // Special case for single-word namespaces (option, list, pairs)
   if (!namespacePath.includes("/")) {
     return namespacePath.charAt(0).toUpperCase() + namespacePath.slice(1)
   }
-  
+
   return namespacePath
     .split("/")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -100,14 +100,10 @@ function toNamespaceRef(namespacePath: string): string {
  * @param config - Codegen configuration
  * @returns TypeScript reference string
  */
-function resolveReference(
-  refName: string,
-  currentNamespace: string,
-  config: CodegenConfig
-): string {
+function resolveReference(refName: string, currentNamespace: string, config: CodegenConfig): string {
   // Special case: Data schema is exported as PlutusData
   if (refName === "Data") return "PlutusData"
-  
+
   if (config.moduleStrategy === "flat") {
     return toIdentifier(refName)
   }
@@ -146,7 +142,7 @@ function generateTSchema(
     const refName = refPath.replace(/~1/g, "/").replace(/~0/g, "~")
     // Special case: Data schema is exported as PlutusData
     if (refName === "Data") return "PlutusData"
-    
+
     const refId = resolveReference(refName, currentNamespace, config)
     return config.useSuspend ? `Schema.suspend(() => ${refId})` : refId
   }
@@ -170,9 +166,7 @@ function generateTSchema(
 
         if (!constructorDef.fields || constructorDef.fields.length === 0) {
           // Empty constructor - use configured style
-          return config.emptyConstructorStyle === "Literal"
-            ? 'TSchema.Literal("Unit" as const)'
-            : "TSchema.Struct({})"
+          return config.emptyConstructorStyle === "Literal" ? 'TSchema.Literal("Unit" as const)' : "TSchema.Struct({})"
         }
 
         // Build struct fields
@@ -181,9 +175,11 @@ function generateTSchema(
         for (let i = 0; i < constructorDef.fields.length; i++) {
           const field = constructorDef.fields[i]!
           // Use configured field naming
-          const fieldName = field.title || (constructorDef.fields.length === 1
-            ? config.fieldNaming.singleFieldName
-            : config.fieldNaming.multiFieldPattern.replace("{index}", String(i)))
+          const fieldName =
+            field.title ||
+            (constructorDef.fields.length === 1
+              ? config.fieldNaming.singleFieldName
+              : config.fieldNaming.multiFieldPattern.replace("{index}", String(i)))
 
           let fieldSchema: string
           if ("$ref" in field && field.$ref) {
@@ -191,11 +187,15 @@ function generateTSchema(
             const refName = refPath.replace(/~1/g, "/").replace(/~0/g, "~")
             // Use lazy reference for recursive types
             const refId = resolveReference(refName, currentNamespace, config)
-            fieldSchema = config.useSuspend
-              ? `Schema.suspend(() => ${refId})`
-              : refId
+            fieldSchema = config.useSuspend ? `Schema.suspend(() => ${refId})` : refId
           } else if (field.schema) {
-            fieldSchema = generateTSchema(field.schema, definitions, config, currentNamespace, indent + config.indent + config.indent)
+            fieldSchema = generateTSchema(
+              field.schema,
+              definitions,
+              config,
+              currentNamespace,
+              indent + config.indent + config.indent
+            )
           } else {
             fieldSchema = "PlutusData"
           }
@@ -221,9 +221,7 @@ function generateTSchema(
           indent
         )
         // Wrap in Schema.suspend to handle forward references
-        return config.useSuspend
-          ? `TSchema.Array(Schema.suspend(() => ${itemType}))`
-          : `TSchema.Array(${itemType})`
+        return config.useSuspend ? `TSchema.Array(Schema.suspend(() => ${itemType}))` : `TSchema.Array(${itemType})`
       }
 
       case "map": {
@@ -264,7 +262,7 @@ function generateTSchema(
   if ("anyOf" in def) {
     const unionDef = def as BlueprintTypes.UnionDefinitionType
     const title = "title" in def ? (def as { title?: string }).title : undefined
-    
+
     // Special transform for Bool type
     if (title === "Bool") {
       const constructors = unionDef.anyOf.filter(
@@ -272,13 +270,15 @@ function generateTSchema(
           "dataType" in item && item.dataType === "constructor"
       )
       // Check if it's the standard True/False pattern
-      if (constructors.length === 2 && 
-          constructors.some(c => c.title === "True") && 
-          constructors.some(c => c.title === "False")) {
+      if (
+        constructors.length === 2 &&
+        constructors.some((c) => c.title === "True") &&
+        constructors.some((c) => c.title === "False")
+      ) {
         return "TSchema.Boolean"
       }
     }
-    
+
     // Handle Option<T> transformation based on optionStyle
     if (title === "Option" && config.optionStyle !== "Union") {
       // Extract inner type from Option<T> pattern (Some/None constructors)
@@ -286,12 +286,12 @@ function generateTSchema(
         (item): item is BlueprintTypes.ConstructorDefinitionType =>
           "dataType" in item && item.dataType === "constructor"
       )
-      
+
       const someConstructor = constructors.find((c) => c.title === "Some")
       if (someConstructor?.fields?.[0]) {
         let innerType: string
         const field = someConstructor.fields[0]
-        
+
         if (field.$ref) {
           const refPath = field.$ref.replace("#/definitions/", "")
           const refName = refPath.replace(/~1/g, "/").replace(/~0/g, "~")
@@ -304,13 +304,13 @@ function generateTSchema(
         } else {
           innerType = "PlutusData"
         }
-        
+
         // Generate the appropriate TSchema based on optionStyle
         const optionFn = config.optionStyle === "NullOr" ? "TSchema.NullOr" : "TSchema.UndefinedOr"
         return `${optionFn}(${innerType})`
       }
     }
-    
+
     // Check if this is a Variant pattern (all members are named constructors)
     const isVariant = unionDef.anyOf.every((member) => {
       if ("dataType" in member && member.dataType === "constructor") {
@@ -320,26 +320,26 @@ function generateTSchema(
       }
       return false
     })
-    
+
     if (isVariant) {
       // If only one variant, unwrap it to just a Struct or Void
       if (unionDef.anyOf.length === 1) {
         const constructorMember = unionDef.anyOf[0] as BlueprintTypes.ConstructorDefinitionType
         const fields = constructorMember.fields!
-        
+
         // Special case: single constructor with no fields (Void/Unit pattern)
         if (fields.length === 0) {
           // Use literal for the constructor tag
           const tag = constructorMember.title || "Unit"
           return `TSchema.Literal("${tag}" as const)`
         }
-        
+
         // Build the fields object
         const fieldSchemas: Array<string> = []
         for (let i = 0; i < fields.length; i++) {
           const field = fields[i]!
           const fieldName = field.title || (fields.length === 1 ? "value" : `field${i}`)
-          
+
           let fieldSchema: string
           if (field.$ref) {
             const refPath = field.$ref.replace("#/definitions/", "")
@@ -347,35 +347,41 @@ function generateTSchema(
             const refId = resolveReference(refName, currentNamespace, config)
             fieldSchema = config.useSuspend ? `Schema.suspend(() => ${refId})` : refId
           } else if (field.schema) {
-            fieldSchema = generateTSchema(field.schema, definitions, config, currentNamespace, indent + config.indent + config.indent)
+            fieldSchema = generateTSchema(
+              field.schema,
+              definitions,
+              config,
+              currentNamespace,
+              indent + config.indent + config.indent
+            )
           } else {
             fieldSchema = "PlutusData"
           }
-          
+
           fieldSchemas.push(`${indent}${config.indent}${config.indent}${fieldName}: ${fieldSchema}`)
         }
-        
+
         return `TSchema.Struct({\n${fieldSchemas.join(",\n")}\n${indent}${config.indent}})`
       }
-      
+
       // Check if all variants have at least one named field
       const allHaveNamedFields = unionDef.anyOf.every((member) => {
         const constructorMember = member as BlueprintTypes.ConstructorDefinitionType
         return constructorMember.fields?.some((f) => f.title)
       })
-      
+
       // Get the type title for custom field name lookup
       const typeTitle = "title" in def ? (def as { title?: string }).title : undefined
-      
+
       // Check if any constructor has empty fields and emptyConstructorStyle is "Literal"
       const hasEmptyConstructors = unionDef.anyOf.some((member) => {
         const constructorMember = member as BlueprintTypes.ConstructorDefinitionType
         return constructorMember.fields?.length === 0
       })
-      
+
       // Use Union with mixed Struct/Literal if there are empty constructors and Literal style is preferred
       const useUnionWithLiterals = hasEmptyConstructors && config.emptyConstructorStyle === "Literal"
-      
+
       // Use Variant if fields are named OR if forceVariant is enabled (and not using Union with Literals)
       if ((allHaveNamedFields || config.forceVariant) && !useUnionWithLiterals) {
         // Generate Variant with named tags and fields
@@ -384,12 +390,12 @@ function generateTSchema(
           const constructorMember = member as BlueprintTypes.ConstructorDefinitionType
           const tag = constructorMember.title!
           const fields = constructorMember.fields!
-          
+
           // Build the fields object
           const fieldSchemas: Array<string> = []
           for (let i = 0; i < fields.length; i++) {
             const field = fields[i]!
-            
+
             // Determine field name
             let fieldName: string
             if (field.title) {
@@ -403,12 +409,13 @@ function generateTSchema(
                 fieldName = customFieldNames[i]!
               } else {
                 // Fall back to configured naming pattern
-                fieldName = fields.length === 1 
-                  ? config.fieldNaming.singleFieldName 
-                  : config.fieldNaming.multiFieldPattern.replace("{index}", i.toString())
+                fieldName =
+                  fields.length === 1
+                    ? config.fieldNaming.singleFieldName
+                    : config.fieldNaming.multiFieldPattern.replace("{index}", i.toString())
               }
             }
-            
+
             let fieldSchema: string
             if (field.$ref) {
               const refPath = field.$ref.replace("#/definitions/", "")
@@ -416,17 +423,25 @@ function generateTSchema(
               const refId = resolveReference(refName, currentNamespace, config)
               fieldSchema = config.useSuspend ? `Schema.suspend(() => ${refId})` : refId
             } else if (field.schema) {
-              fieldSchema = generateTSchema(field.schema, definitions, config, currentNamespace, indent + config.indent + config.indent + config.indent)
+              fieldSchema = generateTSchema(
+                field.schema,
+                definitions,
+                config,
+                currentNamespace,
+                indent + config.indent + config.indent + config.indent
+              )
             } else {
               fieldSchema = "PlutusData"
             }
-            
+
             fieldSchemas.push(`${fieldName}: ${fieldSchema}`)
           }
-          
-          variantFields.push(`${indent}${config.indent}${config.indent}${tag}: {\n${fieldSchemas.map(f => `${indent}${config.indent}${config.indent}${config.indent}${f}`).join(",\n")}\n${indent}${config.indent}${config.indent}}`)
+
+          variantFields.push(
+            `${indent}${config.indent}${config.indent}${tag}: {\n${fieldSchemas.map((f) => `${indent}${config.indent}${config.indent}${config.indent}${f}`).join(",\n")}\n${indent}${config.indent}${config.indent}}`
+          )
         }
-        
+
         return `TSchema.Variant({\n${variantFields.join(",\n")}\n${indent}${config.indent}})`
       } else if (useUnionWithLiterals) {
         // Generate Union with mixed TSchema.Struct and TSchema.Literal for empty constructors
@@ -436,12 +451,12 @@ function generateTSchema(
           const constructorMember = member as BlueprintTypes.ConstructorDefinitionType
           const tag = constructorMember.title!
           const fields = constructorMember.fields!
-          
+
           // All constructors use TSchema.TaggedStruct (with _tag field)
           const fieldSchemas: Array<string> = []
           for (let i = 0; i < fields.length; i++) {
             const field = fields[i]!
-            
+
             // Determine field name
             let fieldName: string
             if (field.title) {
@@ -453,12 +468,13 @@ function generateTSchema(
                 fieldName = customFieldNames[i]!
               } else {
                 // Use constructor tag name for single field instead of "value"
-                fieldName = fields.length === 1 
-                  ? tag.charAt(0).toLowerCase() + tag.slice(1)
-                  : config.fieldNaming.multiFieldPattern.replace("{index}", i.toString())
+                fieldName =
+                  fields.length === 1
+                    ? tag.charAt(0).toLowerCase() + tag.slice(1)
+                    : config.fieldNaming.multiFieldPattern.replace("{index}", i.toString())
               }
             }
-            
+
             let fieldSchema: string
             if (field.$ref) {
               const refPath = field.$ref.replace("#/definitions/", "")
@@ -466,19 +482,27 @@ function generateTSchema(
               const refId = resolveReference(refName, currentNamespace, config)
               fieldSchema = config.useSuspend ? `Schema.suspend(() => ${refId})` : refId
             } else if (field.schema) {
-              fieldSchema = generateTSchema(field.schema, definitions, config, currentNamespace, indent + config.indent + config.indent)
+              fieldSchema = generateTSchema(
+                field.schema,
+                definitions,
+                config,
+                currentNamespace,
+                indent + config.indent + config.indent
+              )
             } else {
               fieldSchema = "PlutusData"
             }
-            
+
             fieldSchemas.push(`${indent}${config.indent}${config.indent}${config.indent}${fieldName}: ${fieldSchema}`)
           }
-          
+
           // TaggedStruct for all constructors (empty or not)
           const fieldsStr = fieldSchemas.length > 0 ? `{ ${fieldSchemas.join(", ")} }` : "{}"
-          unionMembers.push(`${indent}${config.indent}TSchema.TaggedStruct("${tag}", ${fieldsStr}, { flatInUnion: true })`)
+          unionMembers.push(
+            `${indent}${config.indent}TSchema.TaggedStruct("${tag}", ${fieldsStr}, { flatInUnion: true })`
+          )
         }
-        
+
         return `TSchema.Union(\n${unionMembers.join(",\n")}\n${indent})`
       } else {
         // Generate Union of TaggedStructs for unnamed fields
@@ -487,13 +511,13 @@ function generateTSchema(
           const constructorMember = member as BlueprintTypes.ConstructorDefinitionType
           const tag = constructorMember.title!
           const fields = constructorMember.fields!
-          
+
           // Build the fields object
           const fieldSchemas: Array<string> = []
           for (let i = 0; i < fields.length; i++) {
             const field = fields[i]!
             const fieldName = field.title || (fields.length === 1 ? "value" : `field${i}`)
-            
+
             let fieldSchema: string
             if (field.$ref) {
               const refPath = field.$ref.replace("#/definitions/", "")
@@ -501,23 +525,29 @@ function generateTSchema(
               const refId = resolveReference(refName, currentNamespace, config)
               fieldSchema = config.useSuspend ? `Schema.suspend(() => ${refId})` : refId
             } else if (field.schema) {
-              fieldSchema = generateTSchema(field.schema, definitions, config, currentNamespace, indent + config.indent + config.indent)
+              fieldSchema = generateTSchema(
+                field.schema,
+                definitions,
+                config,
+                currentNamespace,
+                indent + config.indent + config.indent
+              )
             } else {
               fieldSchema = "PlutusData"
             }
-            
+
             fieldSchemas.push(`${indent}${config.indent}${config.indent}${fieldName}: ${fieldSchema}`)
           }
-          
+
           taggedStructs.push(
             `${indent}  TSchema.TaggedStruct("${tag}", {\n${fieldSchemas.join(",\n")}\n${indent}  }, { flatFields: true })`
           )
         }
-        
+
         return `TSchema.Union(\n${taggedStructs.join(",\n")}\n${indent})`
       }
     }
-    
+
     // Otherwise use regular Union
     const members = def.anyOf.map((memberDef) =>
       generateTSchema(memberDef, definitions, config, currentNamespace, indent)
@@ -671,11 +701,11 @@ export function generateTypeScript(
   if (config.moduleStrategy === "namespaced") {
     // First, topologically sort ALL definitions globally
     const globallySortedDefs = sortedDefinitions
-    
+
     // Separate primitives from namespaced types
     const primitives: Array<[string, BlueprintTypes.SchemaDefinitionType]> = []
     const namespacedTypes: Array<[string, BlueprintTypes.SchemaDefinitionType]> = []
-    
+
     for (const [fullName, def] of globallySortedDefs) {
       const namespacePath = getNamespacePath(fullName)
       if (namespacePath === "") {
@@ -684,19 +714,19 @@ export function generateTypeScript(
         namespacedTypes.push([fullName, def])
       }
     }
-    
+
     // Export primitives at root level
     for (const [fullName, def] of primitives) {
       // Skip Data - already defined as PlutusData
       if ("title" in def && def.title === "Data") {
         continue
       }
-      
+
       // Use flattened name for primitives (handles $ and / characters)
       const primitiveName = getTypeName(fullName)
-      
+
       const schemaDefinition = generateTSchema(def, blueprint.definitions, config, "", "")
-      
+
       // Add JSDoc comment
       if ("title" in def && def.title) {
         lines.push("/**")
@@ -706,11 +736,11 @@ export function generateTypeScript(
         }
         lines.push(" */")
       }
-      
+
       lines.push(`export const ${primitiveName} = ${schemaDefinition}`)
       lines.push("")
     }
-    
+
     // Group namespaced types by namespace while preserving topological order
     const namespaceGroups = new Map<string, Array<[string, BlueprintTypes.SchemaDefinitionType]>>()
     for (const [fullName, def] of namespacedTypes) {
@@ -720,17 +750,17 @@ export function generateTypeScript(
       }
       namespaceGroups.get(namespacePath)!.push([fullName, def])
     }
-    
+
     // Track which namespaces have been opened/closed
     const openNamespaces: Array<string> = []
     let currentIndent = ""
-    
+
     // Generate types in topological order, opening/closing namespaces as needed
     for (const [fullName, typeDef] of namespacedTypes) {
       const namespacePath = getNamespacePath(fullName)
       const nsLevels = namespacePath.split("/")
       const fullNsPath = nsLevels.join("/")
-      
+
       // Check if we need to close any namespaces
       while (openNamespaces.length > 0 && !fullNsPath.startsWith(openNamespaces.join("/"))) {
         openNamespaces.pop()
@@ -738,7 +768,7 @@ export function generateTypeScript(
         lines.push(`${currentIndent}}`)
         lines.push("")
       }
-      
+
       // Check if we need to open any new namespaces
       for (let i = 0; i < nsLevels.length; i++) {
         const partialPath = nsLevels.slice(0, i + 1).join("/")
@@ -749,7 +779,7 @@ export function generateTypeScript(
           openNamespaces.push(nsLevels[i])
         }
       }
-      
+
       // Generate the type
       const typeName = getTypeName(fullName)
       const schemaDefinition = generateTSchema(
@@ -759,7 +789,7 @@ export function generateTypeScript(
         namespacePath, // current namespace for relative refs
         currentIndent
       )
-      
+
       // Add JSDoc comment
       if ("title" in typeDef && typeDef.title) {
         lines.push(`${currentIndent}/**`)
@@ -769,11 +799,11 @@ export function generateTypeScript(
         }
         lines.push(`${currentIndent} */`)
       }
-      
+
       lines.push(`${currentIndent}export const ${typeName} = ${schemaDefinition}`)
       lines.push("")
     }
-    
+
     // Close any remaining open namespaces
     while (openNamespaces.length > 0) {
       openNamespaces.pop()
@@ -788,7 +818,7 @@ export function generateTypeScript(
       if ("title" in def && def.title === "Data") {
         continue
       }
-      
+
       const schemaName = toIdentifier(name)
       const schemaDefinition = generateTSchema(def, blueprint.definitions, config, "", "")
 
