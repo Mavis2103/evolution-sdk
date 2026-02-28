@@ -68,6 +68,13 @@ export type CodecOptions =
       readonly mode: "canonical"
       readonly mapsAsObjects?: boolean
       readonly encodeMapAsPairs?: boolean
+      /**
+       * When set, byte strings longer than this value are encoded as CBOR
+       * indefinite-length chunked byte strings (0x5f...0xff) with each chunk
+       * being at most `chunkBytesAt` bytes. Required for Cardano Plutus data
+       * which mandates `bounded_bytes = bytes .size (0..64)` per the Conway CDDL spec.
+       */
+      readonly chunkBytesAt?: number
     }
   | {
       readonly mode: "custom"
@@ -78,6 +85,13 @@ export type CodecOptions =
       readonly useMinimalEncoding: boolean
       readonly mapsAsObjects?: boolean
       readonly encodeMapAsPairs?: boolean
+      /**
+       * When set, byte strings longer than this value are encoded as CBOR
+       * indefinite-length chunked byte strings (0x5f...0xff) with each chunk
+       * being at most `chunkBytesAt` bytes. Required for Cardano Plutus data
+       * which mandates `bounded_bytes = bytes .size (0..64)` per the Conway CDDL spec.
+       */
+      readonly chunkBytesAt?: number
     }
 
 /**
@@ -109,6 +123,9 @@ export const CML_DEFAULT_OPTIONS: CodecOptions = {
 /**
  * Default CBOR encoding option for Data
  *
+ * Uses indefinite-length arrays/maps and 64-byte chunk limit for byte strings
+ * as required by the Conway CDDL `bounded_bytes = bytes .size (0..64)` constraint.
+ *
  * @since 1.0.0
  * @category constants
  */
@@ -119,7 +136,8 @@ export const CML_DATA_DEFAULT_OPTIONS: CodecOptions = {
   useDefiniteForEmpty: true,
   sortMapKeys: false,
   useMinimalEncoding: true,
-  mapsAsObjects: false
+  mapsAsObjects: false,
+  chunkBytesAt: 64
 } as const
 
 /**
@@ -130,6 +148,7 @@ export const CML_DATA_DEFAULT_OPTIONS: CodecOptions = {
  * - Maps encoded as arrays of pairs (not CBOR maps)
  * - Strings as bytearrays (major type 2, not 3)
  * - Constructor tags: 121-127 for indices 0-6, then 1280+ for 7+
+ * - 64-byte chunk limit for byte strings (bounded_bytes CDDL constraint)
  *
  * @since 2.0.0
  * @category constants
@@ -142,7 +161,8 @@ export const AIKEN_DEFAULT_OPTIONS: CodecOptions = {
   sortMapKeys: false,
   useMinimalEncoding: true,
   mapsAsObjects: false,
-  encodeMapAsPairs: true
+  encodeMapAsPairs: true,
+  chunkBytesAt: 64
 } as const
 
 /**
@@ -828,16 +848,70 @@ const encodeNintSync = (value: bigint, options: CodecOptions): Uint8Array => {
   }
 }
 
+/** Byte-string chunk header size for a given chunk length (CBOR major type 2). */
+const chunkHeaderSize = (len: number): number => {
+  if (len < 24) return 1
+  if (len < 256) return 2
+  if (len < 65536) return 3
+  return 5
+}
+
+/** Write a definite-length byte-string header for a chunk into `buf` at `pos`. Returns new position. */
+const writeChunkHeader = (buf: Uint8Array, pos: number, len: number): number => {
+  if (len < 24) {
+    buf[pos++] = 0x40 + len
+  } else if (len < 256) {
+    buf[pos++] = 0x58
+    buf[pos++] = len
+  } else if (len < 65536) {
+    buf[pos++] = 0x59
+    buf[pos++] = (len >> 8) & 0xff
+    buf[pos++] = len & 0xff
+  } else {
+    buf[pos++] = 0x5a
+    buf[pos++] = (len >> 24) & 0xff
+    buf[pos++] = (len >> 16) & 0xff
+    buf[pos++] = (len >> 8) & 0xff
+    buf[pos++] = len & 0xff
+  }
+  return pos
+}
+
 const encodeBytesSync = (value: Uint8Array, options: CodecOptions): Uint8Array => {
   const length = value.length
   const useMinimal = options.mode === "canonical" || (options.mode === "custom" && options.useMinimalEncoding)
+  const chunkBytesAt = "chunkBytesAt" in options ? options.chunkBytesAt : undefined
 
   // Fast path for empty bytes
   if (length === 0) {
     return new Uint8Array([0x40])
   }
 
-  // Optimize header encoding with direct buffer creation
+  // Chunk encoding for bounded_bytes (Conway CDDL: bounded_bytes = bytes .size (0..64))
+  // When chunkBytesAt is set and the byte string exceeds the limit, encode as
+  // CBOR indefinite-length chunked byte string: 0x5f [chunk]* 0xff
+  if (chunkBytesAt !== undefined && length > chunkBytesAt) {
+    const chunkSize = chunkBytesAt
+    // Compute total output size: 0x5f (start) + chunks + 0xff (break)
+    let totalSize = 2
+    for (let offset = 0; offset < length; offset += chunkSize) {
+      const chunkLen = Math.min(chunkSize, length - offset)
+      totalSize += chunkHeaderSize(chunkLen) + chunkLen
+    }
+    const result = new Uint8Array(totalSize)
+    let pos = 0
+    result[pos++] = 0x5f // indefinite-length byte string
+    for (let offset = 0; offset < length; offset += chunkSize) {
+      const chunk = value.subarray(offset, offset + chunkSize)
+      pos = writeChunkHeader(result, pos, chunk.length)
+      result.set(chunk, pos)
+      pos += chunk.length
+    }
+    result[pos] = 0xff // break
+    return result
+  }
+
+  // Standard definite-length encoding
   let headerBytes: Uint8Array
   if (length < 24) {
     headerBytes = new Uint8Array([0x40 + length])
