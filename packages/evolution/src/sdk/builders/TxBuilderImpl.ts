@@ -1584,7 +1584,11 @@ export const calculateMinimumUtxoLovelace = (params: {
       currentLovelace = requiredLovelace
     }
 
-    return currentLovelace
+    return yield* Effect.fail(
+      new TransactionBuilderError({
+        message: `Minimum UTxO calculation did not converge within ${MAX_MIN_UTXO_ITERATIONS} iterations`
+      })
+    )
   })
 
 /**
