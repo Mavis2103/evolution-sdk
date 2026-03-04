@@ -204,6 +204,7 @@ export const calculateReferenceScriptFee = (
     yield* Effect.logDebug(`[RefScriptFee] Total reference script size: ${totalScriptSize} bytes`)
 
     if (totalScriptSize > 200_000) {
+      // maxRefScriptSizePerTx from Conway ledger rules (CIP-0069 / CIP-0112)
       return yield* Effect.fail(
         new TransactionBuilderError({
           message: `Total reference script size (${totalScriptSize} bytes) exceeds maximum limit of 200,000 bytes`
