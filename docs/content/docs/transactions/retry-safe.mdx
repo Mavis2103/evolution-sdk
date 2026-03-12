@@ -126,7 +126,7 @@ When using Effect, compose the full pipeline as a single `Effect.gen` and apply 
 
 ```ts twoslash
 // @noErrors
-import { createClient } from "@evolution-sdk/evolution";
+import { Address, createClient } from "@evolution-sdk/evolution";
 import { Effect, Schedule } from "effect";
 
 const client = createClient({
@@ -142,7 +142,7 @@ const client = createClient({
 // Illustrative snippet (not runnable as-is) — scriptAddress and redeemer are placeholders
 const unlockAction = Effect.gen(function* () {
   // Script UTxOs fetched fresh on every attempt
-  const scriptUtxos = yield* client.Effect.getUtxos("addr_test1..." as any);
+  const scriptUtxos = yield* client.Effect.getUtxos(Address.fromBech32("addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5pdrFollw8qd9k63"));
 
   const signBuilder = yield* client.newTx()
     .collectFrom({ inputs: scriptUtxos })
