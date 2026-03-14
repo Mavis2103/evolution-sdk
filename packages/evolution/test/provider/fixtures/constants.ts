@@ -29,7 +29,8 @@ export const PREPROD_TX_HASH_HEX =
   "23f94840ca94f7bb0a5a2b28e5b6a77e61d0414c7427e03d6c4d57b13d5e49b4"
 
 /** Preview-only tx whose collateral output has a Haskell show string asset_list.
- *  Does NOT exist on preprod — used to test awaitTx timeout behavior. */
+ *  Does NOT exist on preprod — used to test awaitTx timeout behavior AND Koios
+ *  asset_list string decoding (collateral outputs with many assets). */
 export const PREVIEW_TX_HASH_HEX =
   "bfab055361b02a6da919525bfd0447773c640c4e7d65e84783fb3f3b03675688"
 
