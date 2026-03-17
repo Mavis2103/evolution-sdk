@@ -22,6 +22,17 @@ import * as HttpUtils from "./HttpUtils.js"
 import * as _Koios from "./Koios.js"
 import * as _Ogmios from "./Ogmios.js"
 
+/**
+ * Wrap errors into ProviderError
+ */
+const wrapError = (operation: string) => (cause: unknown) =>
+  Effect.fail(
+    new Provider.ProviderError({
+      message: `Koios ${operation} failed`,
+      cause
+    })
+  )
+
 export const getProtocolParameters = (baseUrl: string, token?: string) =>
   Effect.gen(function* () {
     const url = `${baseUrl}/epoch_params?limit=1&order=epoch_no.desc`
@@ -31,9 +42,7 @@ export const getProtocolParameters = (baseUrl: string, token?: string) =>
       HttpUtils.get(url, schema, bearerToken),
       // Allows for dependency injection and easier testing
       Effect.timeout(10_000),
-      Effect.catchAllCause(
-        (cause) => new Provider.ProviderError({ cause, message: "Failed to fetch protocol parameters from Koios" })
-      ),
+      Effect.catchAll(wrapError("getProtocolParameters")),
       Effect.provide(FetchHttpClient.layer)
     )
 
@@ -72,9 +81,7 @@ export const getUtxos =
     return pipe(
       _Koios.getUtxosEffect(baseUrl, addressStr, token ? { Authorization: `Bearer ${token}` } : undefined),
       Effect.timeout(10_000),
-      Effect.catchAllCause(
-        (cause) => new Provider.ProviderError({ cause, message: "Failed to fetch UTxOs from Koios" })
-      )
+      Effect.catchAll(wrapError("getUtxos"))
     )
   }
 
@@ -95,9 +102,7 @@ export const getUtxosWithUnit =
         })
       ),
       Effect.timeout(10_000),
-      Effect.catchAllCause(
-        (cause) => new Provider.ProviderError({ cause, message: "Failed to fetch UTxOs with unit from Koios" })
-      )
+      Effect.catchAll(wrapError("getUtxosWithUnit"))
     )
   }
 
@@ -148,9 +153,7 @@ export const getUtxoByUnit = (baseUrl: string, token?: string) => (unit: string)
       )
     }),
     Effect.timeout(10_000),
-    Effect.catchAllCause(
-      (cause) => new Provider.ProviderError({ cause, message: "Failed to fetch UTxO by unit from Koios" })
-    )
+    Effect.catchAll(wrapError("getUtxoByUnit"))
   )
 
 export const getUtxosByOutRef =
@@ -168,9 +171,7 @@ export const getUtxosByOutRef =
         HttpUtils.postJson(url, body, Schema.Array(_Koios.TxInfoSchema), bearerToken),
         Effect.provide(FetchHttpClient.layer),
         Effect.timeout(10_000),
-        Effect.catchAllCause(
-          (cause) => new Provider.ProviderError({ cause, message: "Failed to fetch UTxOs by OutRef from Koios" })
-        )
+        Effect.catchAll(wrapError("getUtxosByOutRef"))
       )
 
       if (result) {
@@ -224,9 +225,7 @@ export const getDelegation = (baseUrl: string, token?: string) => (rewardAddress
           : Effect.succeed(result[0])
       ),
       Effect.timeout(10_000),
-      Effect.catchAllCause(
-        (cause) => new Provider.ProviderError({ cause, message: "Failed to fetch delegation from Koios" })
-      )
+      Effect.catchAll(wrapError("getDelegation"))
     )
 
     return {
@@ -258,9 +257,7 @@ export const getDatum = (baseUrl: string, token?: string) => (datumHash: DatumHa
           : Effect.succeed(result[0])
       ),
       Effect.timeout(10_000),
-      Effect.catchAllCause(
-        (cause) => new Provider.ProviderError({ cause, message: "Failed to fetch datum from Koios" })
-      )
+      Effect.catchAll(wrapError("getDatum"))
     )
 
     return Schema.decodeSync(PlutusData.FromCBORHex())(result.bytes)
@@ -286,7 +283,8 @@ export const awaitTx =
         }),
         Effect.timeout(timeout),
         Effect.catchAllCause(
-          (cause) => new Provider.ProviderError({ cause, message: "Failed to await transaction confirmation" })
+          (cause) =>
+            Effect.fail(new Provider.ProviderError({ cause, message: "Koios awaitTx failed" }))
         ),
         Effect.as(true)
       )
@@ -304,7 +302,7 @@ export const submitTx = (baseUrl: string, token?: string) => (tx: Transaction.Tr
       HttpUtils.postUint8Array(url, txCborBytes, _Koios.TxHashSchema, bearerToken),
       Effect.provide(FetchHttpClient.layer),
       Effect.timeout(10_000),
-      Effect.catchAllCause((cause) => new Provider.ProviderError({ cause, message: "Failed to submit transaction" }))
+      Effect.catchAll(wrapError("submitTx"))
     )
 
     return Schema.decodeSync(TransactionHash.FromHex)(result)
@@ -336,9 +334,7 @@ export const evaluateTx =
         HttpUtils.postJson(url, body, schema, bearerToken),
         Effect.provide(FetchHttpClient.layer),
         Effect.timeout(10_000),
-        Effect.catchAllCause(
-          (cause) => new Provider.ProviderError({ cause, message: "Failed to evaluate transaction" })
-        )
+        Effect.catchAll(wrapError("evaluateTx"))
       )
 
       const evalRedeemers = result.map((item) => {

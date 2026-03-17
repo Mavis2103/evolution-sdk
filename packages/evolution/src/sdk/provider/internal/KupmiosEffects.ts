@@ -31,6 +31,17 @@ import * as Ogmios from "./Ogmios.js"
 
 const TIMEOUT = 10_000
 
+/**
+ * Wrap errors into ProviderError
+ */
+const wrapError = (operation: string) => (cause: unknown) =>
+  Effect.fail(
+    new Provider.ProviderError({
+      message: `Kupmios ${operation} failed`,
+      cause
+    })
+  )
+
 // Internal utility functions (not exported)
 const toProtocolParameters = (result: Ogmios.ProtocolParameters): Provider.ProtocolParameters => {
   return {
@@ -96,7 +107,7 @@ const retrieveDatumEffect =
           }),
           Effect.retry(Schedule.compose(Schedule.exponential(50), Schedule.recurs(5))),
           Effect.timeout(5_000),
-          Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to retrieve datum" }))
+          Effect.catchAll(wrapError("retrieveDatum"))
         )
       } else if (datum_type === "hash" && datum_hash) {
         const hashBytes = Bytes.fromHex(datum_hash)
@@ -143,7 +154,7 @@ const getScriptEffect =
                 throw new Error(`Unknown script language: ${language}`)
             }
           }),
-          Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to get script" }))
+          Effect.catchAll(wrapError("getScript"))
         )
       } else return undefined
     })
@@ -192,7 +203,7 @@ export const getProtocolParametersEffect = Effect.fn("getProtocolParameters")(fu
   const { result } = yield* pipe(
     HttpUtils.postJson(ogmiosUrl, data, schema, headers?.ogmiosHeader),
     Effect.timeout(TIMEOUT),
-    Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to get protocol parameters" })),
+    Effect.catchAll(wrapError("getProtocolParameters")),
     Effect.provide(FetchHttpClient.layer)
   )
   return toProtocolParameters(result)
@@ -214,7 +225,7 @@ export const getUtxosEffect = (kupoUrl: string, headers?: { kupoHeader?: Record<
       HttpUtils.get(pattern, schema, headers?.kupoHeader),
       Effect.flatMap((u) => toUtxos(u)),
       Effect.timeout(TIMEOUT),
-      Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to get UTxOs" })),
+      Effect.catchAll(wrapError("getUtxos")),
       Effect.provide(FetchHttpClient.layer)
     )
     return utxos
@@ -234,7 +245,7 @@ export const getUtxoByUnitEffect = (kupoUrl: string, headers?: { kupoHeader?: Re
       HttpUtils.get(pattern, schema, headers?.kupoHeader),
       Effect.flatMap((u) => toUtxos(u)),
       Effect.timeout(TIMEOUT),
-      Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to get UTxO by unit" })),
+      Effect.catchAll(wrapError("getUtxoByUnit")),
       Effect.provide(FetchHttpClient.layer)
     )
 
@@ -270,7 +281,7 @@ export const getUtxosByOutRefEffect = (kupoUrl: string, headers?: { kupoHeader?:
         HttpUtils.get(mkPattern(txHash), schema, headers?.kupoHeader),
         Effect.flatMap((u) => toUtxos(u)),
         Effect.timeout(TIMEOUT),
-        Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to get UTxOs by OutRef" }))
+        Effect.catchAll(wrapError("getUtxosByOutRef"))
       )
     )
     const utxos: Array<Array<CoreUTxO.UTxO>> = yield* pipe(program, Effect.provide(FetchHttpClient.layer))
@@ -321,8 +332,8 @@ export const submitTxEffect = (ogmiosUrl: string, headers?: { ogmiosHeader?: Rec
             ? cause.message
             : typeof cause === "object" && cause !== null && "description" in cause
               ? String((cause as { description: unknown }).description)
-              : "Failed to submit transaction"
-        return Effect.fail(new Provider.ProviderError({ cause, message: errorMessage }))
+              : "Kupmios submitTx failed"
+        return Effect.fail(new Provider.ProviderError({ cause, message: `Kupmios submitTx failed: ${errorMessage}` }))
       }),
       Effect.provide(FetchHttpClient.layer)
     )
@@ -349,7 +360,7 @@ export const getUtxosWithUnitEffect = (kupoUrl: string, headers?: { kupoHeader?:
       HttpUtils.get(pattern, schema, headers?.kupoHeader),
       Effect.flatMap((u) => toUtxos(u)),
       Effect.timeout(TIMEOUT),
-      Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to get UTxOs with unit" })),
+      Effect.catchAll(wrapError("getUtxosWithUnit")),
       Effect.provide(FetchHttpClient.layer)
     )
     return utxos
@@ -377,7 +388,7 @@ export const evaluateTxEffect = (ogmiosUrl: string, headers?: { ogmiosHeader?: R
       HttpUtils.postJson(ogmiosUrl, data, schema, headers?.ogmiosHeader),
       Effect.provide(FetchHttpClient.layer),
       Effect.timeout(TIMEOUT),
-      Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to evaluate transaction" }))
+      Effect.catchAll(wrapError("evaluateTx"))
     )
 
     const evalRedeemers: Array<EvalRedeemer> = (result as Array<any>).map((item: any) => {
@@ -417,7 +428,9 @@ export const awaitTxEffect = (kupoUrl: string, headers?: { kupoHeader?: Record<s
         until: (result) => result.length > 0
       }),
       Effect.timeout(timeout),
-      Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to await transaction" })),
+      Effect.catchAllCause(
+        (cause) => Effect.fail(new Provider.ProviderError({ cause, message: "Kupmios awaitTx failed" }))
+      ),
       Effect.as(true)
     )
     return result
@@ -436,14 +449,14 @@ export const getDelegationEffect = (ogmiosUrl: string, headers?: { ogmiosHeader?
       HttpUtils.postJson(ogmiosUrl, data, schema, headers?.ogmiosHeader),
       Effect.provide(FetchHttpClient.layer),
       Effect.timeout(TIMEOUT),
-      Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to get delegation" }))
+      Effect.catchAll(wrapError("getDelegation"))
     )
     const delegation = result?.[0] ?? null
 
     return {
       poolId: delegation?.stakePool?.id
         ? yield* Schema.decode(PoolKeyHash.FromBech32)(delegation.stakePool.id).pipe(
-            Effect.mapError((cause) => new Provider.ProviderError({ cause, message: "Failed to decode pool key hash" }))
+            Effect.mapError((cause) => new Provider.ProviderError({ cause, message: "Kupmios getDelegation failed" }))
           )
         : null,
       rewards: BigInt(delegation?.rewards?.ada?.lovelace ?? 0)
@@ -460,7 +473,7 @@ export const getDatumEffect = (kupoUrl: string, headers?: { kupoHeader?: Record<
       Effect.provide(FetchHttpClient.layer),
       Effect.timeout(TIMEOUT),
       Effect.flatMap(Effect.fromNullable),
-      Effect.catchAll((cause) => new Provider.ProviderError({ cause, message: "Failed to get datum" }))
+      Effect.catchAll(wrapError("getDatum"))
     )
     return Schema.decodeSync(PlutusData.FromCBORHex())(result.datum)
   })
