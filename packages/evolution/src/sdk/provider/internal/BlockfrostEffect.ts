@@ -197,16 +197,7 @@ const getScriptByHash =
     ).pipe(
       Effect.catchAll(wrapError("getScriptByHash")),
       Effect.flatMap((info) => {
-        // For native scripts, we could return NativeScript but for now focus on Plutus
-        if (info.type === "timelock" || info.type === "native") {
-          return Effect.fail(
-            new ProviderError({
-              message: `Native scripts not yet supported: ${scriptHash}`,
-              cause: "Native script"
-            })
-          )
-        }
-        // Fetch CBOR for Plutus scripts
+        // Fetch CBOR for all script types (Blockfrost serves CBOR for native/timelock too)
         return withRateLimit(
           HttpUtils.get(`${baseUrl}/scripts/${scriptHash}/cbor`, BlockfrostScriptCbor, createHeaders(projectId))
         ).pipe(
@@ -214,6 +205,9 @@ const getScriptByHash =
           Effect.map((cbor) => {
             const scriptBytes = Bytes.fromHex(cbor.cbor)
             switch (info.type) {
+              case "timelock":
+              case "native":
+                return NativeScripts.fromCBORHex(cbor.cbor)
               case "plutusV1":
                 return new PlutusV1.PlutusV1({ bytes: scriptBytes })
               case "plutusV2":

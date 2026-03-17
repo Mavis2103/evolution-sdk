@@ -7,12 +7,18 @@ import { Schema } from "effect"
 
 import * as CoreAddress from "../../../Address.js"
 import * as CoreAssets from "../../../Assets/index.js"
+import * as Bytes from "../../../Bytes.js"
 import * as PlutusData from "../../../Data.js"
 import * as DatumHash from "../../../DatumHash.js"
 import type { DatumOption } from "../../../DatumOption.js"
 import * as InlineDatum from "../../../InlineDatum.js"
+import * as NativeScripts from "../../../NativeScripts.js"
+import * as PlutusV1 from "../../../PlutusV1.js"
+import * as PlutusV2 from "../../../PlutusV2.js"
+import * as PlutusV3 from "../../../PlutusV3.js"
 import * as PoolKeyHash from "../../../PoolKeyHash.js"
 import * as Redeemer from "../../../Redeemer.js"
+import type { Script } from "../../../Script.js"
 import * as TransactionHash from "../../../TransactionHash.js"
 import * as CoreUTxO from "../../../UTxO.js"
 import type { EvalRedeemer } from "../../EvalRedeemer.js"
@@ -292,11 +298,22 @@ export const transformAssets = (
 
 /**
  * Transform Maestro script reference to Evolution SDK format
- * TODO: Convert to Core script type when available
  */
-export const transformScriptRef = (_maestroScript?: Schema.Schema.Type<typeof MaestroScript> | null) => {
-  // TODO: Handle script ref when Core types support it
-  return undefined
+export const transformScriptRef = (
+  maestroScript?: Schema.Schema.Type<typeof MaestroScript> | null
+): Script | undefined => {
+  if (!maestroScript?.bytes) return undefined
+  const scriptBytes = Bytes.fromHex(maestroScript.bytes)
+  switch (maestroScript.type) {
+    case "plutusv1":
+      return new PlutusV1.PlutusV1({ bytes: scriptBytes })
+    case "plutusv2":
+      return new PlutusV2.PlutusV2({ bytes: scriptBytes })
+    case "plutusv3":
+      return new PlutusV3.PlutusV3({ bytes: scriptBytes })
+    case "native":
+      return NativeScripts.fromCBORHex(maestroScript.bytes)
+  }
 }
 
 /**
@@ -307,13 +324,15 @@ export const transformUTxO = (maestroUtxo: Schema.Schema.Type<typeof MaestroUTxO
   const address = CoreAddress.fromBech32(maestroUtxo.address)
   const transactionId = TransactionHash.fromHex(maestroUtxo.tx_hash)
   const datumOption = transformDatumOption(maestroUtxo.datum)
+  const scriptRef = transformScriptRef(maestroUtxo.reference_script)
 
   return new CoreUTxO.UTxO({
     transactionId,
     index: BigInt(maestroUtxo.index),
     address,
     assets,
-    ...(datumOption && { datumOption })
+    ...(datumOption && { datumOption }),
+    ...(scriptRef && { scriptRef })
   })
 }
 
