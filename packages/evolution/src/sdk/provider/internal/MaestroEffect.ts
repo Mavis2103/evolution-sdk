@@ -88,11 +88,15 @@ export const getProtocolParameters = (baseUrl: string, apiKey: string) =>
 export const getUtxos =
   (baseUrl: string, apiKey: string) => (addressOrCredential: CoreAddress.Address | Credential.Credential) =>
     Effect.gen(function* () {
-      // Extract address string from Address or Credential
-      const addressStr =
-        addressOrCredential instanceof CoreAddress.Address
-          ? CoreAddress.toBech32(addressOrCredential)
-          : addressOrCredential.hash // Use credential hash directly
+      if (!(addressOrCredential instanceof CoreAddress.Address)) {
+        return yield* Effect.fail(
+          new ProviderError({
+            message: "Maestro provider does not support credential-based UTxO queries. Pass a full Address instead.",
+            cause: "Unsupported operation"
+          })
+        )
+      }
+      const addressStr = CoreAddress.toBech32(addressOrCredential)
 
       // Get all pages of UTxOs
       const allUtxos = yield* getUtxosWithPagination(`${baseUrl}/addresses/${addressStr}/utxos`, apiKey)
@@ -109,10 +113,15 @@ export const getUtxosWithUnit =
     Effect.gen(function* () {
       // Use address endpoint and filter by unit client-side,
       // because /assets/{unit}/utxos returns a simplified response without full UTxO details
-      const addressStr =
-        addressOrCredential instanceof CoreAddress.Address
-          ? CoreAddress.toBech32(addressOrCredential)
-          : addressOrCredential.hash
+      if (!(addressOrCredential instanceof CoreAddress.Address)) {
+        return yield* Effect.fail(
+          new ProviderError({
+            message: "Maestro provider does not support credential-based UTxO queries. Pass a full Address instead.",
+            cause: "Unsupported operation"
+          })
+        )
+      }
+      const addressStr = CoreAddress.toBech32(addressOrCredential)
 
       const allUtxos = yield* getUtxosWithPagination(`${baseUrl}/addresses/${addressStr}/utxos`, apiKey)
 
