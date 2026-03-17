@@ -191,7 +191,8 @@ const decodeAuxiliaryDataHash = ParseResult.decodeEither(AuxiliaryDataHash.FromB
 const decodeScriptDataHash = ParseResult.decodeEither(ScriptDataHash.FromBytes)
 const decodeKeyHash = ParseResult.decodeEither(KeyHash.FromBytes)
 
-const decodeInputs = ParseResult.decodeUnknownEither(CBOR.tag(258, Schema.Array(TransactionInput.FromCDDL)))
+const decodeTaggedInputs = ParseResult.decodeUnknownEither(CBOR.tag(258, Schema.Array(TransactionInput.FromCDDL)))
+const decodeUntaggedInputs = ParseResult.decodeUnknownEither(Schema.Array(TransactionInput.FromCDDL))
 
 /**
  * CDDL schema for TransactionBody struct structure.
@@ -314,10 +315,12 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
     }),
   decode: (fromA) =>
     E.gen(function* () {
-      // Required fields - access via helper
-      const inputsTag = fromA.get(0n)
-      const decodedInputs = yield* decodeInputs(inputsTag)
-      const inputs = decodedInputs.value
+      // Required fields - accept both tag-258 (Conway) and plain array (Babbage)
+      const inputsRaw = fromA.get(0n)
+      const taggedResult = decodeTaggedInputs(inputsRaw)
+      const inputs = E.isRight(taggedResult)
+        ? taggedResult.right.value
+        : yield* decodeUntaggedInputs(inputsRaw)
 
       // const inputsArray = inputsTag.value
       // const inputsLen = inputsArray.length
@@ -370,14 +373,16 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
       const scriptDataHashBytes = fromA.get(11n) as Uint8Array | undefined
       const scriptDataHash = scriptDataHashBytes ? yield* decodeScriptDataHash(scriptDataHashBytes) : undefined
 
-      const collateralInputsTag = fromA.get(13n) as
-        | {
-            _tag: "Tag"
-            tag: 258
-            value: ReadonlyArray<typeof TransactionInput.CDDLSchema.Type>
-          }
+      // Accept both tag-258 (Conway) and plain array (Babbage) for collateral inputs
+      const collateralInputsRaw = fromA.get(13n) as
+        | { _tag: "Tag"; tag: 258; value: ReadonlyArray<typeof TransactionInput.CDDLSchema.Type> }
+        | ReadonlyArray<typeof TransactionInput.CDDLSchema.Type>
         | undefined
-      const collateralInputsArray = collateralInputsTag ? collateralInputsTag.value : undefined
+      const collateralInputsArray = collateralInputsRaw
+        ? (collateralInputsRaw as any)._tag === "Tag"
+          ? (collateralInputsRaw as any).value
+          : collateralInputsRaw
+        : undefined
       let collateralInputs: NonEmptyArray<TransactionInput.TransactionInput> | undefined
       if (collateralInputsArray) {
         const len = collateralInputsArray.length
@@ -388,14 +393,16 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
         collateralInputs = arr as NonEmptyArray<TransactionInput.TransactionInput>
       }
 
-      const requiredSignersTag = fromA.get(14n) as
-        | {
-            _tag: "Tag"
-            tag: 258
-            value: ReadonlyArray<Uint8Array>
-          }
+      // Accept both tag-258 (Conway) and plain array (Babbage) for required signers
+      const requiredSignersRaw = fromA.get(14n) as
+        | { _tag: "Tag"; tag: 258; value: ReadonlyArray<Uint8Array> }
+        | ReadonlyArray<Uint8Array>
         | undefined
-      const requiredSignersArray = requiredSignersTag ? requiredSignersTag.value : undefined
+      const requiredSignersArray = requiredSignersRaw
+        ? (requiredSignersRaw as any)._tag === "Tag"
+          ? (requiredSignersRaw as any).value
+          : requiredSignersRaw
+        : undefined
       let requiredSigners: NonEmptyArray<KeyHash.KeyHash> | undefined
       if (requiredSignersArray) {
         const len = requiredSignersArray.length
@@ -411,14 +418,16 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
       const collateralReturn = collateralReturnData ? yield* decodeTxOutput(collateralReturnData) : undefined
       const totalCollateral = fromA.get(17n) as Coin.Coin | undefined
 
-      const referenceInputsTag = fromA.get(18n) as
-        | {
-            _tag: "Tag"
-            tag: 258
-            value: ReadonlyArray<typeof TransactionInput.CDDLSchema.Type>
-          }
+      // Accept both tag-258 (Conway) and plain array (Babbage) for reference inputs
+      const referenceInputsRaw = fromA.get(18n) as
+        | { _tag: "Tag"; tag: 258; value: ReadonlyArray<typeof TransactionInput.CDDLSchema.Type> }
+        | ReadonlyArray<typeof TransactionInput.CDDLSchema.Type>
         | undefined
-      const referenceInputsArray = referenceInputsTag ? referenceInputsTag.value : undefined
+      const referenceInputsArray: ReadonlyArray<typeof TransactionInput.CDDLSchema.Type> | undefined = referenceInputsRaw
+        ? (referenceInputsRaw as any)._tag === "Tag"
+          ? (referenceInputsRaw as any).value
+          : referenceInputsRaw
+        : undefined
       let referenceInputs: NonEmptyArray<TransactionInput.TransactionInput> | undefined
       if (referenceInputsArray) {
         const len = referenceInputsArray.length
@@ -430,15 +439,15 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
       }
       const votingProceduresData = fromA.get(19n) as typeof VotingProcedures.CDDLSchema.Type | undefined
       const votingProcedures = votingProceduresData ? yield* decodeVotingProcedures(votingProceduresData) : undefined
-      const proposalProceduresTag = fromA.get(20n) as
-        | {
-            _tag: "Tag"
-            tag: 258
-            value: ReadonlyArray<typeof ProposalProcedure.CDDLSchema.Type>
-          }
+      // Accept both tag-258 (Conway) and plain array (Babbage) for proposal procedures
+      const proposalProceduresRaw = fromA.get(20n) as
+        | { _tag: "Tag"; tag: 258; value: ReadonlyArray<typeof ProposalProcedure.CDDLSchema.Type> }
+        | ReadonlyArray<typeof ProposalProcedure.CDDLSchema.Type>
         | undefined
-      const proposalProceduresArray = proposalProceduresTag
-        ? (proposalProceduresTag.value as ReadonlyArray<typeof ProposalProcedure.CDDLSchema.Type>)
+      const proposalProceduresArray: ReadonlyArray<typeof ProposalProcedure.CDDLSchema.Type> | undefined = proposalProceduresRaw
+        ? (proposalProceduresRaw as any)._tag === "Tag"
+          ? (proposalProceduresRaw as any).value
+          : proposalProceduresRaw
         : undefined
       const proposalProcedures = proposalProceduresArray
         ? new ProposalProcedures.ProposalProcedures({
