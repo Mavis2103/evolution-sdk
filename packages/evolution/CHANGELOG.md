@@ -1,5 +1,11 @@
 # @evolution-sdk/evolution
 
+## 0.3.31
+
+### Patch Changes
+
+- [`16cb6fd`](https://github.com/IntersectMBO/evolution-sdk/commit/16cb6fd55670bb51f823469e52ac71cfb23b0d1f) Thanks [@hadelive](https://github.com/hadelive)! - fix: make min_utxo optional in Blockfrost protocol parameters schema
+
 ## 0.3.30
 
 ### Patch Changes
