@@ -21,7 +21,7 @@ import {
   type SigningClient,
   type SigningWalletClient
 } from "./Client.js"
-import { type AnyWallet } from "./Wallets.js"
+import { type AnyWallet, type WalletFactory } from "./Wallets.js"
 
 type ResolvedWallet = WalletNew.ReadOnlyWallet | WalletNew.SigningWallet | WalletNew.ApiWallet
 
@@ -81,8 +81,7 @@ const createReadOnlyClient = (
     rewardAddress: wallet.rewardAddress,
     getWalletUtxos: () => Effect.runPromise(effectInterface.getWalletUtxos()),
     getWalletDelegation: () => Effect.runPromise(effectInterface.getWalletDelegation()),
-    newTx: (): ReadOnlyTransactionBuilder =>
-      makeTxBuilder({ wallet, provider, chain }),
+    newTx: (): ReadOnlyTransactionBuilder => makeTxBuilder({ wallet, provider, chain }),
     Effect: effectInterface
   }
 }
@@ -172,8 +171,7 @@ const createSigningClient = (
     signTx: (txOrHex, context) => Effect.runPromise(signTxWithAutoFetch(txOrHex, context)),
     getWalletUtxos: () => Effect.runPromise(effectInterface.getWalletUtxos()),
     getWalletDelegation: () => Effect.runPromise(effectInterface.getWalletDelegation()),
-    newTx: (): SigningTransactionBuilder =>
-      makeTxBuilder({ wallet, provider, chain }),
+    newTx: (): SigningTransactionBuilder => makeTxBuilder({ wallet, provider, chain }),
     Effect: effectInterface
   }
 }
@@ -229,7 +227,7 @@ export function createClient(config: {
 export function createClient(config: {
   chain?: Chain
   provider: Provider.Provider
-  wallet: WalletNew.SigningWallet | WalletNew.ApiWallet | AnyWallet
+  wallet: WalletNew.SigningWallet | WalletNew.ApiWallet | WalletFactory
 }): SigningClient
 
 // Provider only → ProviderOnlyClient

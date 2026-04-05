@@ -175,9 +175,7 @@ const makeSigningWalletEffect = (
           seenVKeys.add(vkHex)
           witnesses.push(new TransactionWitnessSet.VKeyWitness({ vkey: vk, signature: sig }))
         }
-        return witnesses.length > 0
-          ? TransactionWitnessSet.fromVKeyWitnesses(witnesses)
-          : TransactionWitnessSet.empty()
+        return witnesses.length > 0 ? TransactionWitnessSet.fromVKeyWitnesses(witnesses) : TransactionWitnessSet.empty()
       }),
     signMessage: (_address: CoreAddress.Address | CoreRewardAddress.RewardAddress, payload: WalletNew.Payload) =>
       Effect.map(derivationEffect, (derivation) => {
@@ -260,9 +258,7 @@ export interface PrivateKeyWalletConfig {
  */
 export const readOnlyWallet = (address: string, rewardAddress?: string): WalletNew.ReadOnlyWallet => {
   const coreAddress = CoreAddress.fromBech32(address)
-  const coreRewardAddress = rewardAddress
-    ? Schema.decodeSync(CoreRewardAddress.RewardAddress)(rewardAddress)
-    : null
+  const coreRewardAddress = rewardAddress ? Schema.decodeSync(CoreRewardAddress.RewardAddress)(rewardAddress) : null
   const effectInterface: WalletNew.ReadOnlyWalletEffect = {
     address: () => Effect.succeed(coreAddress),
     rewardAddress: () => Effect.succeed(coreRewardAddress)
@@ -287,7 +283,8 @@ export const readOnlyWallet = (address: string, rewardAddress?: string): WalletN
  * @since 2.1.0
  * @category constructors
  */
-export const seedWallet = (config: SeedWalletConfig): WalletFactory =>
+export const seedWallet =
+  (config: SeedWalletConfig): WalletFactory =>
   (chain: Chain): WalletNew.SigningWallet => {
     const network: WalletNew.Network = chain.id === 1 ? "Mainnet" : "Testnet"
     const derivationEffect = Derivation.walletFromSeed(config.mnemonic, {
@@ -313,7 +310,8 @@ export const seedWallet = (config: SeedWalletConfig): WalletFactory =>
  * @since 2.1.0
  * @category constructors
  */
-export const privateKeyWallet = (config: PrivateKeyWalletConfig): WalletFactory =>
+export const privateKeyWallet =
+  (config: PrivateKeyWalletConfig): WalletFactory =>
   (chain: Chain): WalletNew.SigningWallet => {
     const network: WalletNew.Network = chain.id === 1 ? "Mainnet" : "Testnet"
     const derivationEffect = Derivation.walletFromPrivateKey(config.paymentKey, {
@@ -389,7 +387,11 @@ export const cip30Wallet = (api: WalletNew.WalletApi): WalletNew.ApiWallet => {
         const cbor = typeof txOrHex === "string" ? txOrHex : Transaction.toCBORHex(txOrHex)
         const witnessHex = yield* Effect.tryPromise({
           try: () => api.signTx(cbor, true),
-          catch: (cause) => new WalletNew.WalletError({ message: "User rejected transaction signing", cause })
+          catch: (cause) =>
+            new WalletNew.WalletError({
+              message: `Failed to sign transaction: ${(cause as Error).message ?? cause}`,
+              cause
+            })
         })
         return yield* ParseResult.decodeUnknownEither(TransactionWitnessSet.FromCBORHex())(witnessHex).pipe(
           Effect.mapError(
@@ -399,9 +401,12 @@ export const cip30Wallet = (api: WalletNew.WalletApi): WalletNew.ApiWallet => {
       }),
     signMessage: (address: CoreAddress.Address | CoreRewardAddress.RewardAddress, payload: WalletNew.Payload) =>
       Effect.gen(function* () {
-        const addressStr = address instanceof CoreAddress.Address ? CoreAddress.toBech32(address) : address
+        const addressHex =
+          address instanceof CoreAddress.Address
+            ? CoreAddress.toHex(address)
+            : CoreRewardAccount.toHex(CoreRewardAccount.fromBech32(address))
         const result = yield* Effect.tryPromise({
-          try: () => api.signData(addressStr, payload),
+          try: () => api.signData(addressHex, payload),
           catch: (cause) => new WalletNew.WalletError({ message: "User rejected message signing", cause })
         })
         return { payload, signature: result.signature }

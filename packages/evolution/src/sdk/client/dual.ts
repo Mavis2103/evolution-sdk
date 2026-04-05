@@ -53,7 +53,7 @@ export const dual = <A, E>(effect: Effect.Effect<A, E>): DualEffect<A, E> => {
     get(target, prop, receiver) {
       if (prop === "then") return (onFulfilled?: any, onRejected?: any) => run().then(onFulfilled, onRejected)
       return Reflect.get(target, prop, receiver)
-    },
+    }
   }) as DualEffect<A, E>
 }
 
@@ -68,12 +68,11 @@ export const dual = <A, E>(effect: Effect.Effect<A, E>): DualEffect<A, E> => {
  * @since 2.2.0
  * @category model
  */
-type DualifyMethod<F> =
-  F extends (...args: infer A) => Effect.Effect<infer R, infer E, never>
-    ? (...args: A) => DualEffect<R, E>
-    : F extends (...args: infer A) => Stream.Stream<infer R, infer _E, never>
-      ? (...args: A) => AsyncIterable<R>
-      : F
+type DualifyMethod<F> = F extends (...args: infer A) => Effect.Effect<infer R, infer E, never>
+  ? (...args: A) => DualEffect<R, E>
+  : F extends (...args: infer A) => Stream.Stream<infer R, infer _E, never>
+    ? (...args: A) => AsyncIterable<R>
+    : F
 
 /**
  * A service interface with all Effect/Stream methods replaced by their dual forms.
@@ -112,7 +111,8 @@ export const dualify = <T extends object>(service: T): Dualified<T> => {
       const out = (service as any)[key](...args)
       if (out == null) return out
       if (Effect.isEffect(out)) return dual(out as Effect.Effect<unknown, unknown, never>)
-      if (Stream.StreamTypeId in out) return Stream.toAsyncIterable(out)
+      if ((typeof out === "object" || typeof out === "function") && Stream.StreamTypeId in out)
+        return Stream.toAsyncIterable(out)
       return out
     }
   }
