@@ -106,8 +106,11 @@ describe("TxBuilder Script Handling", () => {
   const CHANGE_ADDRESS = TESTNET_ADDRESSES[0]
   const RECEIVER_ADDRESS = TESTNET_ADDRESSES[1]
 
-  // baseConfig will use kupmiosProvider which is set in beforeAll
+  // baseConfig will use kupmiosProvider and devnetCluster which are set in beforeAll
   const baseConfig: TxBuilderConfig = {
+    get chain() {
+      return Cluster.getChain(devnetCluster!)
+    },
     get provider() {
       return kupmiosProvider
     }

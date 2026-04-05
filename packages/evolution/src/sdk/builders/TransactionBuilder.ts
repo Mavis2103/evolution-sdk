@@ -40,7 +40,7 @@ import type * as Mint from "../../Mint.js"
 import type * as ProposalProcedures from "../../ProposalProcedures.js"
 import type * as RewardAccount from "../../RewardAccount.js"
 import type * as CoreScript from "../../Script.js"
-import * as Time from "../../Time/index.js"
+import type * as Time from "../../Time/index.js"
 import * as Transaction from "../../Transaction.js"
 import type * as TxOut from "../../TxOut.js"
 import { runEffectPromise } from "../../utils/effect-runtime.js"
@@ -409,26 +409,11 @@ const resolveEvaluator = (config: TxBuilderConfig, options?: BuildOptions): Eval
 }
 
 /**
- * Resolve slot configuration from BuildOptions, TxBuilderConfig.chain, or mainnet default.
- * Priority: BuildOptions.slotConfig > TxBuilderConfig.chain.slotConfig > mainnet default
- *
- * Slot configuration defines the relationship between slots and Unix time,
- * required for UPLC evaluation of time-based validators and validity interval conversion.
+ * Resolve slot configuration from BuildOptions or TxBuilderConfig.chain.
+ * Priority: BuildOptions.slotConfig > chain.slotConfig
  */
-const resolveSlotConfig = (config: TxBuilderConfig, options?: BuildOptions): Time.SlotConfig => {
-  // Priority 1: Explicit slot config from BuildOptions (per-transaction override)
-  if (options?.slotConfig) {
-    return options.slotConfig
-  }
-
-  // Priority 2: Slot config from the chain descriptor
-  if (config.chain) {
-    return config.chain.slotConfig
-  }
-
-  // Fallback: mainnet default
-  return Time.SLOT_CONFIG_NETWORK["Mainnet"]
-}
+const resolveSlotConfig = (config: TxBuilderConfig, options?: BuildOptions): Time.SlotConfig =>
+  options?.slotConfig ?? config.chain.slotConfig
 
 /**
  * Assemble final builder result based on wallet capabilities.
@@ -1259,13 +1244,11 @@ export interface TxBuilderConfig {
    * Use the presets `mainnet`, `preprod`, `preview` from the client module, or define a
    * custom Chain for private networks and devnets.
    *
-   * When omitted, defaults to mainnet slot config and network id 1.
-   *
    * The per-build `BuildOptions.slotConfig` override takes priority over `chain.slotConfig`.
    *
    * @since 2.0.0
    */
-  readonly chain?: Chain
+  readonly chain: Chain
 
   // Future fields:
   // readonly costModels?: Uint8Array // Cost models for script evaluation

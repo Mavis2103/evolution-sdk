@@ -692,7 +692,7 @@ export const createWithdrawProgram = (
     }
 
     // Resolve network ID from chain descriptor (1 = mainnet, 0 = testnet)
-    const networkId = config.chain?.id ?? 1
+    const networkId = config.chain.id
 
     // Create RewardAccount from stake credential
     const rewardAccount = new RewardAccount.RewardAccount({
