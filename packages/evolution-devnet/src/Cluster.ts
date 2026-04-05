@@ -547,3 +547,33 @@ export const getSlotConfig = (cluster: Cluster): SlotConfig => {
     slotLength
   }
 }
+
+/**
+ * Build a `Chain` descriptor for a devnet cluster.
+ *
+ * Combines a testnet network id (0) with the cluster's actual slot timing,
+ * producing a value that can be passed directly to `createClient({ chain })`.
+ *
+ * @example
+ * ```typescript
+ * import * as Cluster from "@evolution-sdk/devnet/Cluster"
+ * import { createClient, kupmios, seedWallet } from "@evolution-sdk/evolution"
+ *
+ * const cluster = await Cluster.make({ ... })
+ * const client = createClient({
+ *   chain: Cluster.getChain(cluster),
+ *   provider: kupmios({ kupoUrl: "...", ogmiosUrl: "..." }),
+ *   wallet: seedWallet({ mnemonic: "..." })
+ * })
+ * ```
+ *
+ * @since 2.1.0
+ * @category utilities
+ */
+export const getChain = (cluster: Cluster): { id: number; name: string; networkMagic: number; epochLength: number; slotConfig: SlotConfig } => ({
+  id: 0,
+  name: "Cardano Devnet",
+  networkMagic: 42,
+  epochLength: cluster.shelleyGenesis.epochLength,
+  slotConfig: getSlotConfig(cluster)
+})

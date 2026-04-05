@@ -15,10 +15,10 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
+import { Cardano, createClient, kupmios, preprod, seedWallet } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/Address"
 import * as DRep from "@evolution-sdk/evolution/DRep"
 import * as PoolKeyHash from "@evolution-sdk/evolution/PoolKeyHash"
-import { createClient } from "@evolution-sdk/evolution/sdk/client/ClientImpl"
 
 // Default devnet stake pool ID from Config.ts
 const DEVNET_POOL_ID = "8a219b698d3b6e034391ae84cee62f1d76b6fbc45ddfe4e31e0d4b60"
@@ -33,28 +33,21 @@ describe("TxBuilder Stake Operations", () => {
     "test test test test test test test test test test test test test test test test test test test test test test test sauce"
 
   // Create client for a specific account index (each test uses different account)
-  const createTestClient = (accountIndex: number = 0) =>
-    createClient({
-      network: 0,
-      provider: {
-        type: "kupmios",
-        kupoUrl: "http://localhost:1446",
-        ogmiosUrl: "http://localhost:1341"
-      },
-      wallet: {
-        type: "seed",
-        mnemonic: TEST_MNEMONIC,
-        accountIndex,
-        addressType: "Base" // Need Base address to have stake credential
-      }
+  const createTestClient = (accountIndex: number = 0) => {
+    if (!devnetCluster) throw new Error("Cluster not initialized")
+    return createClient({
+      chain: Cluster.getChain(devnetCluster),
+      provider: kupmios({ kupoUrl: "http://localhost:1446", ogmiosUrl: "http://localhost:1341" }),
+      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     })
+  }
 
   beforeAll(async () => {
     // Create clients for each account we'll use in tests
     const accounts = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((accountIndex) =>
       createClient({
-        network: 0,
-        wallet: { type: "seed", mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" }
+        chain: preprod,
+        wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
       })
     )
 

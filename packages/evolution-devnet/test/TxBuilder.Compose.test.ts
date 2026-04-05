@@ -9,9 +9,8 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano } from "@evolution-sdk/evolution"
+import { Cardano, createClient, kupmios, preprod, seedWallet } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/Address"
-import { createClient } from "@evolution-sdk/evolution/sdk/client/ClientImpl"
 
 // Alias for readability
 const Time = Cardano.Time
@@ -26,28 +25,17 @@ describe("TxBuilder compose (Devnet Submit)", () => {
 
   const createTestClient = (accountIndex: number = 0) => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    const slotConfig = Cluster.getSlotConfig(devnetCluster)
     return createClient({
-      network: 0,
-      slotConfig,
-      provider: {
-        type: "kupmios",
-        kupoUrl: "http://localhost:1451",
-        ogmiosUrl: "http://localhost:1346"
-      },
-      wallet: {
-        type: "seed",
-        mnemonic: TEST_MNEMONIC,
-        accountIndex,
-        addressType: "Base"
-      }
+      chain: Cluster.getChain(devnetCluster),
+      provider: kupmios({ kupoUrl: "http://localhost:1458", ogmiosUrl: "http://localhost:1350" }),
+      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     })
   }
 
   beforeAll(async () => {
     const tempClient = createClient({
-      network: 0,
-      wallet: { type: "seed", mnemonic: TEST_MNEMONIC, accountIndex: 0, addressType: "Base" }
+      chain: preprod,
+      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex: 0, addressType: "Base" })
     })
 
     const testAddress = await tempClient.address()
@@ -65,10 +53,10 @@ describe("TxBuilder compose (Devnet Submit)", () => {
 
     devnetCluster = await Cluster.make({
       clusterName: "compose-test",
-      ports: { node: 6009, submit: 9010 },
+      ports: { node: 6015, submit: 9015 },
       shelleyGenesis: genesisConfig,
-      kupo: { enabled: true, port: 1451, logLevel: "Info" },
-      ogmios: { enabled: true, port: 1346, logLevel: "info" }
+      kupo: { enabled: true, port: 1458, logLevel: "Info" },
+      ogmios: { enabled: true, port: 1350, logLevel: "info" }
     })
 
     await Cluster.start(devnetCluster)

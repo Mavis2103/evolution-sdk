@@ -13,7 +13,7 @@ export default defineConfig({
     pool: "forks",
     poolOptions: {
       forks: {
-        singleFork: true
+        maxForks: 3
       }
     },
     // Devnet tests are slow but should not be retried — flakiness here is a real infra failure

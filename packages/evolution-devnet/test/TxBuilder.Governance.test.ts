@@ -7,13 +7,13 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
+import { Cardano, createClient, kupmios, preprod, seedWallet } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/Address"
 import * as Anchor from "@evolution-sdk/evolution/Anchor"
 import * as Bytes from "@evolution-sdk/evolution/Bytes"
 import * as Bytes32 from "@evolution-sdk/evolution/Bytes32"
 import * as Credential from "@evolution-sdk/evolution/Credential"
 import * as KeyHash from "@evolution-sdk/evolution/KeyHash"
-import { createClient } from "@evolution-sdk/evolution/sdk/client/ClientImpl"
 import * as Url from "@evolution-sdk/evolution/Url"
 
 describe("TxBuilder Governance Operations", () => {
@@ -25,28 +25,21 @@ describe("TxBuilder Governance Operations", () => {
   const TEST_MNEMONIC =
     "test test test test test test test test test test test test test test test test test test test test test test test sauce"
 
-  const createTestClient = (accountIndex: number = 0) =>
-    createClient({
-      network: 0,
-      provider: {
-        type: "kupmios",
-        kupoUrl: "http://localhost:1452",
-        ogmiosUrl: "http://localhost:1342"
-      },
-      wallet: {
-        type: "seed",
-        mnemonic: TEST_MNEMONIC,
-        accountIndex,
-        addressType: "Base"
-      }
+  const createTestClient = (accountIndex: number = 0) => {
+    if (!devnetCluster) throw new Error("Cluster not initialized")
+    return createClient({
+      chain: Cluster.getChain(devnetCluster),
+      provider: kupmios({ kupoUrl: "http://localhost:1457", ogmiosUrl: "http://localhost:1349" }),
+      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     })
+  }
 
   beforeAll(async () => {
     // Create clients for governance tests
     const accounts = [0, 1, 2, 3, 4].map((accountIndex) =>
       createClient({
-        network: 0,
-        wallet: { type: "seed", mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" }
+        chain: preprod,
+        wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
       })
     )
 
@@ -91,11 +84,11 @@ describe("TxBuilder Governance Operations", () => {
 
     devnetCluster = await Cluster.make({
       clusterName: "governance-ops-test",
-      ports: { node: 6005, submit: 9006 },
+      ports: { node: 6014, submit: 9014 },
       shelleyGenesis: genesisConfig,
       conwayGenesis,
-      kupo: { enabled: true, port: 1452, logLevel: "Info" },
-      ogmios: { enabled: true, port: 1342, logLevel: "info" }
+      kupo: { enabled: true, port: 1457, logLevel: "Info" },
+      ogmios: { enabled: true, port: 1349, logLevel: "info" }
     })
 
     await Cluster.start(devnetCluster)

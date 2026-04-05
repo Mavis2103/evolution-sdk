@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
+import { Cardano, createClient, kupmios, preprod, seedWallet } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/Address"
 import * as Anchor from "@evolution-sdk/evolution/Anchor"
 import * as Bytes32 from "@evolution-sdk/evolution/Bytes32"
@@ -17,7 +18,6 @@ import * as KeyHash from "@evolution-sdk/evolution/KeyHash"
 import * as ProtocolParamUpdate from "@evolution-sdk/evolution/ProtocolParamUpdate"
 import * as ProtocolVersion from "@evolution-sdk/evolution/ProtocolVersion"
 import * as RewardAccount from "@evolution-sdk/evolution/RewardAccount"
-import { createClient } from "@evolution-sdk/evolution/sdk/client/ClientImpl"
 import * as UnitInterval from "@evolution-sdk/evolution/UnitInterval"
 import * as Url from "@evolution-sdk/evolution/Url"
 import * as VotingProcedures from "@evolution-sdk/evolution/VotingProcedures"
@@ -31,28 +31,21 @@ describe("TxBuilder Vote Operations (script-free)", () => {
   const TEST_MNEMONIC =
     "test test test test test test test test test test test test test test test test test test test test test test test sauce"
 
-  const createTestClient = (accountIndex: number = 0) =>
-    createClient({
-      network: 0,
-      provider: {
-        type: "kupmios",
-        kupoUrl: "http://localhost:1453",
-        ogmiosUrl: "http://localhost:1343"
-      },
-      wallet: {
-        type: "seed",
-        mnemonic: TEST_MNEMONIC,
-        accountIndex,
-        addressType: "Base"
-      }
+  const createTestClient = (accountIndex: number = 0) => {
+    if (!devnetCluster) throw new Error("Cluster not initialized")
+    return createClient({
+      chain: Cluster.getChain(devnetCluster),
+      provider: kupmios({ kupoUrl: "http://localhost:1453", ogmiosUrl: "http://localhost:1343" }),
+      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     })
+  }
 
   beforeAll(async () => {
     // Create clients for multiple test accounts
     const accounts = [0, 1, 2, 3].map((accountIndex) =>
       createClient({
-        network: 0,
-        wallet: { type: "seed", mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" }
+        chain: preprod,
+        wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
       })
     )
 

@@ -2,9 +2,8 @@ import { describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano } from "@evolution-sdk/evolution"
+import { Cardano, createClient, kupmios, preprod, seedWallet } from "@evolution-sdk/evolution"
 import * as CoreAddress from "@evolution-sdk/evolution/Address"
-import { createClient } from "@evolution-sdk/evolution/sdk/client/ClientImpl"
 import type { ProtocolParameters } from "@evolution-sdk/evolution/sdk/ProtocolParameters"
 import { afterAll, beforeAll } from "vitest"
 
@@ -24,23 +23,15 @@ describe("Client with Devnet", () => {
 
   const createTestClient = () =>
     createClient({
-      network: 0,
-      provider: {
-        type: "kupmios",
-        kupoUrl: "http://localhost:1443",
-        ogmiosUrl: "http://localhost:1338"
-      },
-      wallet: {
-        type: "seed",
-        mnemonic: TEST_MNEMONIC,
-        accountIndex: 0
-      }
+      chain: Cluster.getChain(devnetCluster!),
+      provider: kupmios({ kupoUrl: "http://localhost:1443", ogmiosUrl: "http://localhost:1338" }),
+      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
     })
 
   beforeAll(async () => {
     const testClient = createClient({
-      network: 0,
-      wallet: { type: "seed", mnemonic: TEST_MNEMONIC, accountIndex: 0 }
+      chain: preprod,
+      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
     })
 
     const testAddress = await testClient.address()
