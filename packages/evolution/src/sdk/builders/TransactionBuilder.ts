@@ -37,7 +37,6 @@ import type * as CostModel from "../../CostModel.js"
 import type * as PlutusData from "../../Data.js"
 import type * as KeyHash from "../../KeyHash.js"
 import type * as Mint from "../../Mint.js"
-import type * as Network from "../../Network.js"
 import type * as ProposalProcedures from "../../ProposalProcedures.js"
 import type * as RewardAccount from "../../RewardAccount.js"
 import type * as CoreScript from "../../Script.js"
@@ -47,6 +46,7 @@ import type * as TxOut from "../../TxOut.js"
 import { runEffectPromise } from "../../utils/effect-runtime.js"
 import type * as CoreUTxO from "../../UTxO.js"
 import type * as VotingProcedures from "../../VotingProcedures.js"
+import type { Chain } from "../client/Chain.js"
 import type { EvalRedeemer } from "../EvalRedeemer.js"
 import type * as Provider from "../provider/Provider.js"
 import type * as WalletNew from "../wallet/WalletNew.js"
@@ -409,8 +409,8 @@ const resolveEvaluator = (config: TxBuilderConfig, options?: BuildOptions): Eval
 }
 
 /**
- * Resolve slot configuration from BuildOptions, TxBuilderConfig, or network default.
- * Priority: BuildOptions.slotConfig > TxBuilderConfig.slotConfig > SLOT_CONFIG_NETWORK[config.network]
+ * Resolve slot configuration from BuildOptions, TxBuilderConfig.chain, or mainnet default.
+ * Priority: BuildOptions.slotConfig > TxBuilderConfig.chain.slotConfig > mainnet default
  *
  * Slot configuration defines the relationship between slots and Unix time,
  * required for UPLC evaluation of time-based validators and validity interval conversion.
@@ -421,14 +421,13 @@ const resolveSlotConfig = (config: TxBuilderConfig, options?: BuildOptions): Tim
     return options.slotConfig
   }
 
-  // Priority 2: Slot config from TxBuilderConfig (set at client level)
-  if (config.slotConfig) {
-    return config.slotConfig
+  // Priority 2: Slot config from the chain descriptor
+  if (config.chain) {
+    return config.chain.slotConfig
   }
 
-  // Priority 3: Network-specific slot config preset
-  const network: Network.Network = config.network ?? "Mainnet"
-  return Time.SLOT_CONFIG_NETWORK[network]
+  // Fallback: mainnet default
+  return Time.SLOT_CONFIG_NETWORK["Mainnet"]
 }
 
 /**
@@ -1250,58 +1249,23 @@ export interface TxBuilderConfig {
   readonly provider?: Provider.Provider
 
   /**
-   * Network type for slot configuration in script evaluation.
+   * Chain descriptor — network identity and slot timing parameters.
    *
-   * Used to determine the correct slot configuration when evaluating Plutus scripts.
-   * Each network has different genesis times and slot configurations.
+   * Provides:
+   * - `id`: Network id (1 = mainnet, 0 = testnet) for address and reward account encoding
+   * - `slotConfig`: Slot timing required for validity interval conversion and script evaluation
+   * - `networkMagic`, `epochLength`, `name`: Additional network metadata
    *
-   * Options:
-   * - `"Mainnet"`: Production network
-   * - `"Preview"`: Preview testnet
-   * - `"Preprod"`: Pre-production testnet
-   * - `"Custom"`: Custom network (emulator/devnet) - requires slotConfig
+   * Use the presets `mainnet`, `preprod`, `preview` from the client module, or define a
+   * custom Chain for private networks and devnets.
    *
-   * When omitted, defaults to "Mainnet".
+   * When omitted, defaults to mainnet slot config and network id 1.
    *
-   * @default "Mainnet"
-   * @since 2.0.0
-   */
-  readonly network?: Network.Network
-
-  /**
-   * Custom slot configuration for the network.
-   *
-   * Slot configuration defines the relationship between slots and Unix time,
-   * which is required for:
-   * - UPLC evaluation of time-based validators
-   * - Converting validity bounds (from/to) from Unix time to slots
-   *
-   * By default, slot config is determined from the network (mainnet/preview/preprod).
-   * Set this for custom networks (devnet, emulator, private chains).
-   *
-   * Priority: BuildOptions.slotConfig > TxBuilderConfig.slotConfig > SLOT_CONFIG_NETWORK[network]
-   *
-   * Use cases:
-   * - Devnet with custom genesis time
-   * - Emulator with specific slot configuration
-   * - Private networks with custom parameters
-   *
-   * Example:
-   * ```typescript
-   * makeTxBuilder({
-   *   slotConfig: {
-   *     zeroTime: clusterGenesisTime,
-   *     zeroSlot: 0n,
-   *     slotLength: 1000 // 1 second per slot
-   *   },
-   *   wallet,
-   *   provider
-   * })
-   * ```
+   * The per-build `BuildOptions.slotConfig` override takes priority over `chain.slotConfig`.
    *
    * @since 2.0.0
    */
-  readonly slotConfig?: Time.SlotConfig
+  readonly chain?: Chain
 
   // Future fields:
   // readonly costModels?: Uint8Array // Cost models for script evaluation

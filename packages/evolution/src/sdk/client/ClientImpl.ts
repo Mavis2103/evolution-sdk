@@ -82,7 +82,7 @@ const createReadOnlyClient = (
     getWalletUtxos: () => Effect.runPromise(effectInterface.getWalletUtxos()),
     getWalletDelegation: () => Effect.runPromise(effectInterface.getWalletDelegation()),
     newTx: (): ReadOnlyTransactionBuilder =>
-      makeTxBuilder({ wallet, provider, slotConfig: chain.slotConfig }),
+      makeTxBuilder({ wallet, provider, chain }),
     Effect: effectInterface
   }
 }
@@ -173,7 +173,7 @@ const createSigningClient = (
     getWalletUtxos: () => Effect.runPromise(effectInterface.getWalletUtxos()),
     getWalletDelegation: () => Effect.runPromise(effectInterface.getWalletDelegation()),
     newTx: (): SigningTransactionBuilder =>
-      makeTxBuilder({ wallet, provider, slotConfig: chain.slotConfig }),
+      makeTxBuilder({ wallet, provider, chain }),
     Effect: effectInterface
   }
 }
