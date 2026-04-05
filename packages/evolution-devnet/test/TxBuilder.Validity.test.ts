@@ -34,7 +34,7 @@ describe("TxBuilder Validity Interval", () => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
     return createClient({
       chain: Cluster.getChain(devnetCluster),
-      provider: kupmios({ kupoUrl: "http://localhost:1448", ogmiosUrl: "http://localhost:1343" }),
+      provider: kupmios({ kupoUrl: "http://localhost:1451", ogmiosUrl: "http://localhost:1351" }),
       wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     })
   }
@@ -61,10 +61,10 @@ describe("TxBuilder Validity Interval", () => {
 
     devnetCluster = await Cluster.make({
       clusterName: "validity-test",
-      ports: { node: 6006, submit: 9007 },
+      ports: { node: 6009, submit: 9016 },
       shelleyGenesis: genesisConfig,
-      kupo: { enabled: true, port: 1448, logLevel: "Info" },
-      ogmios: { enabled: true, port: 1343, logLevel: "info" }
+      kupo: { enabled: true, port: 1451, logLevel: "Info" },
+      ogmios: { enabled: true, port: 1351, logLevel: "info" }
     })
 
     await Cluster.start(devnetCluster)
