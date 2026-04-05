@@ -86,7 +86,7 @@ describe("TxBuilder Vote Validator (script DRep)", () => {
       clusterName: "vote-validator-test",
       ports: { node: 6012, submit: 9012 },
       shelleyGenesis: genesisConfig,
-      conwayGenesis: Config.DEFAULT_CONWAY_GENESIS,
+      conwayGenesis: { ...Config.DEFAULT_CONWAY_GENESIS, govActionLifetime: 30 },
       kupo: { enabled: true, port: 1455, logLevel: "Info" },
       ogmios: { enabled: true, port: 1347, logLevel: "info" }
     })
