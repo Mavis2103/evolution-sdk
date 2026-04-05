@@ -1,4 +1,4 @@
-import { Data, type Effect, type Schedule } from "effect"
+import { Data, type Effect } from "effect"
 
 import type * as CoreUTxO from "../../UTxO.js"
 import type { ReadOnlyTransactionBuilder, SigningTransactionBuilder } from "../builders/TransactionBuilder.js"
@@ -8,9 +8,11 @@ import type {
   ApiWalletEffect,
   ReadOnlyWalletEffect,
   SigningWalletEffect,
-  WalletApi,
   WalletError
 } from "../wallet/WalletNew.js"
+import type * as WalletNew from "../wallet/WalletNew.js"
+import type { Chain } from "./Chain.js"
+import type { AnyWallet, WalletFactory } from "./Wallets.js"
 
 /**
  * Error class for provider-related operations.
@@ -24,13 +26,13 @@ export class ProviderError extends Data.TaggedError("ProviderError")<{
 }> {}
 
 /**
- * MinimalClient Effect - holds network context.
+ * MinimalClient Effect - holds chain context.
  *
  * @since 2.0.0
  * @category model
  */
 export interface MinimalClientEffect {
-  readonly networkId: Effect.Effect<number | string, never>
+  readonly chain: Chain
 }
 
 /**
@@ -62,27 +64,15 @@ export interface SigningClientEffect extends Provider.ProviderEffect, SigningWal
  * @category model
  */
 export interface MinimalClient {
-  readonly networkId: number | string
-  readonly attachProvider: (config: ProviderConfig) => ProviderOnlyClient
-  readonly attachWallet: <T extends WalletConfig>(
-    config: T
-  ) => T extends SeedWalletConfig
-    ? SigningWalletClient
-    : T extends PrivateKeyWalletConfig
-      ? SigningWalletClient
-      : T extends ApiWalletConfig
-        ? ApiWalletClient
-        : ReadOnlyWalletClient
-  readonly attach: <TW extends WalletConfig>(
-    providerConfig: ProviderConfig,
-    walletConfig: TW
-  ) => TW extends SeedWalletConfig
-    ? SigningClient
-    : TW extends PrivateKeyWalletConfig
-      ? SigningClient
-      : TW extends ApiWalletConfig
-        ? SigningClient
-        : ReadOnlyClient
+  readonly chain: Chain
+  readonly attachProvider: (provider: Provider.Provider) => ProviderOnlyClient
+  readonly attachWallet: <T extends AnyWallet>(
+    wallet: T
+  ) => T extends WalletNew.ReadOnlyWallet
+    ? ReadOnlyWalletClient
+    : T extends WalletNew.ApiWallet
+      ? ApiWalletClient
+      : SigningWalletClient
   readonly Effect: MinimalClientEffect
 }
 
@@ -93,15 +83,10 @@ export interface MinimalClient {
  * @category model
  */
 export type ProviderOnlyClient = EffectToPromiseAPI<Provider.ProviderEffect> & {
-  readonly attachWallet: <T extends WalletConfig>(
-    config: T
-  ) => T extends SeedWalletConfig
-    ? SigningClient
-    : T extends PrivateKeyWalletConfig
-      ? SigningClient
-      : T extends ApiWalletConfig
-        ? SigningClient
-        : ReadOnlyClient
+  readonly chain: Chain
+  readonly attachWallet: <T extends AnyWallet>(
+    wallet: T
+  ) => T extends WalletNew.ReadOnlyWallet ? ReadOnlyClient : SigningClient
   readonly Effect: Provider.ProviderEffect
 }
 
@@ -113,7 +98,7 @@ export type ProviderOnlyClient = EffectToPromiseAPI<Provider.ProviderEffect> & {
  * @category model
  */
 export type ReadOnlyClient = EffectToPromiseAPI<ReadOnlyClientEffect> & {
-  readonly newTx: (utxos?: ReadonlyArray<CoreUTxO.UTxO>) => ReadOnlyTransactionBuilder
+  readonly newTx: () => ReadOnlyTransactionBuilder
   readonly Effect: ReadOnlyClientEffect
 }
 
@@ -137,7 +122,8 @@ export type SigningClient = EffectToPromiseAPI<SigningClientEffect> & {
  * @category model
  */
 export type ApiWalletClient = EffectToPromiseAPI<ApiWalletEffect> & {
-  readonly attachProvider: (config: ProviderConfig) => SigningClient
+  readonly chain: Chain
+  readonly attachProvider: (provider: Provider.Provider) => SigningClient
   readonly Effect: ApiWalletEffect
 }
 
@@ -149,8 +135,8 @@ export type ApiWalletClient = EffectToPromiseAPI<ApiWalletEffect> & {
  * @category model
  */
 export type SigningWalletClient = EffectToPromiseAPI<SigningWalletEffect> & {
-  readonly networkId: number | string
-  readonly attachProvider: (config: ProviderConfig) => SigningClient
+  readonly chain: Chain
+  readonly attachProvider: (provider: Provider.Provider) => SigningClient
   readonly Effect: SigningWalletEffect
 }
 
@@ -162,174 +148,11 @@ export type SigningWalletClient = EffectToPromiseAPI<SigningWalletEffect> & {
  * @category model
  */
 export type ReadOnlyWalletClient = EffectToPromiseAPI<ReadOnlyWalletEffect> & {
-  readonly networkId: number | string
-  readonly attachProvider: (config: ProviderConfig) => ReadOnlyClient
+  readonly chain: Chain
+  readonly attachProvider: (provider: Provider.Provider) => ReadOnlyClient
   readonly Effect: ReadOnlyWalletEffect
 }
 
-/**
- * Network identifier for client configuration.
- *
- * @since 2.0.0
- * @category model
- */
-export type NetworkId = "mainnet" | "preprod" | "preview" | number
-
-/**
- * Retry policy configuration with exponential backoff.
- *
- * @since 2.0.0
- * @category model
- */
-export interface RetryConfig {
-  readonly maxRetries: number
-  readonly retryDelayMs: number
-  readonly backoffMultiplier: number
-  readonly maxRetryDelayMs: number
-}
-
-/**
- * Preset retry configurations for common scenarios.
- *
- * @since 2.0.0
- * @category constants
- */
-export const RetryPresets = {
-  none: { maxRetries: 0, retryDelayMs: 0, backoffMultiplier: 1, maxRetryDelayMs: 0 } as const,
-  fast: { maxRetries: 3, retryDelayMs: 500, backoffMultiplier: 1.5, maxRetryDelayMs: 5000 } as const,
-  standard: { maxRetries: 3, retryDelayMs: 1000, backoffMultiplier: 2, maxRetryDelayMs: 10000 } as const,
-  aggressive: { maxRetries: 5, retryDelayMs: 1000, backoffMultiplier: 2, maxRetryDelayMs: 30000 } as const
-} as const
-
-/**
- * Retry policy - preset config, custom schedule, or preset reference.
- *
- * @since 2.0.0
- * @category model
- */
-export type RetryPolicy = RetryConfig | Schedule.Schedule<any, any> | { preset: keyof typeof RetryPresets }
-
-/**
- * Blockfrost provider configuration.
- *
- * @since 2.0.0
- * @category model
- */
-export interface BlockfrostConfig {
-  readonly type: "blockfrost"
-  readonly baseUrl: string
-  readonly projectId?: string
-  readonly retryPolicy?: RetryPolicy
-}
-
-/**
- * Kupmios provider configuration (Kupo + Ogmios).
- *
- * @since 2.0.0
- * @category model
- */
-export interface KupmiosConfig {
-  readonly type: "kupmios"
-  readonly kupoUrl: string
-  readonly ogmiosUrl: string
-  readonly headers?: {
-    readonly ogmiosHeader?: Record<string, string>
-    readonly kupoHeader?: Record<string, string>
-  }
-  readonly retryPolicy?: RetryPolicy
-}
-
-/**
- * Maestro provider configuration.
- *
- * @since 2.0.0
- * @category model
- */
-export interface MaestroConfig {
-  readonly type: "maestro"
-  readonly baseUrl: string
-  readonly apiKey: string
-  readonly turboSubmit?: boolean
-  readonly retryPolicy?: RetryPolicy
-}
-
-/**
- * Koios provider configuration.
- *
- * @since 2.0.0
- * @category model
- */
-export interface KoiosConfig {
-  readonly type: "koios"
-  readonly baseUrl: string
-  readonly token?: string
-  readonly retryPolicy?: RetryPolicy
-}
-
-/**
- * Provider configuration union type.
- *
- * @since 2.0.0
- * @category model
- */
-export type ProviderConfig = BlockfrostConfig | KupmiosConfig | MaestroConfig | KoiosConfig
-
-/**
- * Seed phrase wallet configuration.
- *
- * @since 2.0.0
- * @category model
- */
-export interface SeedWalletConfig {
-  readonly type: "seed"
-  readonly mnemonic: string
-  readonly accountIndex?: number
-  readonly paymentIndex?: number
-  readonly stakeIndex?: number
-  readonly addressType?: "Base" | "Enterprise"
-  readonly password?: string
-}
-
-/**
- * Private key wallet configuration.
- *
- * @since 2.0.0
- * @category model
- */
-export interface PrivateKeyWalletConfig {
-  readonly type: "private-key"
-  readonly paymentKey: string
-  readonly stakeKey?: string
-  readonly addressType?: "Base" | "Enterprise"
-}
-
-/**
- * Read-only wallet configuration.
- *
- * @since 2.0.0
- * @category model
- */
-export interface ReadOnlyWalletConfig {
-  readonly type: "read-only"
-  readonly address: string
-  readonly rewardAddress?: string
-}
-
-/**
- * CIP-30 API wallet configuration.
- *
- * @since 2.0.0
- * @category model
- */
-export interface ApiWalletConfig {
-  readonly type: "api"
-  readonly api: WalletApi
-}
-
-/**
- * Wallet configuration union type.
- *
- * @since 2.0.0
- * @category model
- */
-export type WalletConfig = SeedWalletConfig | PrivateKeyWalletConfig | ReadOnlyWalletConfig | ApiWalletConfig
+export type { Chain } from "./Chain.js"
+export { mainnet, preprod, preview } from "./Chain.js"
+export type { AnyWallet, WalletFactory } from "./Wallets.js"
