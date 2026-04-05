@@ -2405,7 +2405,7 @@ export function makeTxBuilder(
 ): SigningTransactionBuilder
 export function makeTxBuilder(config: TxBuilderConfig & { wallet: WalletNew.ReadOnlyWallet }): ReadOnlyTransactionBuilder
 export function makeTxBuilder(config: TxBuilderConfig & { wallet?: undefined }): ReadOnlyTransactionBuilder
-export function makeTxBuilder(config: TxBuilderConfig) {
+export function makeTxBuilder(config: TxBuilderConfig): SigningTransactionBuilder | ReadOnlyTransactionBuilder {
   const programs: Array<ProgramStep> = []
 
   const txBuilder = {
@@ -2593,5 +2593,5 @@ export function makeTxBuilder(config: TxBuilderConfig) {
     buildPartial: (options?: BuildOptions) => runEffectPromise(buildPartialEffectCore(config, programs, options))
   }
 
-  return txBuilder
+  return txBuilder as SigningTransactionBuilder | ReadOnlyTransactionBuilder
 }
