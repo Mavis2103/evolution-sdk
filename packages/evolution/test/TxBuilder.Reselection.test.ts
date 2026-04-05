@@ -6,6 +6,7 @@ import * as CoreAssets from "../src/Assets/index.js"
 import * as KeyHash from "../src/KeyHash.js"
 import type { TxBuilderConfig } from "../src/sdk/builders/TransactionBuilder.js"
 import { makeTxBuilder } from "../src/sdk/builders/TransactionBuilder.js"
+import { mainnet } from "../src/sdk/client/index.js"
 import { calculateTransactionSize } from "../src/sdk/builders/TxBuilderImpl.js"
 import * as FeeValidation from "../src/utils/FeeValidation.js"
 import * as CoreUTxO from "../src/UTxO.js"
@@ -39,6 +40,7 @@ describe("TxBuilder Re-selection Loop", () => {
   const baseConfig: TxBuilderConfig = {
     // No wallet/provider - using manual mode
     // changeAddress and availableUtxos provided via build options
+    chain: mainnet
   }
 
   // ============================================================================
@@ -708,6 +710,7 @@ describe("TxBuilder Reselection After Change", () => {
   const baseConfig: TxBuilderConfig = {
     // No wallet/provider - using manual mode
     // changeAddress and availableUtxos provided via build options
+    chain: mainnet
   }
 
   /**

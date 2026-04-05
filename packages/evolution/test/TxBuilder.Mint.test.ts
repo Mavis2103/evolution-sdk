@@ -8,6 +8,7 @@ import * as NativeScripts from "../src/NativeScripts.js"
 import * as ScriptHash from "../src/ScriptHash.js"
 import type { TxBuilderConfig } from "../src/sdk/builders/TransactionBuilder.js"
 import { makeTxBuilder } from "../src/sdk/builders/TransactionBuilder.js"
+import { mainnet } from "../src/sdk/client/index.js"
 import { calculateTransactionSize } from "../src/sdk/builders/TxBuilderImpl.js"
 import * as Text from "../src/Text.js"
 import * as FeeValidation from "../src/utils/FeeValidation.js"
@@ -23,7 +24,7 @@ const PROTOCOL_PARAMS = {
 const CHANGE_ADDRESS =
   "addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgs68faae"
 
-const baseConfig: TxBuilderConfig = {}
+const baseConfig: TxBuilderConfig = { chain: mainnet }
 
 // Create a native script for minting
 const createNativeScript = () => {
