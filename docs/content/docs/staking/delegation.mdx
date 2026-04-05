@@ -12,21 +12,21 @@ Once your stake credential is registered, you can delegate your stake to earn re
 Assign your stake to a stake pool to earn rewards:
 
 ```typescript twoslash
-import { Credential, createClient } from "@evolution-sdk/evolution"
+import { Credential, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const stakeCredential: Credential.Credential
 declare const poolKeyHash: any
 
-const tx = await client
-  .newTx()
-  .delegateToPool({ stakeCredential, poolKeyHash })
-  .build()
+const tx = await client.newTx().delegateToPool({ stakeCredential, poolKeyHash }).build()
 
 const signed = await tx.sign()
 await signed.submit()
@@ -37,12 +37,15 @@ await signed.submit()
 In the Conway era, delegate your governance voting power to a Delegated Representative:
 
 ```typescript twoslash
-import { Credential, DRep, createClient } from "@evolution-sdk/evolution"
+import { Credential, DRep, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const stakeCredential: Credential.Credential
@@ -66,12 +69,15 @@ await signed.submit()
 You can also delegate to built-in options:
 
 ```typescript twoslash
-import { Credential, DRep, createClient } from "@evolution-sdk/evolution"
+import { Credential, DRep, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const stakeCredential: Credential.Credential
@@ -100,12 +106,15 @@ const tx2 = await client
 Delegate to a pool and DRep in a single certificate:
 
 ```typescript twoslash
-import { Credential, DRep, createClient } from "@evolution-sdk/evolution"
+import { Credential, DRep, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const stakeCredential: Credential.Credential
@@ -130,12 +139,15 @@ await signed.submit()
 For script-controlled stake credentials, provide a redeemer:
 
 ```typescript twoslash
-import { Credential, Data, createClient } from "@evolution-sdk/evolution"
+import { Credential, Data, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const scriptStakeCredential: Credential.Credential

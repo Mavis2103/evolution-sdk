@@ -10,12 +10,15 @@ When a UTxO uses a datum hash (instead of an inline datum), the full datum must 
 ## Fetch Datum by Hash
 
 ```typescript twoslash
-import { createClient } from "@evolution-sdk/evolution"
+import { createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const datumHash: any
@@ -26,10 +29,10 @@ console.log("Datum:", datum)
 
 ## Inline Datums vs Datum Hashes
 
-| Type | Lookup Required? | Access |
-|------|-----------------|--------|
-| **Inline datum** | No | Available directly on the UTxO object |
-| **Datum hash** | Yes | Must call `getDatum(hash)` to fetch the data |
+| Type             | Lookup Required? | Access                                       |
+| ---------------- | ---------------- | -------------------------------------------- |
+| **Inline datum** | No               | Available directly on the UTxO object        |
+| **Datum hash**   | Yes              | Must call `getDatum(hash)` to fetch the data |
 
 For Plutus V2+ contracts, inline datums are recommended as they don't require a separate lookup step.
 

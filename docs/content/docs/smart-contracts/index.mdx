@@ -3,7 +3,7 @@ title: Smart Contracts
 description: Working with Plutus scripts in Evolution SDK
 ---
 
-import { Card, Cards } from 'fumadocs-ui/components/card'
+import { Card, Cards } from "fumadocs-ui/components/card"
 
 # Smart Contracts
 
@@ -15,22 +15,35 @@ The transaction builder handles script evaluation, redeemer indexing, and collat
 
 Smart contract interaction in Cardano involves three concepts:
 
-| Concept | Purpose | When Used |
-|---------|---------|-----------|
-| **Datum** | Data attached to a UTxO at a script address | When locking funds to a script |
-| **Redeemer** | Data provided to unlock a script UTxO | When spending from a script |
-| **Script** | The validator logic (Plutus or Native) | Attached to transactions or referenced on-chain |
+| Concept      | Purpose                                     | When Used                                       |
+| ------------ | ------------------------------------------- | ----------------------------------------------- |
+| **Datum**    | Data attached to a UTxO at a script address | When locking funds to a script                  |
+| **Redeemer** | Data provided to unlock a script UTxO       | When spending from a script                     |
+| **Script**   | The validator logic (Plutus or Native)      | Attached to transactions or referenced on-chain |
 
 ## Typical Workflow
 
 **Locking** (sending funds to a script):
+
 ```typescript twoslash
-import { Address, Assets, Data, InlineDatum, createClient } from "@evolution-sdk/evolution"
+import {
+  Address,
+  Assets,
+  Data,
+  InlineDatum,
+  blockfrost,
+  createClient,
+  preprod,
+  seedWallet
+} from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 // Lock 10 ADA to a script address with an inline datum
@@ -48,13 +61,26 @@ const hash = await signed.submit()
 ```
 
 **Spending** (unlocking funds from a script):
+
 ```typescript twoslash
-import { Address, Assets, Data, createClient, type UTxO } from "@evolution-sdk/evolution"
+import {
+  Address,
+  Assets,
+  Data,
+  blockfrost,
+  createClient,
+  preprod,
+  seedWallet,
+  type UTxO
+} from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const scriptUtxos: UTxO.UTxO[]
@@ -76,12 +102,12 @@ const hash = await signed.submit()
 
 ## Supported Script Types
 
-| Type | Description | Use Case |
-|------|-------------|----------|
-| **PlutusV1** | First-generation Plutus scripts | Legacy contracts |
-| **PlutusV2** | Reference scripts, inline datums | Most current contracts |
-| **PlutusV3** | Conway-era features, governance | Latest contracts |
-| **NativeScript** | Time-locks, multi-sig | Simple policies without Plutus |
+| Type             | Description                      | Use Case                       |
+| ---------------- | -------------------------------- | ------------------------------ |
+| **PlutusV1**     | First-generation Plutus scripts  | Legacy contracts               |
+| **PlutusV2**     | Reference scripts, inline datums | Most current contracts         |
+| **PlutusV3**     | Conway-era features, governance  | Latest contracts               |
+| **NativeScript** | Time-locks, multi-sig            | Simple policies without Plutus |
 
 ## What the Builder Handles
 

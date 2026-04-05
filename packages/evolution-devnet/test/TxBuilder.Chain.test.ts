@@ -2,10 +2,9 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano } from "@evolution-sdk/evolution"
+import { Cardano, createClient, kupmios, preprod, seedWallet } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/Address"
 import type { SignBuilder } from "@evolution-sdk/evolution/sdk/builders/SignBuilder"
-import { createClient } from "@evolution-sdk/evolution/sdk/client/ClientImpl"
 import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
 
 describe("TxBuilder.chainResult", () => {
@@ -18,28 +17,17 @@ describe("TxBuilder.chainResult", () => {
 
   const createTestClient = (accountIndex: number = 0) => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    const slotConfig = Cluster.getSlotConfig(devnetCluster)
     return createClient({
-      network: 0,
-      slotConfig,
-      provider: {
-        type: "kupmios",
-        kupoUrl: "http://localhost:1449",
-        ogmiosUrl: "http://localhost:1344"
-      },
-      wallet: {
-        type: "seed",
-        mnemonic: TEST_MNEMONIC,
-        accountIndex,
-        addressType: "Base"
-      }
+      chain: Cluster.getChain(devnetCluster),
+      provider: kupmios({ kupoUrl: "http://localhost:1456", ogmiosUrl: "http://localhost:1348" }),
+      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     })
   }
 
   beforeAll(async () => {
     const tempClient = createClient({
-      network: 0,
-      wallet: { type: "seed", mnemonic: TEST_MNEMONIC, accountIndex: 0, addressType: "Base" }
+      chain: preprod,
+      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex: 0, addressType: "Base" })
     })
 
     const testAddress = await tempClient.address()
@@ -57,10 +45,10 @@ describe("TxBuilder.chainResult", () => {
 
     devnetCluster = await Cluster.make({
       clusterName: "chain-test",
-      ports: { node: 6008, submit: 9009 },
+      ports: { node: 6013, submit: 9013 },
       shelleyGenesis: genesisConfig,
-      kupo: { enabled: true, port: 1449, logLevel: "Info" },
-      ogmios: { enabled: true, port: 1344, logLevel: "info" }
+      kupo: { enabled: true, port: 1456, logLevel: "Info" },
+      ogmios: { enabled: true, port: 1348, logLevel: "info" }
     })
 
     await Cluster.start(devnetCluster)

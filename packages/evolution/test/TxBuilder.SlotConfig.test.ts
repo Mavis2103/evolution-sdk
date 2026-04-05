@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import * as Address from "../src/Address.js"
 import * as CoreAssets from "../src/Assets/index.js"
 import { makeTxBuilder } from "../src/sdk/builders/TransactionBuilder.js"
+import { mainnet, preprod, preview } from "../src/sdk/client/index.js"
 import * as Time from "../src/Time/index.js"
 import { SLOT_CONFIG_NETWORK } from "../src/Time/SlotConfig.js"
 import { createCoreTestUtxo } from "./utils/utxo-helpers.js"
@@ -30,8 +31,8 @@ const utxos = [
 const FIXED_TIME = 1710300000000n // March 13, 2024
 
 describe("TxBuilder slot config resolution", () => {
-  it("uses Preview slot config when network is Preview", async () => {
-    const builder = makeTxBuilder({ network: "Preview" })
+  it("uses Preview slot config when chain is preview", async () => {
+    const builder = makeTxBuilder({ chain: preview })
 
     const result = await builder
       .payToAddress({ address: RECEIVER_ADDRESS, assets: CoreAssets.fromLovelace(2_000_000n) })
@@ -50,8 +51,8 @@ describe("TxBuilder slot config resolution", () => {
     expect(tx.body.ttl).toBe(expectedTTL)
   })
 
-  it("uses Preprod slot config when network is Preprod", async () => {
-    const builder = makeTxBuilder({ network: "Preprod" })
+  it("uses Preprod slot config when chain is preprod", async () => {
+    const builder = makeTxBuilder({ chain: preprod })
 
     const result = await builder
       .payToAddress({ address: RECEIVER_ADDRESS, assets: CoreAssets.fromLovelace(2_000_000n) })
@@ -70,8 +71,8 @@ describe("TxBuilder slot config resolution", () => {
     expect(tx.body.ttl).toBe(expectedTTL)
   })
 
-  it("uses Mainnet slot config when network is Mainnet", async () => {
-    const builder = makeTxBuilder({ network: "Mainnet" })
+  it("uses Mainnet slot config when chain is mainnet", async () => {
+    const builder = makeTxBuilder({ chain: mainnet })
 
     const result = await builder
       .payToAddress({ address: RECEIVER_ADDRESS, assets: CoreAssets.fromLovelace(2_000_000n) })
@@ -90,8 +91,8 @@ describe("TxBuilder slot config resolution", () => {
     expect(tx.body.ttl).toBe(expectedTTL)
   })
 
-  it("defaults to Mainnet when network is unset", async () => {
-    const builder = makeTxBuilder({})
+  it("uses Mainnet slot config when chain is mainnet (explicit)", async () => {
+    const builder = makeTxBuilder({ chain: mainnet })
 
     const result = await builder
       .payToAddress({ address: RECEIVER_ADDRESS, assets: CoreAssets.fromLovelace(2_000_000n) })

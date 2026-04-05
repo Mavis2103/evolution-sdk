@@ -11,22 +11,34 @@ Datums are the data payloads attached to UTxOs at script addresses. When you loc
 
 Evolution SDK supports two ways to attach datums to outputs:
 
-| Type | Description | When to Use |
-|------|-------------|-------------|
-| **Inline Datum** | Data stored directly in the UTxO | Recommended for most use cases (Plutus V2+) |
-| **Datum Hash** | Only a hash stored on-chain; full datum provided when spending | Legacy Plutus V1 contracts |
+| Type             | Description                                                    | When to Use                                 |
+| ---------------- | -------------------------------------------------------------- | ------------------------------------------- |
+| **Inline Datum** | Data stored directly in the UTxO                               | Recommended for most use cases (Plutus V2+) |
+| **Datum Hash**   | Only a hash stored on-chain; full datum provided when spending | Legacy Plutus V1 contracts                  |
 
 ## Inline Datums
 
 Inline datums embed the full data in the output. The spending transaction can read it directly without needing to provide the datum separately:
 
 ```typescript twoslash
-import { Address, Assets, Data, InlineDatum, createClient } from "@evolution-sdk/evolution"
+import {
+  Address,
+  Assets,
+  Data,
+  InlineDatum,
+  blockfrost,
+  createClient,
+  preprod,
+  seedWallet
+} from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 // Simple inline datum
@@ -45,12 +57,15 @@ const tx = await client
 Datum hashes store only a 32-byte hash in the output. The full datum must be provided when spending:
 
 ```typescript
-import { Address, Assets, Data, createClient } from "@evolution-sdk/evolution"
+import { Address, Assets, Data, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 // Compute datum hash from PlutusData
@@ -151,12 +166,15 @@ const datum = Data.constr(0n, [
 When querying UTxOs, inline datums are available directly on the UTxO object:
 
 ```typescript twoslash
-import { Address, Data, TSchema, Bytes, createClient } from "@evolution-sdk/evolution"
+import { Address, Data, TSchema, Bytes, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 // Query UTxOs at a script address

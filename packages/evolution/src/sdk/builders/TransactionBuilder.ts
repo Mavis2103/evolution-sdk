@@ -37,16 +37,16 @@ import type * as CostModel from "../../CostModel.js"
 import type * as PlutusData from "../../Data.js"
 import type * as KeyHash from "../../KeyHash.js"
 import type * as Mint from "../../Mint.js"
-import type * as Network from "../../Network.js"
 import type * as ProposalProcedures from "../../ProposalProcedures.js"
 import type * as RewardAccount from "../../RewardAccount.js"
 import type * as CoreScript from "../../Script.js"
-import * as Time from "../../Time/index.js"
+import type * as Time from "../../Time/index.js"
 import * as Transaction from "../../Transaction.js"
 import type * as TxOut from "../../TxOut.js"
 import { runEffectPromise } from "../../utils/effect-runtime.js"
 import type * as CoreUTxO from "../../UTxO.js"
 import type * as VotingProcedures from "../../VotingProcedures.js"
+import type { Chain } from "../client/Chain.js"
 import type { EvalRedeemer } from "../EvalRedeemer.js"
 import type * as Provider from "../provider/Provider.js"
 import type * as WalletNew from "../wallet/WalletNew.js"
@@ -409,27 +409,11 @@ const resolveEvaluator = (config: TxBuilderConfig, options?: BuildOptions): Eval
 }
 
 /**
- * Resolve slot configuration from BuildOptions, TxBuilderConfig, or network default.
- * Priority: BuildOptions.slotConfig > TxBuilderConfig.slotConfig > SLOT_CONFIG_NETWORK[config.network]
- *
- * Slot configuration defines the relationship between slots and Unix time,
- * required for UPLC evaluation of time-based validators and validity interval conversion.
+ * Resolve slot configuration from BuildOptions or TxBuilderConfig.chain.
+ * Priority: BuildOptions.slotConfig > chain.slotConfig
  */
-const resolveSlotConfig = (config: TxBuilderConfig, options?: BuildOptions): Time.SlotConfig => {
-  // Priority 1: Explicit slot config from BuildOptions (per-transaction override)
-  if (options?.slotConfig) {
-    return options.slotConfig
-  }
-
-  // Priority 2: Slot config from TxBuilderConfig (set at client level)
-  if (config.slotConfig) {
-    return config.slotConfig
-  }
-
-  // Priority 3: Network-specific slot config preset
-  const network: Network.Network = config.network ?? "Mainnet"
-  return Time.SLOT_CONFIG_NETWORK[network]
-}
+const resolveSlotConfig = (config: TxBuilderConfig, options?: BuildOptions): Time.SlotConfig =>
+  options?.slotConfig ?? config.chain.slotConfig
 
 /**
  * Assemble final builder result based on wallet capabilities.
@@ -1250,58 +1234,21 @@ export interface TxBuilderConfig {
   readonly provider?: Provider.Provider
 
   /**
-   * Network type for slot configuration in script evaluation.
+   * Chain descriptor — network identity and slot timing parameters.
    *
-   * Used to determine the correct slot configuration when evaluating Plutus scripts.
-   * Each network has different genesis times and slot configurations.
+   * Provides:
+   * - `id`: Network id (1 = mainnet, 0 = testnet) for address and reward account encoding
+   * - `slotConfig`: Slot timing required for validity interval conversion and script evaluation
+   * - `networkMagic`, `epochLength`, `name`: Additional network metadata
    *
-   * Options:
-   * - `"Mainnet"`: Production network
-   * - `"Preview"`: Preview testnet
-   * - `"Preprod"`: Pre-production testnet
-   * - `"Custom"`: Custom network (emulator/devnet) - requires slotConfig
+   * Use the presets `mainnet`, `preprod`, `preview` from the client module, or define a
+   * custom Chain for private networks and devnets.
    *
-   * When omitted, defaults to "Mainnet".
-   *
-   * @default "Mainnet"
-   * @since 2.0.0
-   */
-  readonly network?: Network.Network
-
-  /**
-   * Custom slot configuration for the network.
-   *
-   * Slot configuration defines the relationship between slots and Unix time,
-   * which is required for:
-   * - UPLC evaluation of time-based validators
-   * - Converting validity bounds (from/to) from Unix time to slots
-   *
-   * By default, slot config is determined from the network (mainnet/preview/preprod).
-   * Set this for custom networks (devnet, emulator, private chains).
-   *
-   * Priority: BuildOptions.slotConfig > TxBuilderConfig.slotConfig > SLOT_CONFIG_NETWORK[network]
-   *
-   * Use cases:
-   * - Devnet with custom genesis time
-   * - Emulator with specific slot configuration
-   * - Private networks with custom parameters
-   *
-   * Example:
-   * ```typescript
-   * makeTxBuilder({
-   *   slotConfig: {
-   *     zeroTime: clusterGenesisTime,
-   *     zeroSlot: 0n,
-   *     slotLength: 1000 // 1 second per slot
-   *   },
-   *   wallet,
-   *   provider
-   * })
-   * ```
+   * The per-build `BuildOptions.slotConfig` override takes priority over `chain.slotConfig`.
    *
    * @since 2.0.0
    */
-  readonly slotConfig?: Time.SlotConfig
+  readonly chain: Chain
 
   // Future fields:
   // readonly costModels?: Uint8Array // Cost models for script evaluation
@@ -2433,10 +2380,6 @@ export type TransactionBuilder = SigningTransactionBuilder | ReadOnlyTransaction
  *
  * @internal
  */
-export type TxBuilderResultType<
-  W extends WalletNew.SigningWallet | WalletNew.ApiWallet | WalletNew.ReadOnlyWallet | undefined
-> = W extends WalletNew.SigningWallet | WalletNew.ApiWallet ? SigningTransactionBuilder : ReadOnlyTransactionBuilder
-
 /**
  * Construct a TransactionBuilder instance from protocol configuration.
  *
@@ -2444,24 +2387,25 @@ export type TxBuilderResultType<
  * creates fresh state (new Refs) and executes all accumulated programs sequentially, ensuring
  * no state pollution between invocations.
  *
- * The return type is determined by the actual wallet provided using conditional types:
- * - SigningTransactionBuilder: When wallet is SigningWallet or ApiWallet
- * - ReadOnlyTransactionBuilder: When wallet is ReadOnlyWallet or undefined
+ * The return type is narrowed at construction time based on the wallet type provided:
+ * - `SigningTransactionBuilder`: when wallet is `SigningWallet` or `ApiWallet`
+ * - `ReadOnlyTransactionBuilder`: when wallet is `ReadOnlyWallet` or omitted
  *
- * Wallet type narrowing happens at construction time based on the wallet's actual type.
- * No call-site type narrowing or type guards needed.
+ * `chain` is required — use the `mainnet`, `preprod`, or `preview` presets from the client
+ * module, or define a custom `Chain` for private networks and devnets.
  *
- * Wallet parameter is optional; if omitted, changeAddress and availableUtxos must be
- * provided at build time via BuildOptions.
+ * When wallet is omitted, `changeAddress` and `availableUtxos` must be supplied at build
+ * time via `BuildOptions`.
  *
  * @since 2.0.0
  * @category constructors
- *
  */
-export function makeTxBuilder<
-  W extends WalletNew.SigningWallet | WalletNew.ApiWallet | WalletNew.ReadOnlyWallet | undefined
->(config: Partial<TxBuilderConfig> & { wallet?: W }): TxBuilderResultType<W>
-export function makeTxBuilder(config: TxBuilderConfig) {
+export function makeTxBuilder(
+  config: TxBuilderConfig & { wallet: WalletNew.SigningWallet | WalletNew.ApiWallet }
+): SigningTransactionBuilder
+export function makeTxBuilder(config: TxBuilderConfig & { wallet: WalletNew.ReadOnlyWallet }): ReadOnlyTransactionBuilder
+export function makeTxBuilder(config: TxBuilderConfig & { wallet?: undefined }): ReadOnlyTransactionBuilder
+export function makeTxBuilder(config: TxBuilderConfig): SigningTransactionBuilder | ReadOnlyTransactionBuilder {
   const programs: Array<ProgramStep> = []
 
   const txBuilder = {
@@ -2649,5 +2593,5 @@ export function makeTxBuilder(config: TxBuilderConfig) {
     buildPartial: (options?: BuildOptions) => runEffectPromise(buildPartialEffectCore(config, programs, options))
   }
 
-  return txBuilder
+  return txBuilder as SigningTransactionBuilder | ReadOnlyTransactionBuilder
 }

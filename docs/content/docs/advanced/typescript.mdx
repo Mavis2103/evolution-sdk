@@ -42,19 +42,19 @@ const addr = Address.fromBech32("addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5
 The client type narrows based on configuration:
 
 ```typescript twoslash
-import { createClient } from "@evolution-sdk/evolution"
+import { createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
 
 // Provider-only client (no wallet) — can query but not sign
 const queryClient = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "", projectId: "" }
+  chain: preprod,
+  provider: blockfrost({ baseUrl: "", projectId: "" })
 })
 
 // Signing client (wallet + provider) — full capabilities
 const signingClient = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "", projectId: "" },
-  wallet: { type: "seed", mnemonic: "", accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({ baseUrl: "", projectId: "" }),
+  wallet: seedWallet({ mnemonic: "", accountIndex: 0 })
 })
 ```
 

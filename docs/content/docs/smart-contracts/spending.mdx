@@ -12,12 +12,24 @@ Spending from a script means consuming a UTxO locked at a script address by prov
 Use `collectFrom` to specify which script UTxOs to spend and what redeemer to provide:
 
 ```typescript twoslash
-import { Address, Assets, Data, createClient, type UTxO } from "@evolution-sdk/evolution"
+import {
+  Address,
+  Assets,
+  Data,
+  blockfrost,
+  createClient,
+  preprod,
+  seedWallet,
+  type UTxO
+} from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const scriptUtxos: UTxO.UTxO[]
@@ -42,12 +54,25 @@ const txHash = await signed.submit()
 Many validators check that a specific key signed the transaction. Use `addSigner` to include the required signer:
 
 ```typescript twoslash
-import { Address, Assets, Data, KeyHash, createClient, type UTxO } from "@evolution-sdk/evolution"
+import {
+  Address,
+  Assets,
+  Data,
+  KeyHash,
+  blockfrost,
+  createClient,
+  preprod,
+  seedWallet,
+  type UTxO
+} from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const scriptUtxos: UTxO.UTxO[]
@@ -73,12 +98,15 @@ await signed.submit()
 For time-locked validators, set the transaction validity interval so the script can verify the current time:
 
 ```typescript twoslash
-import { Data, createClient, type UTxO } from "@evolution-sdk/evolution"
+import { Data, blockfrost, createClient, preprod, seedWallet, type UTxO } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const scriptUtxos: UTxO.UTxO[]
@@ -94,8 +122,8 @@ const tx = await client
   })
   .attachScript({ script: validatorScript })
   .setValidity({
-    from: now,           // Valid from now
-    to: now + 300_000n   // Expires in 5 minutes
+    from: now, // Valid from now
+    to: now + 300_000n // Expires in 5 minutes
   })
   .build()
 
@@ -108,20 +136,30 @@ await signed.submit()
 Collect from a script and send the unlocked funds to a recipient:
 
 ```typescript twoslash
-import { Address, Assets, Data, createClient, type UTxO } from "@evolution-sdk/evolution"
+import {
+  Address,
+  Assets,
+  Data,
+  blockfrost,
+  createClient,
+  preprod,
+  seedWallet,
+  type UTxO
+} from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const scriptUtxos: UTxO.UTxO[]
 declare const validatorScript: any
 
-const beneficiary = Address.fromBech32(
-  "addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5pdrFollw8qd9k63"
-)
+const beneficiary = Address.fromBech32("addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5pdrFollw8qd9k63")
 
 const tx = await client
   .newTx()
@@ -145,16 +183,19 @@ await signed.submit()
 The `redeemer` parameter supports three modes for different complexity levels. See the [Redeemers](/docs/smart-contracts/redeemers) page for details.
 
 **Static** — Direct data value (most common):
+
 ```typescript
 redeemer: Data.constr(0n, [])
 ```
 
 **Self** — Callback that receives the input's final index:
+
 ```typescript
 redeemer: (input) => Data.constr(0n, [BigInt(input.index)])
 ```
 
 **Batch** — Callback for coordinating multiple inputs:
+
 ```typescript
 redeemer: {
   all: (inputs) => Data.constr(0n, inputs.map(i => BigInt(i.index))),
@@ -167,12 +208,15 @@ redeemer: {
 Add labels to identify operations in error messages when debugging script failures:
 
 ```typescript twoslash
-import { Data, createClient, type UTxO } from "@evolution-sdk/evolution"
+import { Data, blockfrost, createClient, preprod, seedWallet, type UTxO } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const escrowUtxos: UTxO.UTxO[]

@@ -15,94 +15,93 @@ Migrate when you need better type safety, want to leverage Effect patterns, or a
 
 The main differences you'll encounter:
 
-| Aspect | Change |
-|--------|--------|
-| **Imports** | Deno URLs → npm package |
-| **Client creation** | Separate calls → unified config object |
-| **Transaction building** | Same chainable pattern |
-| **Error handling** | try/catch → Effect Result types |
-| **Provider setup** | Implicit → explicit config |
+| Aspect                   | Change                                 |
+| ------------------------ | -------------------------------------- |
+| **Imports**              | Deno URLs → npm package                |
+| **Client creation**      | Separate calls → unified config object |
+| **Transaction building** | Same chainable pattern                 |
+| **Error handling**       | try/catch → Effect Result types        |
+| **Provider setup**       | Implicit → explicit config             |
 
 ## Updating Your Code
 
 ### Client Initialization
 
 **Before (Lucid):**
-```typescript
-import { Lucid } from "https://deno.land/x/lucid/mod.ts";
 
-const lucid = await Lucid.new(blockfrostProvider, "Preprod");
+```typescript
+import { Lucid } from "https://deno.land/x/lucid/mod.ts"
+
+const lucid = await Lucid.new(blockfrostProvider, "Preprod")
 ```
 
 **Evolution SDK:**
+
 ```ts twoslash
-import { Address, Assets, createClient } from "@evolution-sdk/evolution";
+import { Address, Assets, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: {
-    type: "blockfrost",
+  chain: preprod,
+  provider: blockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: "your-project-id"
-  },
-  wallet: {
-    type: "seed",
+  }),
+  wallet: seedWallet({
     mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
     accountIndex: 0
-  }
-});
+  })
+})
 ```
 
 ### Building Transactions
 
 **Lucid:**
+
 ```typescript
-lucid
-  .newTx()
-  .payToAddress("addr...", { lovelace: 2000000n })
-  .complete();
+lucid.newTx().payToAddress("addr...", { lovelace: 2000000n }).complete()
 ```
 
 **Evolution SDK:**
+
 ```ts twoslash
-import { Address, Assets, createClient } from "@evolution-sdk/evolution";
+import { Address, Assets, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: {
-    type: "blockfrost",
+  chain: preprod,
+  provider: blockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: "your-project-id"
-  },
-  wallet: {
-    type: "seed",
+  }),
+  wallet: seedWallet({
     mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
     accountIndex: 0
-  }
-});
+  })
+})
 
 // ---cut---
 const tx = await client
   .newTx()
-  .payToAddress({ 
-    address: Address.fromBech32("addr_test1qzrf9g3ea6hdc5vfujgrpjc0c0xq3qqkz8zkpwh3s6nqzhgey8k3eq73kr0gcqd7cyy75s0qqx0qqx0qqx0qqx0qx7e8pq"),
+  .payToAddress({
+    address: Address.fromBech32(
+      "addr_test1qzrf9g3ea6hdc5vfujgrpjc0c0xq3qqkz8zkpwh3s6nqzhgey8k3eq73kr0gcqd7cyy75s0qqx0qqx0qqx0qqx0qx7e8pq"
+    ),
     assets: Assets.fromLovelace(2_000_000n)
   })
-  .build();
+  .build()
 ```
 
 ## Common Patterns
 
 Here are the typical changes you'll make throughout your codebase:
 
-| Lucid | Evolution SDK |
-|-------|---------------|
+| Lucid                          | Evolution SDK                                 |
+| ------------------------------ | --------------------------------------------- |
 | `Lucid.new(provider, network)` | `createClient({ network, provider, wallet })` |
-| `.payToAddress(addr, assets)` | `.payToAddress({ address, assets })` |
-| `.complete()` | `.build()` |
-| `.signWithWallet()` | `tx.sign()` |
-| `.submit()` | `signed.submit()` |
-| try/catch errors | Effect Result types |
+| `.payToAddress(addr, assets)`  | `.payToAddress({ address, assets })`          |
+| `.complete()`                  | `.build()`                                    |
+| `.signWithWallet()`            | `tx.sign()`                                   |
+| `.submit()`                    | `signed.submit()`                             |
+| try/catch errors               | Effect Result types                           |
 
 Evolution SDK uses a unified configuration object and explicit method parameters for better type inference and clearer intent.
 
@@ -111,6 +110,7 @@ Evolution SDK uses a unified configuration object and explicit method parameters
 Start by identifying isolated modules or new features where you can adopt Evolution SDK without touching existing Lucid code. This lets you learn the patterns incrementally while keeping your app functional.
 
 Key steps:
+
 1. Install `@evolution-sdk/evolution` alongside Lucid (they can coexist)
 2. Update one module at a time, starting with simpler transaction flows
 3. Test thoroughly on testnet before touching mainnet code
@@ -119,6 +119,7 @@ Key steps:
 ## What Stays the Same
 
 The blockchain fundamentals haven't changed:
+
 - UTxO model and transaction structure
 - Address formats and validation
 - Signing and key management concepts
@@ -129,6 +130,6 @@ You're learning a new API for familiar concepts, not relearning Cardano itself.
 ## Next Steps
 
 - [Getting Started](/docs/introduction/getting-started) - Build your first Evolution SDK transaction
-- [Wallets](/docs/wallets) - Wallet types and key management  
+- [Wallets](/docs/wallets) - Wallet types and key management
 - [Transactions](/docs/transactions) - Advanced transaction building
 - [API Reference](/docs/modules) - Complete API documentation
