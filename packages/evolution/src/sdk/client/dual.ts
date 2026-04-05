@@ -71,7 +71,7 @@ export const dual = <A, E>(effect: Effect.Effect<A, E>): DualEffect<A, E> => {
 type DualifyMethod<F> =
   F extends (...args: infer A) => Effect.Effect<infer R, infer E, never>
     ? (...args: A) => DualEffect<R, E>
-    : F extends (...args: infer A) => Stream.Stream<infer R, infer E, never>
+    : F extends (...args: infer A) => Stream.Stream<infer R, infer _E, never>
       ? (...args: A) => AsyncIterable<R>
       : F
 
@@ -108,7 +108,7 @@ export const dualify = <T extends object>(service: T): Dualified<T> => {
       result[key] = value
       continue
     }
-    result[key] = (...args: any[]) => {
+    result[key] = (...args: Array<any>) => {
       const out = (service as any)[key](...args)
       if (out == null) return out
       if (Effect.isEffect(out)) return dual(out as Effect.Effect<unknown, unknown, never>)

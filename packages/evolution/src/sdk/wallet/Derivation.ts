@@ -47,7 +47,7 @@ export const walletFromSeed = (
   } = {}
 ): Effect.Effect<SeedDerivationResult, DerivationError | Bip32PrivateKey.Bip32PrivateKeyError> => {
   return Effect.gen(function* () {
-    const { accountIndex = 0, paymentIndex = 0, stakeIndex = 0, addressType = "Base", network = "Mainnet" } = options
+    const { accountIndex = 0, addressType = "Base", network = "Mainnet", paymentIndex = 0, stakeIndex = 0 } = options
     const entropy = yield* Effect.try({
       try: () => mnemonicToEntropy(seed, English),
       catch: (cause) => new DerivationError({ message: "Invalid seed phrase", cause })

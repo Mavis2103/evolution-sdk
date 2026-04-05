@@ -1,7 +1,8 @@
 import { Effect, ParseResult } from "effect"
 
 import * as Transaction from "../../Transaction.js"
-import * as TransactionWitnessSet from "../../TransactionWitnessSet.js"
+import type * as TransactionWitnessSet from "../../TransactionWitnessSet.js"
+import type * as CoreUTxO from "../../UTxO.js"
 import {
   makeTxBuilder,
   type ReadOnlyTransactionBuilder,
@@ -9,6 +10,7 @@ import {
 } from "../builders/TransactionBuilder.js"
 import * as Provider from "../provider/Provider.js"
 import * as WalletNew from "../wallet/WalletNew.js"
+import { type Chain, mainnet } from "./Chain.js"
 import {
   type ApiWalletClient,
   type MinimalClient,
@@ -19,7 +21,6 @@ import {
   type SigningClient,
   type SigningWalletClient
 } from "./Client.js"
-import { type Chain, mainnet } from "./Chain.js"
 import { type AnyWallet } from "./Wallets.js"
 
 type ResolvedWallet = WalletNew.ReadOnlyWallet | WalletNew.SigningWallet | WalletNew.ApiWallet
