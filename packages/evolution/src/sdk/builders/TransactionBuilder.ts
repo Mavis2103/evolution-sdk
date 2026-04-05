@@ -2380,10 +2380,6 @@ export type TransactionBuilder = SigningTransactionBuilder | ReadOnlyTransaction
  *
  * @internal
  */
-export type TxBuilderResultType<
-  W extends WalletNew.SigningWallet | WalletNew.ApiWallet | WalletNew.ReadOnlyWallet | undefined
-> = W extends WalletNew.SigningWallet | WalletNew.ApiWallet ? SigningTransactionBuilder : ReadOnlyTransactionBuilder
-
 /**
  * Construct a TransactionBuilder instance from protocol configuration.
  *
@@ -2391,23 +2387,24 @@ export type TxBuilderResultType<
  * creates fresh state (new Refs) and executes all accumulated programs sequentially, ensuring
  * no state pollution between invocations.
  *
- * The return type is determined by the actual wallet provided using conditional types:
- * - SigningTransactionBuilder: When wallet is SigningWallet or ApiWallet
- * - ReadOnlyTransactionBuilder: When wallet is ReadOnlyWallet or undefined
+ * The return type is narrowed at construction time based on the wallet type provided:
+ * - `SigningTransactionBuilder`: when wallet is `SigningWallet` or `ApiWallet`
+ * - `ReadOnlyTransactionBuilder`: when wallet is `ReadOnlyWallet` or omitted
  *
- * Wallet type narrowing happens at construction time based on the wallet's actual type.
- * No call-site type narrowing or type guards needed.
+ * `chain` is required — use the `mainnet`, `preprod`, or `preview` presets from the client
+ * module, or define a custom `Chain` for private networks and devnets.
  *
- * Wallet parameter is optional; if omitted, changeAddress and availableUtxos must be
- * provided at build time via BuildOptions.
+ * When wallet is omitted, `changeAddress` and `availableUtxos` must be supplied at build
+ * time via `BuildOptions`.
  *
  * @since 2.0.0
  * @category constructors
- *
  */
-export function makeTxBuilder<
-  W extends WalletNew.SigningWallet | WalletNew.ApiWallet | WalletNew.ReadOnlyWallet | undefined
->(config: Partial<TxBuilderConfig> & { wallet?: W }): TxBuilderResultType<W>
+export function makeTxBuilder(
+  config: TxBuilderConfig & { wallet: WalletNew.SigningWallet | WalletNew.ApiWallet }
+): SigningTransactionBuilder
+export function makeTxBuilder(config: TxBuilderConfig & { wallet: WalletNew.ReadOnlyWallet }): ReadOnlyTransactionBuilder
+export function makeTxBuilder(config: TxBuilderConfig & { wallet?: undefined }): ReadOnlyTransactionBuilder
 export function makeTxBuilder(config: TxBuilderConfig) {
   const programs: Array<ProgramStep> = []
 
