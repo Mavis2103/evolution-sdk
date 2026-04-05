@@ -18,12 +18,12 @@ Different combinations create different client types with distinct capabilities.
 
 ## Client Types
 
-| Client Type | Wallet | Provider | Can Query | Can Build Tx | Can Sign | Can Submit |
-|-------------|--------|----------|-----------|--------------|----------|------------|
-| **Full Client** | ✅ Signing | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **API Wallet Client** | ✅ API only | ❌ | ❌ | ❌ | ✅ | ✅ |
-| **Read-Only Client** | ✅ Read-only | ✅ | ✅ | ✅ | ❌ | ✅ |
-| **Provider-Only Client** | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Client Type              | Wallet       | Provider | Can Query | Can Build Tx | Can Sign | Can Submit |
+| ------------------------ | ------------ | -------- | --------- | ------------ | -------- | ---------- |
+| **Full Client**          | ✅ Signing   | ✅       | ✅        | ✅           | ✅       | ✅         |
+| **API Wallet Client**    | ✅ API only  | ❌       | ❌        | ❌           | ✅       | ✅         |
+| **Read-Only Client**     | ✅ Read-only | ✅       | ✅        | ✅           | ❌       | ✅         |
+| **Provider-Only Client** | ❌           | ✅       | ✅        | ❌           | ❌       | ✅         |
 
 ## Configuration Pattern
 
@@ -31,16 +31,17 @@ All clients use `createClient` with different configurations:
 
 ```typescript
 createClient({
-  network: "mainnet" | "preprod" | "preview",
+  chain: mainnet | preprod | preview,
   provider?: ProviderConfig,  // Optional
   wallet?: WalletConfig       // Optional
 })
 ```
 
 **Rules**:
+
 - At least one of `provider` or `wallet` must be present
 - `wallet` alone → API Wallet Client
-- `provider` alone → Provider-Only Client  
+- `provider` alone → Provider-Only Client
 - Both → Full Client or Read-Only Client (depends on wallet type)
 
 ## Decision Tree

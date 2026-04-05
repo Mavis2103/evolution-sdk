@@ -3,7 +3,7 @@ title: Staking
 description: Stake delegation, rewards, and credential management
 ---
 
-import { Card, Cards } from 'fumadocs-ui/components/card'
+import { Card, Cards } from "fumadocs-ui/components/card"
 
 # Staking
 
@@ -20,12 +20,15 @@ Evolution SDK provides complete staking operations — register stake credential
 ## Quick Example
 
 ```typescript twoslash
-import { Credential, createClient } from "@evolution-sdk/evolution"
+import { Credential, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const stakeCredential: Credential.Credential

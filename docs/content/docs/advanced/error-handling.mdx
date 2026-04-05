@@ -9,23 +9,26 @@ Evolution SDK is built on Effect, providing structured error handling with typed
 
 ## Error Types
 
-| Error | When |
-|-------|------|
+| Error                       | When                                                          |
+| --------------------------- | ------------------------------------------------------------- |
 | **TransactionBuilderError** | Build phase failures (insufficient funds, invalid parameters) |
-| **ProviderError** | Provider communication issues (network, API errors) |
-| **EvaluationError** | Plutus script evaluation failures |
+| **ProviderError**           | Provider communication issues (network, API errors)           |
+| **EvaluationError**         | Plutus script evaluation failures                             |
 
 ## Promise API (Default)
 
 The standard `.build()`, `.sign()`, `.submit()` methods return Promises. Errors throw as exceptions:
 
 ```typescript twoslash
-import { Address, Assets, createClient } from "@evolution-sdk/evolution"
+import { Address, Assets, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 try {
@@ -50,12 +53,15 @@ Use `.buildEffect()` for composable error handling with Effect:
 
 ```typescript twoslash
 import { Effect } from "effect"
-import { Address, Assets, createClient } from "@evolution-sdk/evolution"
+import { Address, Assets, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 // Build returns an Effect — errors are values, not exceptions
@@ -76,12 +82,15 @@ const program = client
 Use `.buildEither()` for explicit success/failure without exceptions:
 
 ```typescript twoslash
-import { Address, Assets, createClient } from "@evolution-sdk/evolution"
+import { Address, Assets, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 const result = await client

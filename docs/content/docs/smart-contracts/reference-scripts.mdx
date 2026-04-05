@@ -18,12 +18,15 @@ Reference scripts (Plutus V2+) let you store a script on-chain in a UTxO and ref
 Store your validator script on-chain by including it in a UTxO output:
 
 ```typescript twoslash
-import { Address, Assets, createClient } from "@evolution-sdk/evolution"
+import { Address, Assets, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const validatorScript: any
@@ -50,12 +53,15 @@ console.log("Reference script deployed:", txHash)
 Reference the deployed script UTxO when spending from the validator:
 
 ```typescript twoslash
-import { Address, Data, createClient, type UTxO } from "@evolution-sdk/evolution"
+import { Address, Data, blockfrost, createClient, preprod, seedWallet, type UTxO } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const scriptUtxos: UTxO.UTxO[]
@@ -79,10 +85,10 @@ The key difference: `readFrom` makes the UTxO available as a reference input wit
 
 ## Reference Scripts vs Attached Scripts
 
-| Approach | Transaction Size | First Use | Subsequent Uses |
-|----------|-----------------|-----------|-----------------|
-| **Attached** (`attachScript`) | Includes full script | Same size | Same size every time |
-| **Referenced** (`readFrom`) | Only UTxO reference | Deploy tx is larger | Much smaller |
+| Approach                      | Transaction Size     | First Use           | Subsequent Uses      |
+| ----------------------------- | -------------------- | ------------------- | -------------------- |
+| **Attached** (`attachScript`) | Includes full script | Same size           | Same size every time |
+| **Referenced** (`readFrom`)   | Only UTxO reference  | Deploy tx is larger | Much smaller         |
 
 **Use reference scripts when**: Your script is used in multiple transactions. The deployment cost pays for itself after just a few uses.
 
@@ -93,12 +99,15 @@ The key difference: `readFrom` makes the UTxO available as a reference input wit
 Reference inputs aren't just for scripts — you can also read datums from UTxOs without consuming them:
 
 ```typescript twoslash
-import { Data, createClient, type UTxO } from "@evolution-sdk/evolution"
+import { Data, blockfrost, createClient, preprod, seedWallet, type UTxO } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  provider: { type: "blockfrost", baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: process.env.BLOCKFROST_API_KEY! },
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  provider: blockfrost({
+    baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_API_KEY!
+  }),
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 declare const scriptUtxos: UTxO.UTxO[]
@@ -119,6 +128,7 @@ const tx = await client
 ```
 
 This is commonly used for:
+
 - **Oracle feeds** — Read price data without consuming the oracle UTxO
 - **Configuration UTxOs** — Read protocol settings stored on-chain
 - **Shared state** — Multiple transactions can read the same UTxO simultaneously

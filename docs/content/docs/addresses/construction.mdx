@@ -14,9 +14,7 @@ The most common way to work with addresses:
 ```typescript twoslash
 import { Address } from "@evolution-sdk/evolution"
 
-const address = Address.fromBech32(
-  "addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5pdrFollw8qd9k63"
-)
+const address = Address.fromBech32("addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5pdrFollw8qd9k63")
 ```
 
 ## Parse from Hex
@@ -34,9 +32,7 @@ const address = Address.fromHex(addressHex)
 ```typescript twoslash
 import { Address } from "@evolution-sdk/evolution"
 
-const address = Address.fromBech32(
-  "addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5pdrFollw8qd9k63"
-)
+const address = Address.fromBech32("addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5pdrFollw8qd9k63")
 
 // To hex
 const hex = Address.toHex(address)
@@ -51,11 +47,11 @@ const bech32 = Address.toBech32(address)
 ## Getting Your Wallet Address
 
 ```typescript twoslash
-import { createClient } from "@evolution-sdk/evolution"
+import { createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
 
 const client = createClient({
-  network: "preprod",
-  wallet: { type: "seed", mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 }
+  chain: preprod,
+  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 })
 
 const myAddress = await client.address()
