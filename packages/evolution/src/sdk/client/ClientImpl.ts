@@ -23,8 +23,8 @@ import type {
   SigningClient,
   SigningClientEffect
 } from "./Client.js"
-import { blockfrost, koios, kupmios, maestro } from "./Providers.js"
-import { cip30Wallet, privateKeyWallet, readOnlyWallet, seedWallet } from "./Wallets.js"
+import { blockfrost, koios, kupmios, maestro } from "./internal/Providers.js"
+import { cip30Wallet, privateKeyWallet, readOnlyWallet, seedWallet } from "./internal/Wallets.js"
 
 type ResolvedSignerWallet = WalletNew.SigningWallet | WalletNew.ApiWallet
 

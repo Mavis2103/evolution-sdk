@@ -6,8 +6,6 @@ import type * as Provider from "../provider/Provider.js"
 import type { EffectToPromiseAPI } from "../Type.js"
 import type * as WalletNew from "../wallet/WalletNew.js"
 import type { Chain } from "./Chain.js"
-import type { BlockfrostConfig, KoiosConfig, KupmiosConfig, MaestroConfig } from "./Providers.js"
-import type { PrivateKeyWalletConfig, SeedWalletConfig } from "./Wallets.js"
 
 /**
  * Address capability Effect surface.
@@ -54,6 +52,82 @@ export interface SigningClientEffect extends Provider.ProviderEffect, OfflineSig
     WalletNew.WalletError | Provider.ProviderError
   >
   readonly getWalletDelegation: () => Effect.Effect<Provider.Delegation, WalletNew.WalletError | Provider.ProviderError>
+}
+
+/**
+ * Configuration for the Blockfrost provider.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface BlockfrostConfig {
+  readonly baseUrl: string
+  readonly projectId?: string
+}
+
+/**
+ * Configuration for the Koios provider.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface KoiosConfig {
+  readonly baseUrl: string
+  readonly token?: string
+}
+
+/**
+ * Configuration for the Kupmios provider (Kupo + Ogmios).
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface KupmiosConfig {
+  readonly kupoUrl: string
+  readonly ogmiosUrl: string
+  readonly headers?: {
+    readonly ogmiosHeader?: Record<string, string>
+    readonly kupoHeader?: Record<string, string>
+  }
+}
+
+/**
+ * Configuration for the Maestro provider.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface MaestroConfig {
+  readonly baseUrl: string
+  readonly apiKey: string
+  readonly turboSubmit?: boolean
+}
+
+/**
+ * Configuration for the seed phrase wallet.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface SeedWalletConfig {
+  readonly mnemonic: string
+  readonly accountIndex?: number
+  readonly paymentIndex?: number
+  readonly stakeIndex?: number
+  readonly addressType?: "Base" | "Enterprise"
+  readonly password?: string
+}
+
+/**
+ * Configuration for the private key wallet.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface PrivateKeyWalletConfig {
+  readonly paymentKey: string
+  readonly stakeKey?: string
+  readonly addressType?: "Base" | "Enterprise"
 }
 
 /**

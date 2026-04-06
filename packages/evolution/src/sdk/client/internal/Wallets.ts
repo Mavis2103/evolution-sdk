@@ -1,34 +1,25 @@
-/**
- * Wallet constructors for the client API.
- *
- * All wallet constructors return chain-aware factories used internally by the
- * flat client assembly API.
- *
- * @since 2.1.0
- * @module
- */
-
 import { Effect, Equal, ParseResult, Schema } from "effect"
 
-import * as CoreAddress from "../../Address.js"
-import * as Bytes from "../../Bytes.js"
-import * as Ed25519Signature from "../../Ed25519Signature.js"
-import * as KeyHash from "../../KeyHash.js"
-import type * as NativeScripts from "../../NativeScripts.js"
-import * as PoolKeyHash from "../../PoolKeyHash.js"
-import * as PrivateKey from "../../PrivateKey.js"
-import * as CoreRewardAccount from "../../RewardAccount.js"
-import * as CoreRewardAddress from "../../RewardAddress.js"
-import * as Transaction from "../../Transaction.js"
-import * as TransactionHash from "../../TransactionHash.js"
-import * as TransactionWitnessSet from "../../TransactionWitnessSet.js"
-import { runEffectPromise } from "../../utils/effect-runtime.js"
-import { hashTransaction, hashTransactionRaw } from "../../utils/Hash.js"
-import * as CoreUTxO from "../../UTxO.js"
-import * as VKey from "../../VKey.js"
-import * as Derivation from "../wallet/Derivation.js"
-import * as WalletNew from "../wallet/WalletNew.js"
-import type { Chain } from "./Chain.js"
+import * as CoreAddress from "../../../Address.js"
+import * as Bytes from "../../../Bytes.js"
+import * as Ed25519Signature from "../../../Ed25519Signature.js"
+import * as KeyHash from "../../../KeyHash.js"
+import type * as NativeScripts from "../../../NativeScripts.js"
+import * as PoolKeyHash from "../../../PoolKeyHash.js"
+import * as PrivateKey from "../../../PrivateKey.js"
+import * as CoreRewardAccount from "../../../RewardAccount.js"
+import * as CoreRewardAddress from "../../../RewardAddress.js"
+import * as Transaction from "../../../Transaction.js"
+import * as TransactionHash from "../../../TransactionHash.js"
+import * as TransactionWitnessSet from "../../../TransactionWitnessSet.js"
+import * as CoreUTxO from "../../../UTxO.js"
+import * as VKey from "../../../VKey.js"
+import { runEffectPromise } from "../../../utils/effect-runtime.js"
+import { hashTransaction, hashTransactionRaw } from "../../../utils/Hash.js"
+import type { PrivateKeyWalletConfig, SeedWalletConfig } from "../Client.js"
+import type { Chain } from "../Chain.js"
+import * as Derivation from "../../wallet/Derivation.js"
+import * as WalletNew from "../../wallet/WalletNew.js"
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
@@ -328,33 +319,6 @@ type ApiWalletFactory = (chain: Chain) => WalletNew.ApiWallet
 type ReadOnlyWalletFactory = (chain: Chain) => WalletNew.ReadOnlyWallet
 
 // ── Config types ──────────────────────────────────────────────────────────────
-
-/**
- * Configuration for the seed phrase wallet.
- *
- * @since 2.1.0
- * @category model
- */
-export interface SeedWalletConfig {
-  readonly mnemonic: string
-  readonly accountIndex?: number
-  readonly paymentIndex?: number
-  readonly stakeIndex?: number
-  readonly addressType?: "Base" | "Enterprise"
-  readonly password?: string
-}
-
-/**
- * Configuration for the private key wallet.
- *
- * @since 2.1.0
- * @category model
- */
-export interface PrivateKeyWalletConfig {
-  readonly paymentKey: string
-  readonly stakeKey?: string
-  readonly addressType?: "Base" | "Enterprise"
-}
 
 // ── Constructors ──────────────────────────────────────────────────────────────
 
