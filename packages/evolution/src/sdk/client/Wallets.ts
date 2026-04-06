@@ -307,7 +307,7 @@ const makeSigningWalletEffect = (
  * @since 2.1.0
  * @category model
  */
-export type SigningWalletFactory = (chain: Chain) => WalletNew.SigningWallet
+type SigningWalletFactory = (chain: Chain) => WalletNew.SigningWallet
 
 /**
  * A chain-aware API wallet factory — receives chain context at client construction time.
@@ -316,16 +316,7 @@ export type SigningWalletFactory = (chain: Chain) => WalletNew.SigningWallet
  * @since 2.1.0
  * @category model
  */
-export type ApiWalletFactory = (chain: Chain) => WalletNew.ApiWallet
-
-/**
- * A chain-aware signing or API wallet factory — receives chain context at client construction time.
- * Returned by wallet constructors that need chain injection.
- *
- * @since 2.1.0
- * @category model
- */
-export type WalletFactory = SigningWalletFactory | ApiWalletFactory
+type ApiWalletFactory = (chain: Chain) => WalletNew.ApiWallet
 
 /**
  * A chain-aware read-only wallet factory — receives chain context at client construction time.
@@ -334,22 +325,7 @@ export type WalletFactory = SigningWalletFactory | ApiWalletFactory
  * @since 2.1.0
  * @category model
  */
-export type ReadOnlyWalletFactory = (chain: Chain) => WalletNew.ReadOnlyWallet
-
-/**
- * Any wallet instance or factory accepted internally by the client assembly implementation.
- *
- * @since 2.1.0
- * @category model
- */
-export type AnyWallet =
-  | WalletNew.ReadOnlyWallet
-  | WalletNew.SigningWallet
-  | WalletNew.ApiWallet
-  | SigningWalletFactory
-  | ApiWalletFactory
-  | WalletFactory
-  | ReadOnlyWalletFactory
+type ReadOnlyWalletFactory = (chain: Chain) => WalletNew.ReadOnlyWallet
 
 // ── Config types ──────────────────────────────────────────────────────────────
 
