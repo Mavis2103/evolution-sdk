@@ -40,18 +40,15 @@ import {
   Transaction,
   TransactionHash,
   TransactionInput,
-  createClient,
   mainnet,
-  blockfrost
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 // Query any address
 const utxos = await client.getUtxos(
@@ -80,18 +77,15 @@ import {
   Transaction,
   TransactionHash,
   TransactionInput,
-  createClient,
   mainnet,
-  blockfrost
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 // Protocol parameters
 const params = await client.getProtocolParameters()
@@ -140,18 +134,15 @@ import {
   Transaction,
   TransactionHash,
   TransactionInput,
-  createClient,
   mainnet,
-  blockfrost
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 // Portfolio tracker
 async function getPortfolioBalance(addressesBech32: string[]) {
@@ -186,18 +177,15 @@ import {
   Transaction,
   TransactionHash,
   TransactionInput,
-  createClient,
   mainnet,
-  blockfrost
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 // API endpoint
 export async function submitTransaction(signedTxCbor: string) {
@@ -236,18 +224,15 @@ import {
   Transaction,
   TransactionHash,
   TransactionInput,
-  createClient,
   mainnet,
-  blockfrost
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 async function monitorProtocolParameters() {
   const params = await client.getProtocolParameters()
@@ -273,10 +258,9 @@ setInterval(async () => {
 
 ## Limitations
 
-Provider-only clients cannot perform wallet-specific operations:
+Provider-only clients cannot perform wallet-scoped operations, but they can still create builders when you provide the missing address and signing context manually:
 
 ```typescript twoslash
-// @errors: 2339
 import {
   Address,
   Assets,
@@ -286,30 +270,30 @@ import {
   Transaction,
   TransactionHash,
   TransactionInput,
-  createClient,
   mainnet,
-  blockfrost
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
-// Cannot build transactions - no wallet address
-// @ts-expect-error - Property 'newTx' does not exist on provider-only client
-client.newTx()
+// Can create a builder, but wallet-scoped helpers are still unavailable
+const builder = client.newTx()
 
 // Cannot sign - no private key
 // @ts-expect-error - Property 'signTx' does not exist on provider-only client
-client.signTx()
+client.signTx("84a400...")
 
 // Cannot get own address - no wallet
 // @ts-expect-error - Property 'address' does not exist on provider-only client
 client.address()
+
+// Cannot query wallet-scoped UTxOs without address context
+// @ts-expect-error - Property 'getWalletUtxos' does not exist on provider-only client
+client.getWalletUtxos()
 
 // CAN query any address
 const address = Address.fromBech32(
@@ -323,9 +307,9 @@ const signedTx = Transaction.fromCBORHex(signedCbor)
 const txHash = await client.submitTx(signedTx)
 ```
 
-## Upgrading to Full Client
+## Upgrading to Read-Only Client
 
-Add wallet to provider-only client using `attachWallet()`:
+Add address context to a provider-only client using `.withAddress()`:
 
 ```typescript twoslash
 import {
@@ -337,27 +321,20 @@ import {
   Transaction,
   TransactionHash,
   TransactionInput,
-  createClient,
   mainnet,
-  blockfrost,
-  readOnlyWallet
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
 // Start with provider only
-const providerClient = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const providerClient = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
-// Later, attach wallet for specific user
-const readOnlyClient = providerClient.attachWallet(
-  readOnlyWallet(
-    "addr1qxy8g0m3dnvxpk6dlh40u9vgc8m6hyqyjf6qn6j6t47wnhvcpqp0aw50nln8nyzfh6fjp6sxgajx5q0c6p73xqf2qhvq5pzqsh"
-  )
-)
+// Later, add address context for a specific user
+const readOnlyClient = providerClient
+  .withAddress("addr1qxy8g0m3dnvxpk6dlh40u9vgc8m6hyqyjf6qn6j6t47wnhvcpqp0aw50nln8nyzfh6fjp6sxgajx5q0c6p73xqf2qhvq5pzqsh")
 
 // Now can build transactions for this address
 const builder = readOnlyClient.newTx()
@@ -385,32 +362,23 @@ import {
   Transaction,
   TransactionHash,
   TransactionInput,
-  createClient,
   mainnet,
   preprod,
-  blockfrost,
-  kupmios
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
 const env = (process.env.NODE_ENV || "development") as "development" | "production"
 
-const client = createClient(
+const client =
   env === "production"
-    ? {
-        chain: mainnet,
-        provider: kupmios({
-          ogmiosUrl: process.env.OGMIOS_URL!,
-          kupoUrl: process.env.KUPO_URL!
-        })
-      }
-    : {
-        chain: preprod,
-        provider: blockfrost({
-          baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
-          projectId: process.env.BLOCKFROST_PREPROD_PROJECT_ID!
-        })
-      }
-)
+    ? makeClient(mainnet).withKupmios({
+        ogmiosUrl: process.env.OGMIOS_URL!,
+        kupoUrl: process.env.KUPO_URL!
+      })
+    : makeClient(preprod).withBlockfrost({
+        baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
+        projectId: process.env.BLOCKFROST_PREPROD_PROJECT_ID!
+      })
 ```
 
 ## Comparison with Read-Only Client
@@ -418,10 +386,10 @@ const client = createClient(
 | Feature                 | Provider-Only Client           | Read-Only Client                                                     |
 | ----------------------- | ------------------------------ | -------------------------------------------------------------------- |
 | **Configuration**       | Provider only                  | Provider + address                                                   |
-| **Creation**            | `createClient({ provider })`   | `createClient({ provider, wallet: { type: "read-only", address } })` |
+| **Creation**            | `client(chain).withBlockfrost(...)` | `client(chain).withBlockfrost(...).withAddress(address)` |
 | **Query any address**   | `getUtxos(anyAddress)`         | `getUtxos(anyAddress)`                                               |
 | **Query own address**   | Not available                  | `getWalletUtxos()`                                                   |
-| **Build transactions**  | Not available                  | `newTx()` returns unsigned tx                                        |
+| **Build transactions**  | `newTx()` with manual context  | `newTx()` returns unsigned tx                                        |
 | **Sign transactions**   | Not available                  | Not available                                                        |
 | **Submit transactions** | `submitTx(signedCbor)`         | `submitTx(signedCbor)`                                               |
 | **Use case**            | Generic queries, multi-address | Backend building for specific user                                   |

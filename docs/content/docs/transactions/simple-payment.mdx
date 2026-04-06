@@ -14,19 +14,17 @@ This guide covers common payment patterns—from basic ADA transfers to payments
 The simplest transaction sends only lovelace (ADA's smallest unit). 1 ADA = 1,000,000 lovelace:
 
 ```ts twoslash
-import { Address, Assets, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Address, Assets, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({
+  })
+  .withSeed({
     mnemonic: process.env.WALLET_MNEMONIC!,
     accountIndex: 0
   })
-})
 
 // Send 2 ADA
 const tx = await client
@@ -64,19 +62,17 @@ console.log(lovelace) // 2500000n
 Include native tokens (custom tokens or NFTs) alongside ADA. The `assets` object takes any asset by its policy ID + asset name:
 
 ```ts twoslash
-import { Address, Assets, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Address, Assets, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({
+  })
+  .withSeed({
     mnemonic: process.env.WALLET_MNEMONIC!,
     accountIndex: 0
   })
-})
 
 // Send 2 ADA plus 100 tokens
 const policyId = "7edb7a2d9fbc4d2a68e4c9e9d3d7a5c8f2d1e9f8a7b6c5d4e3f2a1b0c9d8e7f6"
@@ -105,13 +101,11 @@ The policy ID + asset name is concatenated into a single hex string.
 Make your code more readable with descriptive variable names:
 
 ```ts twoslash
-import { Address, Assets, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Address, Assets, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({ baseUrl: "", projectId: "" }),
-  wallet: seedWallet({ mnemonic: "", accountIndex: 0 })
-})
+const client = makeClient(preprod)
+  .withBlockfrost({ baseUrl: "", projectId: "" })
+  .withSeed({ mnemonic: "", accountIndex: 0 })
 
 // ---cut---
 const recipientAddress = Address.fromBech32("addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5pdrFollw8qd9k63")
@@ -131,13 +125,11 @@ const tx = await client
 Adjust transaction values based on network or configuration:
 
 ```ts twoslash
-import { Address, Assets, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Address, Assets, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({ baseUrl: "", projectId: "" }),
-  wallet: seedWallet({ mnemonic: "", accountIndex: 0 })
-})
+const client = makeClient(preprod)
+  .withBlockfrost({ baseUrl: "", projectId: "" })
+  .withSeed({ mnemonic: "", accountIndex: 0 })
 
 // ---cut---
 const isMainnet = process.env.NETWORK === "mainnet"

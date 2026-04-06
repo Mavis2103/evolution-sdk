@@ -10,16 +10,21 @@ Integration tests run against a local devnet cluster, validating the full transa
 ## Test Setup Pattern
 
 ```typescript
-import { describe, it, beforeAll, afterAll, expect } from "vitest"
-import { Cluster, Config, Genesis } from "@evolution-sdk/devnet"
+import {
+  describe,
+  it,
+  beforeAll,
+  afterAll,
+  expect } from "vitest"
+import { Cluster,
+  Config,
+  Genesis } from "@evolution-sdk/devnet"
 import {
   Address,
   Assets,
-  createClient,
   preprod,
-  kupmios,
-  seedWallet,
-  type SigningClient
+  type SigningClient,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
 describe("Transaction Tests", () => {
@@ -31,10 +36,8 @@ describe("Transaction Tests", () => {
     const mnemonic =
       "test test test test test test test test test test test test test test test test test test test test test test test sauce"
 
-    const wallet = createClient({
-      chain: preprod,
-      wallet: seedWallet({ mnemonic, accountIndex: 0 })
-    })
+    const wallet = makeClient(preprod)
+  .withSeed({ mnemonic, accountIndex: 0 })
 
     const addressHex = Address.toHex(await wallet.address())
 
@@ -56,11 +59,9 @@ describe("Transaction Tests", () => {
     await Cluster.start(cluster)
     await new Promise((resolve) => setTimeout(resolve, 8000))
 
-    client = createClient({
-      chain: preprod,
-      provider: kupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" }),
-      wallet: seedWallet({ mnemonic, accountIndex: 0 })
-    })
+    client = makeClient(preprod)
+  .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
+  .withSeed({ mnemonic, accountIndex: 0 })
   }, 180_000) // Extended timeout for cluster startup
 
   afterAll(async () => {

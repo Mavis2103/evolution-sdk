@@ -42,20 +42,16 @@ const addr = Address.fromBech32("addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5
 The client type narrows based on configuration:
 
 ```typescript twoslash
-import { createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
+import { preprod, client as makeClient } from "@evolution-sdk/evolution"
 
 // Provider-only client (no wallet) — can query but not sign
-const queryClient = createClient({
-  chain: preprod,
-  provider: blockfrost({ baseUrl: "", projectId: "" })
-})
+const queryClient = makeClient(preprod)
+  .withBlockfrost({ baseUrl: "", projectId: "" })
 
 // Signing client (wallet + provider) — full capabilities
-const signingClient = createClient({
-  chain: preprod,
-  provider: blockfrost({ baseUrl: "", projectId: "" }),
-  wallet: seedWallet({ mnemonic: "", accountIndex: 0 })
-})
+const signingClient = makeClient(preprod)
+  .withBlockfrost({ baseUrl: "", projectId: "" })
+  .withSeed({ mnemonic: "", accountIndex: 0 })
 ```
 
 ## Effect Integration
@@ -78,7 +74,7 @@ import { Effect } from "effect"
 The SDK uses namespace exports for tree-shaking optimization:
 
 ```typescript twoslash
-import { Address, Assets, Data, createClient } from "@evolution-sdk/evolution"
+import { Address, Assets, Data } from "@evolution-sdk/evolution"
 
 // Each namespace provides related functions
 // Address.fromBech32(), Address.toHex(), Address.toBytes()

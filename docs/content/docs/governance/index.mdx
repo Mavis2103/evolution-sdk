@@ -21,16 +21,14 @@ Evolution SDK supports Cardano's Conway-era governance system (CIP-1694). Regist
 ## Quick Example
 
 ```typescript twoslash
-import { Credential, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const drepCredential: Credential.Credential
 
@@ -46,16 +44,14 @@ await signed.submit()
 All governance operations support script-controlled credentials. Provide a redeemer when the credential is a script hash:
 
 ```typescript twoslash
-import { Credential, Data, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, Data, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const scriptDrepCredential: Credential.Credential
 declare const governanceScript: any

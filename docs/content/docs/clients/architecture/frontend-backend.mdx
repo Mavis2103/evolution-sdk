@@ -30,11 +30,11 @@ Frontend applications use API wallet clients (CIP-30) for signing only. They hav
 
 **Client Type**: API Wallet Client
 **Components**: API wallet (no provider)
-**Capabilities**: Address retrieval, transaction signing, transaction submission
-**Cannot Do**: Build transactions, query blockchain, fee calculation
+**Capabilities**: Address retrieval and transaction signing
+**Cannot Do**: Build transactions, query blockchain, fee calculation, provider-backed submission
 
 ```typescript twoslash
-import { Address, Assets, Transaction, createClient, cip30Wallet, mainnet } from "@evolution-sdk/evolution"
+import { Address, Transaction, TransactionWitnessSet, mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 declare const cardano: any
 
@@ -42,13 +42,11 @@ declare const cardano: any
 const walletApi = await cardano.eternl.enable()
 
 // 2. Create API wallet client (no provider)
-const client = createClient({
-  chain: mainnet,
-  wallet: cip30Wallet(walletApi)
-})
+const client = makeClient(mainnet)
+  .withCip30(walletApi)
 
 // 3. Get user address to send to backend
-const address = await client.address()
+const address = Address.toBech32(await client.address())
 
 // 4. Receive unsigned transaction from backend
 const unsignedTxCbor = await fetch("/api/build-tx", {
@@ -62,8 +60,19 @@ const unsignedTxCbor = await fetch("/api/build-tx", {
 // 5. Sign with user wallet (prompts approval)
 const witnessSet = await client.signTx(unsignedTxCbor)
 
-// 6. Submit signed transaction
-const txHash = await client.submitTx(unsignedTxCbor)
+// 6. Merge witnesses into the unsigned transaction
+const signedTxCbor = Transaction.addVKeyWitnessesHex(
+  unsignedTxCbor,
+  TransactionWitnessSet.toCBORHex(witnessSet)
+)
+
+// 7. Return signed transaction to backend for provider submission
+const { txHash } = await fetch("/api/submit-tx", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ signedTxCbor })
+}).then((r) => r.json()) as { txHash: string }
+
 console.log("Transaction submitted:", txHash)
 ```
 
@@ -86,26 +95,16 @@ Backend services use read-only clients configured with user addresses to build u
 **Cannot Do**: Sign transactions, access private keys
 
 ```typescript twoslash
-import {
-  Address,
-  Assets,
-  Transaction,
-  createClient,
-  blockfrost,
-  readOnlyWallet,
-  mainnet
-} from "@evolution-sdk/evolution"
+import { Address, Assets, Transaction, mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 export async function buildTransaction(userAddressBech32: string) {
   // Create read-only client with user's address (bech32 string)
-  const client = createClient({
-    chain: mainnet,
-    provider: blockfrost({
+  const client = makeClient(mainnet)
+  .withBlockfrost({
       baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
       projectId: process.env.BLOCKFROST_PROJECT_ID!
-    }),
-    wallet: readOnlyWallet(userAddressBech32)
-  })
+    })
+  .withAddress(userAddressBech32)
 
   // Build unsigned transaction
   const builder = client.newTx()
@@ -138,6 +137,8 @@ export async function buildTransaction(userAddressBech32: string) {
 
 Full architecture showing frontend/backend separation with proper security model.
 
+The browser signs and produces witnesses. The backend, which has provider access, assembles the signed transaction for broadcast and submits it.
+
 ### End-to-End Example
 
 ```typescript twoslash
@@ -152,10 +153,14 @@ export type BuildPaymentResponse = {
   txCbor: string
 }
 
+export type SubmitTxResponse = {
+  txHash: string
+}
+
 // @filename: frontend.ts
 // ===== Frontend (Browser) =====
-import { Address, Assets, Transaction, createClient, cip30Wallet, mainnet } from "@evolution-sdk/evolution"
-import type { BuildPaymentRequest, BuildPaymentResponse } from "./shared"
+import { Address, Transaction, TransactionWitnessSet, mainnet, client as makeClient } from "@evolution-sdk/evolution"
+import type { BuildPaymentRequest, BuildPaymentResponse, SubmitTxResponse } from "./shared"
 
 declare const cardano: any
 
@@ -164,10 +169,8 @@ async function sendPayment(recipientAddress: string, lovelace: bigint) {
   const walletApi = await cardano.eternl.enable()
 
   // 2. Create API wallet client (signing only)
-  const walletClient = createClient({
-    chain: mainnet,
-    wallet: cip30Wallet(walletApi)
-  })
+  const walletClient = makeClient(mainnet)
+  .withCip30(walletApi)
 
   // 3. Get user address (returns Core Address, convert to bech32 for backend)
   const userAddress = Address.toBech32(await walletClient.address())
@@ -190,24 +193,34 @@ async function sendPayment(recipientAddress: string, lovelace: bigint) {
   // 5. Sign with user wallet (prompts user approval)
   const witnessSet = await walletClient.signTx(txCbor)
 
-  // 6. Submit signed transaction
-  const txHash = await walletClient.submitTx(txCbor)
+  // 6. Merge witnesses into the unsigned transaction
+  const signedTxCbor = Transaction.addVKeyWitnessesHex(
+    txCbor,
+    TransactionWitnessSet.toCBORHex(witnessSet)
+  )
+
+  // 7. Return signed transaction to backend for submission
+  const submitResponse = await fetch("/api/submit-tx", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ signedTxCbor })
+  })
+
+  const { txHash } = (await submitResponse.json()) as SubmitTxResponse
 
   return txHash
 }
 
 // @filename: backend.ts
 // ===== Backend (Server) =====
-import {
-  Address,
-  Assets,
-  Transaction,
-  createClient,
-  blockfrost,
-  readOnlyWallet,
-  mainnet
-} from "@evolution-sdk/evolution"
-import type { BuildPaymentResponse } from "./shared"
+import { Address, Assets, Transaction, TransactionHash, mainnet, client as makeClient } from "@evolution-sdk/evolution"
+import type { BuildPaymentResponse, SubmitTxResponse } from "./shared"
+
+const providerClient = makeClient(mainnet)
+  .withBlockfrost({
+    baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
+    projectId: process.env.BLOCKFROST_PROJECT_ID!
+  })
 
 export async function buildPayment(
   userAddressBech32: string,
@@ -218,14 +231,7 @@ export async function buildPayment(
   const recipientAddress = Address.fromBech32(recipientAddressBech32)
 
   // Create read-only client with user's address (bech32 string)
-  const client = createClient({
-    chain: mainnet,
-    provider: blockfrost({
-      baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
-      projectId: process.env.BLOCKFROST_PROJECT_ID!
-    }),
-    wallet: readOnlyWallet(userAddressBech32)
-  })
+  const client = providerClient.withAddress(userAddressBech32)
 
   // Build unsigned transaction
   const builder = client.newTx()
@@ -240,6 +246,12 @@ export async function buildPayment(
   const txCbor = Transaction.toCBORHex(unsignedTx)
 
   return { txCbor }
+}
+
+export async function submitSignedTx(signedTxCbor: string): Promise<SubmitTxResponse> {
+  const signedTx = Transaction.fromCBORHex(signedTxCbor)
+  const txHash = await providerClient.submitTx(signedTx)
+  return { txHash: TransactionHash.toHex(txHash) }
 }
 ```
 
@@ -292,11 +304,8 @@ This architecture provides complete security through proper separation:
 
 ```typescript
 // WRONG - API wallet client has no provider
-const client = createClient({
-  chain: mainnet,
-  wallet: cip30Wallet(walletApi)
-  // No provider configured!
-})
+const client = makeClient(mainnet)
+  .withCip30(walletApi)
 
 const builder = client.newTx() // Error: Cannot build without provider
 ```
@@ -307,10 +316,8 @@ const builder = client.newTx() // Error: Cannot build without provider
 
 ```typescript
 // CORRECT - API wallet client signs only
-const client = createClient({
-  chain: mainnet,
-  wallet: cip30Wallet(walletApi)
-})
+const client = makeClient(mainnet)
+  .withCip30(walletApi)
 
 // Get transaction from backend
 const { txCbor } = await fetch("/api/build-tx").then((r) => r.json())
@@ -325,13 +332,8 @@ const witnessSet = await client.signTx(txCbor)
 
 ```typescript
 // WRONG - Read-only client has no private keys
-const client = createClient({
-  chain: mainnet,
-  provider: {
-    /* ... */
-  },
-  wallet: readOnlyWallet(userAddress)
-})
+const client = makeClient(mainnet)
+  .withAddress(userAddress)
 
 await client.sign(data) // Error: Cannot sign with read-only wallet
 ```
@@ -342,13 +344,8 @@ await client.sign(data) // Error: Cannot sign with read-only wallet
 
 ```typescript
 // CORRECT - Read-only client builds only
-const client = createClient({
-  chain: mainnet,
-  provider: {
-    /* ... */
-  },
-  wallet: readOnlyWallet(userAddress)
-})
+const client = makeClient(mainnet)
+  .withAddress(userAddress)
 
 // Build unsigned transaction
 const builder = client.newTx()
@@ -371,9 +368,9 @@ Understanding what each client type can do:
 | `address()`       | ✅          | ✅                | ✅               | ❌                   |
 | `rewardAddress()` | ✅          | ✅                | ✅               | ❌                   |
 | `newTx()`         | ✅          | ❌                | ✅               | ✅                   |
-| `sign()`          | ✅          | ✅                | ❌               | ❌                   |
+| `signMessage()`   | ✅          | ✅                | ❌               | ❌                   |
 | `signTx()`        | ✅          | ✅                | ❌               | ❌                   |
-| `submitTx()`      | ✅          | ✅                | ✅               | ✅                   |
+| `submitTx()`      | ✅          | ❌                | ✅               | ✅                   |
 | `getUtxos()`      | ✅          | ❌                | ✅               | ✅                   |
 | `query*()`        | ✅          | ❌                | ✅               | ✅                   |
 

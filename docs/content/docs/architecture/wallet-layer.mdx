@@ -116,7 +116,7 @@ graph LR
 
 The wallet layer integrates with other architectural components:
 
-**Client Factory**: `createClient(config)` uses conditional types to return appropriate client type based on wallet. Type narrowing happens at construction—no runtime type guards needed in application code.
+**Client Factory**: `client(chain)` uses staged methods like `.withAddress()`, `.withSeed()`, `.withPrivateKey()`, and `.withCip30()` to return the appropriate client type. Type narrowing happens during assembly—no runtime type guards needed in application code.
 
 **Transaction Builder**: Builder type (`ReadOnlyTransactionBuilder` vs `SigningTransactionBuilder`) determined by wallet capability. Read-only builders cannot produce `SignBuilder`, only `TransactionResultBase`.
 

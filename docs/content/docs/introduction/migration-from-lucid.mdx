@@ -38,19 +38,17 @@ const lucid = await Lucid.new(blockfrostProvider, "Preprod")
 **Evolution SDK:**
 
 ```ts twoslash
-import { Address, Assets, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
+import { Address, Assets, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: "your-project-id"
-  }),
-  wallet: seedWallet({
+  })
+  .withSeed({
     mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
     accountIndex: 0
   })
-})
 ```
 
 ### Building Transactions
@@ -64,19 +62,17 @@ lucid.newTx().payToAddress("addr...", { lovelace: 2000000n }).complete()
 **Evolution SDK:**
 
 ```ts twoslash
-import { Address, Assets, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
+import { Address, Assets, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: "your-project-id"
-  }),
-  wallet: seedWallet({
+  })
+  .withSeed({
     mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
     accountIndex: 0
   })
-})
 
 // ---cut---
 const tx = await client
@@ -96,14 +92,14 @@ Here are the typical changes you'll make throughout your codebase:
 
 | Lucid                          | Evolution SDK                                 |
 | ------------------------------ | --------------------------------------------- |
-| `Lucid.new(provider, network)` | `createClient({ network, provider, wallet })` |
+| `Lucid.new(provider, network)` | `client(network).withBlockfrost(...).withSeed(...)` |
 | `.payToAddress(addr, assets)`  | `.payToAddress({ address, assets })`          |
 | `.complete()`                  | `.build()`                                    |
 | `.signWithWallet()`            | `tx.sign()`                                   |
 | `.submit()`                    | `signed.submit()`                             |
 | try/catch errors               | Effect Result types                           |
 
-Evolution SDK uses a unified configuration object and explicit method parameters for better type inference and clearer intent.
+Evolution SDK uses staged capability assembly and explicit method parameters for better type inference and clearer intent.
 
 ## Migration Strategy
 

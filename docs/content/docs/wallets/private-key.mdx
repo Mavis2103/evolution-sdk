@@ -40,30 +40,27 @@ Never log or transmit keys in plaintext. Never store in environment variables as
 ## Basic Setup
 
 ```typescript twoslash
-import { createClient, privateKeyWallet, preprod } from "@evolution-sdk/evolution"
+import { preprod, client as makeClient } from "@evolution-sdk/evolution"
 
 // Create signing-only client with private key (no provider)
 // Can sign transactions but cannot query blockchain or submit
-const client = createClient({
-  chain: preprod,
-  wallet: privateKeyWallet({
+const client = makeClient(preprod)
+  .withPrivateKey({
     paymentKey: process.env.PAYMENT_SIGNING_KEY! // 192 hex chars
     // Optional: stakeKey for staking operations
   })
-})
 
 const address = await client.address()
 console.log("Payment address:", address)
 
-// To query blockchain or submit, attach a provider:
-// const fullClient = client.attachProvider(blockfrost({ ... }));
+// To query blockchain or submit, add a provider:
+// const fullClient = client.withBlockfrost({ ... });
 ```
 
 ## Configuration Options
 
 ```typescript twoslash
 interface PrivateKeyWalletConfig {
-  type: "private-key"
   paymentKey: string // Extended signing key (96 bytes = 192 hex chars) (required)
   stakeKey?: string // Extended staking key (optional)
 }
@@ -74,7 +71,7 @@ interface PrivateKeyWalletConfig {
 Load keys from secure secret management systems:
 
 ```typescript twoslash
-import { createClient, privateKeyWallet, mainnet } from "@evolution-sdk/evolution"
+import { mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 // Mock vault client for documentation purposes
 declare const secretsManager: {
@@ -87,12 +84,10 @@ async function createSecureClient() {
   // Load from secure vault (AWS Secrets Manager, Azure Key Vault, etc.)
   const signingKey = await loadFromSecureVault("cardano-payment-key")
 
-  return createClient({
-    chain: mainnet,
-    wallet: privateKeyWallet({
+  return makeClient(mainnet)
+    .withPrivateKey({
       paymentKey: signingKey
     })
-  })
 }
 
 // Example vault integration pattern
@@ -129,7 +124,7 @@ Log all key access events without logging the keys themselves. Alert on unusual 
 ## AWS Secrets Manager Example
 
 ```typescript twoslash
-import { createClient, privateKeyWallet, mainnet } from "@evolution-sdk/evolution"
+import { mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 // Mock AWS SDK classes for documentation
 declare class SecretsManagerClient {
@@ -153,19 +148,17 @@ async function createProductionClient() {
   const secret = JSON.parse(response.SecretString!)
 
   // Create client with retrieved key
-  return createClient({
-    chain: mainnet,
-    wallet: privateKeyWallet({
+  return makeClient(mainnet)
+    .withPrivateKey({
       paymentKey: secret.paymentKey
     })
-  })
 }
 ```
 
 ## Azure Key Vault Example
 
 ```typescript twoslash
-import { createClient, privateKeyWallet, mainnet } from "@evolution-sdk/evolution"
+import { mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 // Mock Azure SDK classes for documentation
 declare class DefaultAzureCredential {}
@@ -183,19 +176,17 @@ async function createProductionClient() {
   // Retrieve secret
   const secret = await secretClient.getSecret("cardano-payment-key")
 
-  return createClient({
-    chain: mainnet,
-    wallet: privateKeyWallet({
+  return makeClient(mainnet)
+    .withPrivateKey({
       paymentKey: secret.value!
     })
-  })
 }
 ```
 
 ## Key Rotation Strategy
 
 ```typescript twoslash
-import { createClient, privateKeyWallet, mainnet } from "@evolution-sdk/evolution"
+import { mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 async function rotateKeys() {
   // 1. Generate new key (offline, secure environment)
@@ -205,12 +196,10 @@ async function rotateKeys() {
   await storeInVault("cardano-payment-key-new", newKey)
 
   // 3. Create client with new key
-  const client = createClient({
-    chain: mainnet,
-    wallet: privateKeyWallet({
+  const client = makeClient(mainnet)
+    .withPrivateKey({
       paymentKey: await loadFromVault("cardano-payment-key-new")
     })
-  })
 
   // 4. Monitor for issues
   await monitorTransactions(client)
@@ -233,31 +222,25 @@ declare function archiveKey(id: string): Promise<void>
 ## Environment Separation
 
 ```typescript twoslash
-import { createClient, privateKeyWallet, preprod, mainnet } from "@evolution-sdk/evolution"
+import { preprod, mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 // Development
-const devClient = createClient({
-  chain: preprod,
-  wallet: privateKeyWallet({
+const devClient = makeClient(preprod)
+  .withPrivateKey({
     paymentKey: await loadFromVault("dev/cardano-payment-key")
   })
-})
 
 // Staging
-const stagingClient = createClient({
-  chain: preprod, // Still testnet
-  wallet: privateKeyWallet({
+const stagingClient = makeClient(preprod)
+  .withPrivateKey({
     paymentKey: await loadFromVault("staging/cardano-payment-key") // Different key
   })
-})
 
 // Production
-const prodClient = createClient({
-  chain: mainnet,
-  wallet: privateKeyWallet({
+const prodClient = makeClient(mainnet)
+  .withPrivateKey({
     paymentKey: await loadFromVault("prod/cardano-payment-key") // Different key
   })
-})
 
 declare function loadFromVault(id: string): Promise<string>
 ```

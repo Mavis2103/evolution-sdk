@@ -108,14 +108,17 @@ The architecture maintains strict boundaries between layers. The client never di
 stateDiagram-v2
     [*] --> MinimalClient
     
-    MinimalClient --> ProviderOnlyClient: attachProvider()
-    MinimalClient --> WalletClient: attachWallet()
-    MinimalClient --> FullClient: attach(provider, wallet)
+  MinimalClient --> ReadClient: withProvider()
+  MinimalClient --> AddressClient: withAddress()
+  MinimalClient --> OfflineSignerClient: withSigner()
     
-    ProviderOnlyClient --> FullClient: attachWallet()
-    WalletClient --> FullClient: attachProvider()
+  ReadClient --> ReadOnlyClient: withAddress()
+  ReadClient --> SigningClient: withSigner()
+  AddressClient --> ReadOnlyClient: withProvider()
+  OfflineSignerClient --> SigningClient: withProvider()
     
-    FullClient --> [*]
+  ReadOnlyClient --> [*]
+  SigningClient --> [*]
     
     MinimalClient: [1] MinimalClient
     ProviderOnlyClient: [2] ProviderOnlyClient
