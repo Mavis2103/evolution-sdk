@@ -1,6 +1,6 @@
 ---
 title: Transaction.ts
-nav_order: 174
+nav_order: 178
 parent: Modules
 ---
 
@@ -63,12 +63,16 @@ Added in v2.0.0
 
 ## addVKeyWitnessesBytes
 
-Merge wallet vkey witnesses into a transaction at the raw CBOR byte level.
+Merge wallet vkey witnesses into a transaction, preserving CBOR encoding.
 
-Works like CML: the entire transaction byte stream is preserved except for
-the vkey witnesses value in the witness set map. Body, redeemers, datums,
-scripts, isValid, auxiliaryData, and map entry ordering stay byte-for-byte
-identical — preserving both the txId and scriptDataHash.
+Uses the WithFormat round-trip: decode with format capture, mutate at the
+domain level, re-encode with the original format tree. Body encoding,
+redeemer bytes, map key ordering, and all non-witness data are preserved
+through the format tree reconciliation.
+
+`options` applies only to parsing the wallet witness set bytes. Transaction
+decoding and re-encoding are governed by the captured format tree, making
+codec options irrelevant for the transaction round-trip path.
 
 **Signature**
 

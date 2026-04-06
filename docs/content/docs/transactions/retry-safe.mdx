@@ -138,13 +138,13 @@ const client = createClient({
 // Illustrative snippet (not runnable as-is) — scriptAddress and redeemer are placeholders
 const unlockAction = Effect.gen(function* () {
   // Script UTxOs fetched fresh on every attempt
-  const scriptUtxos = yield* client.Effect.getUtxos(
+  const scriptUtxos = yield* client.effect.getUtxos(
     Address.fromBech32("addr_test1vrm9x2dgvdau8vckj4duc89m638t8djmluqw5pdrFollw8qd9k63")
   )
 
   const signBuilder = yield* client.newTx().collectFrom({ inputs: scriptUtxos }).buildEffect()
 
-  return yield* signBuilder.Effect.signAndSubmit()
+  return yield* signBuilder.effect.signAndSubmit()
 })
 
 // Retry up to 3 times with a 3-second delay between attempts

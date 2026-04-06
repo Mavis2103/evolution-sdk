@@ -1,6 +1,6 @@
 ---
 title: sdk/wallet/Derivation.ts
-nav_order: 164
+nav_order: 168
 parent: Modules
 ---
 
@@ -135,6 +135,8 @@ export declare const walletFromSeed: (
     password?: string
     addressType?: "Base" | "Enterprise"
     accountIndex?: number
+    paymentIndex?: number
+    stakeIndex?: number
     network?: "Mainnet" | "Testnet" | "Custom"
   }
 ) => Effect.Effect<SeedDerivationResult, DerivationError | Bip32PrivateKey.Bip32PrivateKeyError>

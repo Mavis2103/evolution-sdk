@@ -1,0 +1,148 @@
+---
+title: sdk/client/Providers.ts
+nav_order: 159
+parent: Modules
+---
+
+## Providers overview
+
+Provider constructors for the client API.
+
+Each constructor returns a `Provider` instance directly — usable standalone
+or passed to `createClient({ provider: blockfrost(...) })`.
+
+Added in v2.1.0
+
+---
+
+<h2 className="text-delta">Table of contents</h2>
+
+- [constructors](#constructors)
+  - [blockfrost](#blockfrost)
+  - [koios](#koios)
+  - [kupmios](#kupmios)
+  - [maestro](#maestro)
+- [model](#model)
+  - [BlockfrostConfig (interface)](#blockfrostconfig-interface)
+  - [KoiosConfig (interface)](#koiosconfig-interface)
+  - [KupmiosConfig (interface)](#kupmiosconfig-interface)
+  - [MaestroConfig (interface)](#maestroconfig-interface)
+
+---
+
+# constructors
+
+## blockfrost
+
+Blockfrost provider constructor.
+
+**Signature**
+
+```ts
+export declare const blockfrost: (config: BlockfrostConfig) => Provider
+```
+
+Added in v2.1.0
+
+## koios
+
+Koios provider constructor.
+
+**Signature**
+
+```ts
+export declare const koios: (config: KoiosConfig) => Provider
+```
+
+Added in v2.1.0
+
+## kupmios
+
+Kupmios provider constructor.
+
+**Signature**
+
+```ts
+export declare const kupmios: (config: KupmiosConfig) => Provider
+```
+
+Added in v2.1.0
+
+## maestro
+
+Maestro provider constructor.
+
+**Signature**
+
+```ts
+export declare const maestro: (config: MaestroConfig) => Provider
+```
+
+Added in v2.1.0
+
+# model
+
+## BlockfrostConfig (interface)
+
+Configuration for the Blockfrost provider.
+
+**Signature**
+
+```ts
+export interface BlockfrostConfig {
+  readonly baseUrl: string
+  readonly projectId?: string
+}
+```
+
+Added in v2.1.0
+
+## KoiosConfig (interface)
+
+Configuration for the Koios provider.
+
+**Signature**
+
+```ts
+export interface KoiosConfig {
+  readonly baseUrl: string
+  readonly token?: string
+}
+```
+
+Added in v2.1.0
+
+## KupmiosConfig (interface)
+
+Configuration for the Kupmios provider (Kupo + Ogmios).
+
+**Signature**
+
+```ts
+export interface KupmiosConfig {
+  readonly kupoUrl: string
+  readonly ogmiosUrl: string
+  readonly headers?: {
+    readonly ogmiosHeader?: Record<string, string>
+    readonly kupoHeader?: Record<string, string>
+  }
+}
+```
+
+Added in v2.1.0
+
+## MaestroConfig (interface)
+
+Configuration for the Maestro provider.
+
+**Signature**
+
+```ts
+export interface MaestroConfig {
+  readonly baseUrl: string
+  readonly apiKey: string
+  readonly turboSubmit?: boolean
+}
+```
+
+Added in v2.1.0

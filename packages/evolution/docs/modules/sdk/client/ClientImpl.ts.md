@@ -1,6 +1,6 @@
 ---
 title: sdk/client/ClientImpl.ts
-nav_order: 156
+nav_order: 157
 parent: Modules
 ---
 
@@ -10,60 +10,34 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
+- [utils](#utils)
   - [createClient](#createclient)
 
 ---
 
-# constructors
+# utils
 
 ## createClient
-
-Factory function producing a client instance from configuration parameters.
-
-Returns different client types depending on what configuration is provided:
-provider and wallet → full-featured client; provider only → query and submission;
-wallet only → signing with network metadata; network only → minimal context with combinators.
 
 **Signature**
 
 ```ts
 export declare function createClient(config: {
-  network?: NetworkId
-  provider: ProviderConfig
-  wallet: ReadOnlyWalletConfig
-  slotConfig?: Time.SlotConfig
+  chain?: Chain
+  provider: Provider.Provider
+  wallet: WalletNew.ReadOnlyWallet
 }): ReadOnlyClient
 export declare function createClient(config: {
-  network?: NetworkId
-  provider: ProviderConfig
-  wallet: SeedWalletConfig
-  slotConfig?: Time.SlotConfig
+  chain?: Chain
+  provider: Provider.Provider
+  wallet: WalletNew.SigningWallet | WalletNew.ApiWallet | WalletFactory
 }): SigningClient
+export declare function createClient(config: { chain?: Chain; provider: Provider.Provider }): ProviderOnlyClient
+export declare function createClient(config: { chain?: Chain; wallet: WalletNew.ReadOnlyWallet }): ReadOnlyWalletClient
+export declare function createClient(config: { chain?: Chain; wallet: WalletNew.ApiWallet }): ApiWalletClient
 export declare function createClient(config: {
-  network?: NetworkId
-  provider: ProviderConfig
-  wallet: PrivateKeyWalletConfig
-  slotConfig?: Time.SlotConfig
-}): SigningClient
-export declare function createClient(config: {
-  network?: NetworkId
-  provider: ProviderConfig
-  wallet: ApiWalletConfig
-  slotConfig?: Time.SlotConfig
-}): SigningClient
-export declare function createClient(config: { network?: NetworkId; provider: ProviderConfig }): ProviderOnlyClient
-export declare function createClient(config: {
-  network?: NetworkId
-  wallet: ReadOnlyWalletConfig
-}): ReadOnlyWalletClient
-export declare function createClient(config: { network?: NetworkId; wallet: SeedWalletConfig }): SigningWalletClient
-export declare function createClient(config: {
-  network?: NetworkId
-  wallet: PrivateKeyWalletConfig
+  chain?: Chain
+  wallet: WalletNew.SigningWallet | WalletFactory
 }): SigningWalletClient
-export declare function createClient(config: { network?: NetworkId; wallet: ApiWalletConfig }): ApiWalletClient
-export declare function createClient(config?: { network?: NetworkId }): MinimalClient
+export declare function createClient(config?: { chain?: Chain }): MinimalClient
 ```
-
-Added in v2.0.0

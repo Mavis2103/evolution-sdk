@@ -1,6 +1,6 @@
 ---
 title: sdk/wallet/WalletNew.ts
-nav_order: 165
+nav_order: 169
 parent: Modules
 ---
 
@@ -119,7 +119,7 @@ Wraps ApiWalletEffect with promise-based API for browser contexts.
 
 ```ts
 export interface ApiWallet extends EffectToPromiseAPI<ApiWalletEffect> {
-  readonly Effect: ApiWalletEffect
+  readonly effect: ApiWalletEffect
   readonly api: WalletApi
   readonly type: "api"
 }
@@ -139,7 +139,7 @@ API wallets handle both signing and submission through the wallet extension.
 export interface ApiWalletEffect extends ReadOnlyWalletEffect {
   readonly signTx: (
     tx: Transaction.Transaction | string,
-    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ) => Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletError>
   readonly signMessage: (
     address: CoreAddress.Address | RewardAddress.RewardAddress,
@@ -191,7 +191,7 @@ Wraps ReadOnlyWalletEffect with promise-based API for browser and non-Effect con
 
 ```ts
 export interface ReadOnlyWallet extends EffectToPromiseAPI<ReadOnlyWalletEffect> {
-  readonly Effect: ReadOnlyWalletEffect
+  readonly effect: ReadOnlyWalletEffect
   readonly type: "read-only"
 }
 ```
@@ -238,7 +238,7 @@ Wraps SigningWalletEffect with promise-based API for browser and non-Effect cont
 
 ```ts
 export interface SigningWallet extends EffectToPromiseAPI<SigningWalletEffect> {
-  readonly Effect: SigningWalletEffect
+  readonly effect: SigningWalletEffect
   readonly type: "signing"
 }
 ```

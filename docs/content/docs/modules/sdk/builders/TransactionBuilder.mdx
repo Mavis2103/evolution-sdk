@@ -95,8 +95,6 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
    * Can be called multiple times on the same builder instance with independent results.
    *
-   * @returns Promise<TransactionResultBase> which provides query-only methods
-   *
    * @since 2.0.0
    * @category completion-methods
    */
@@ -107,8 +105,6 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
    *
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
    * Suitable for Effect-TS compositional workflows and error handling.
-   *
-   * @returns Effect<TransactionResultBase, ...> which provides query-only methods
    *
    * @since 2.0.0
    * @category completion-methods
@@ -125,9 +121,7 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
    * Execute all queued operations with explicit error handling via Either.
    *
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
-   * Returns Either<Result, Error> for pattern-matched error recovery.
-   *
-   * @returns Promise<Either<TransactionResultBase, Error>>
+   * Returns `Either<Result, Error>` for pattern-matched error recovery.
    *
    * @since 2.0.0
    * @category completion-methods
@@ -165,8 +159,6 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
    * Can be called multiple times on the same builder instance with independent results.
    *
-   * @returns Promise<SignBuilder> which provides signing capabilities
-   *
    * @since 2.0.0
    * @category completion-methods
    */
@@ -177,8 +169,6 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
    *
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
    * Suitable for Effect-TS compositional workflows and error handling.
-   *
-   * @returns Effect<SignBuilder, ...> which provides signing capabilities
    *
    * @since 2.0.0
    * @category completion-methods
@@ -195,9 +185,7 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
    * Execute all queued operations with explicit error handling via Either.
    *
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
-   * Returns Either<Result, Error> for pattern-matched error recovery.
-   *
-   * @returns Promise<Either<SignBuilder, Error>>
+   * Returns `Either<Result, Error>` for pattern-matched error recovery.
    *
    * @since 2.0.0
    * @category completion-methods
@@ -901,7 +889,6 @@ export interface TransactionBuilderBase {
    * ```
    *
    * @param other - Another transaction builder whose operations will be merged
-   * @returns The same builder for method chaining
    *
    * @since 2.0.0
    * @category composition-methods
@@ -913,8 +900,6 @@ export interface TransactionBuilderBase {
    *
    * Returns a read-only copy of all queued operations that have been added
    * to this builder. Useful for inspection, debugging, or advanced composition patterns.
-   *
-   * @returns Read-only array of accumulated program steps
    *
    * @since 2.0.0
    * @category composition-methods
@@ -931,8 +916,6 @@ export interface TransactionBuilderBase {
    * Runs the full build pipeline (coin selection, fee calculation, evaluation) and returns
    * which UTxOs were consumed and which remain available for subsequent transactions.
    * Use this when building multiple dependent transactions in sequence.
-   *
-   * @returns Promise<ChainResult> with consumed and available UTxOs
    *
    * @example
    * ```typescript
@@ -1005,8 +988,8 @@ Immutable configuration passed to builder at creation time.
 
 Wallet-centric design (when wallet provided):
 
-- Wallet provides change address (via wallet.Effect.address())
-- Provider + Wallet provide available UTxOs (via provider.Effect.getUtxos(wallet.address))
+- Wallet provides change address (via wallet.effect.address())
+- Provider + Wallet provide available UTxOs (via provider.effect.getUtxos(wallet.address))
 - Override per-build via BuildOptions if needed
 
 Manual mode (no wallet):
@@ -1016,13 +999,13 @@ Manual mode (no wallet):
 
 **Signature**
 
-````ts
+```ts
 export interface TxBuilderConfig {
   /**
    * Optional wallet provides:
-   * - Change address via wallet.Effect.address()
-   * - Available UTxOs via wallet.Effect.address() + provider.Effect.getUtxos()
-   * - Signing capability via wallet.Effect.signTx() (SigningWallet and ApiWallet only)
+   * - Change address via wallet.effect.address()
+   * - Available UTxOs via wallet.effect.address() + provider.effect.getUtxos()
+   * - Signing capability via wallet.effect.signTx() (SigningWallet and ApiWallet only)
    *
    * When provided: Automatic change address and UTxO resolution.
    * When omitted: Must provide changeAddress and availableUtxos in BuildOptions.
@@ -1036,8 +1019,8 @@ export interface TxBuilderConfig {
 
   /**
    * Optional provider for:
-   * - Fetching UTxOs for the wallet's address (provider.Effect.getUtxos)
-   * - Transaction submission (provider.Effect.submitTx)
+   * - Fetching UTxOs for the wallet's address (provider.effect.getUtxos)
+   * - Transaction submission (provider.effect.submitTx)
    * - Protocol parameters
    *
    * Works together with wallet to provide everything needed for transaction building.
@@ -1046,63 +1029,26 @@ export interface TxBuilderConfig {
   readonly provider?: Provider.Provider
 
   /**
-   * Network type for slot configuration in script evaluation.
+   * Chain descriptor — network identity and slot timing parameters.
    *
-   * Used to determine the correct slot configuration when evaluating Plutus scripts.
-   * Each network has different genesis times and slot configurations.
+   * Provides:
+   * - `id`: Network id (1 = mainnet, 0 = testnet) for address and reward account encoding
+   * - `slotConfig`: Slot timing required for validity interval conversion and script evaluation
+   * - `networkMagic`, `epochLength`, `name`: Additional network metadata
    *
-   * Options:
-   * - `"Mainnet"`: Production network
-   * - `"Preview"`: Preview testnet
-   * - `"Preprod"`: Pre-production testnet
-   * - `"Custom"`: Custom network (emulator/devnet) - requires slotConfig
+   * Use the presets `mainnet`, `preprod`, `preview` from the client module, or define a
+   * custom Chain for private networks and devnets.
    *
-   * When omitted, defaults to "Mainnet".
-   *
-   * @default "Mainnet"
-   * @since 2.0.0
-   */
-  readonly network?: Network.Network
-
-  /**
-   * Custom slot configuration for the network.
-   *
-   * Slot configuration defines the relationship between slots and Unix time,
-   * which is required for:
-   * - UPLC evaluation of time-based validators
-   * - Converting validity bounds (from/to) from Unix time to slots
-   *
-   * By default, slot config is determined from the network (mainnet/preview/preprod).
-   * Set this for custom networks (devnet, emulator, private chains).
-   *
-   * Priority: BuildOptions.slotConfig > TxBuilderConfig.slotConfig > SLOT_CONFIG_NETWORK[network]
-   *
-   * Use cases:
-   * - Devnet with custom genesis time
-   * - Emulator with specific slot configuration
-   * - Private networks with custom parameters
-   *
-   * Example:
-   * ```typescript
-   * makeTxBuilder({
-   *   slotConfig: {
-   *     zeroTime: clusterGenesisTime,
-   *     zeroSlot: 0n,
-   *     slotLength: 1000 // 1 second per slot
-   *   },
-   *   wallet,
-   *   provider
-   * })
-   * ```
+   * The per-build `BuildOptions.slotConfig` override takes priority over `chain.slotConfig`.
    *
    * @since 2.0.0
    */
-  readonly slotConfig?: Time.SlotConfig
+  readonly chain: Chain
 
   // Future fields:
   // readonly costModels?: Uint8Array // Cost models for script evaluation
 }
-````
+```
 
 Added in v2.0.0
 
@@ -1116,23 +1062,27 @@ The builder accumulates chainable method calls as deferred ProgramSteps. Calling
 creates fresh state (new Refs) and executes all accumulated programs sequentially, ensuring
 no state pollution between invocations.
 
-The return type is determined by the actual wallet provided using conditional types:
+The return type is narrowed at construction time based on the wallet type provided:
 
-- SigningTransactionBuilder: When wallet is SigningWallet or ApiWallet
-- ReadOnlyTransactionBuilder: When wallet is ReadOnlyWallet or undefined
+- `SigningTransactionBuilder`: when wallet is `SigningWallet` or `ApiWallet`
+- `ReadOnlyTransactionBuilder`: when wallet is `ReadOnlyWallet` or omitted
 
-Wallet type narrowing happens at construction time based on the wallet's actual type.
-No call-site type narrowing or type guards needed.
+`chain` is required — use the `mainnet`, `preprod`, or `preview` presets from the client
+module, or define a custom `Chain` for private networks and devnets.
 
-Wallet parameter is optional; if omitted, changeAddress and availableUtxos must be
-provided at build time via BuildOptions.
+When wallet is omitted, `changeAddress` and `availableUtxos` must be supplied at build
+time via `BuildOptions`.
 
 **Signature**
 
 ```ts
-export declare function makeTxBuilder<
-  W extends WalletNew.SigningWallet | WalletNew.ApiWallet | WalletNew.ReadOnlyWallet | undefined
->(config: Partial<TxBuilderConfig> & { wallet?: W }): TxBuilderResultType<W>
+export declare function makeTxBuilder(
+  config: TxBuilderConfig & { wallet: WalletNew.SigningWallet | WalletNew.ApiWallet }
+): SigningTransactionBuilder
+export declare function makeTxBuilder(
+  config: TxBuilderConfig & { wallet: WalletNew.ReadOnlyWallet }
+): ReadOnlyTransactionBuilder
+export declare function makeTxBuilder(config: TxBuilderConfig & { wallet?: undefined }): ReadOnlyTransactionBuilder
 ```
 
 Added in v2.0.0
@@ -1145,7 +1095,7 @@ Resolved available UTxOs for the current build.
 This is resolved once at the start of build() from either:
 
 - BuildOptions.availableUtxos (per-transaction override)
-- provider.Effect.getUtxos(wallet.address) (default from wallet + provider)
+- provider.effect.getUtxos(wallet.address) (default from wallet + provider)
 
 Available to all phase functions via Effect Context.
 
@@ -1176,7 +1126,7 @@ Resolved change address for the current build.
 This is resolved once at the start of build() from either:
 
 - BuildOptions.changeAddress (per-transaction override)
-- TxBuilderConfig.wallet.Effect.address() (default from wallet)
+- TxBuilderConfig.wallet.effect.address() (default from wallet)
 
 Available to all phase functions via Effect Context.
 
@@ -1191,7 +1141,7 @@ Added in v2.0.0
 ## FullProtocolParametersTag (class)
 
 Full protocol parameters (including cost models, execution units, etc.) for script evaluation.
-This is resolved from provider.Effect.getProtocolParameters() and includes all fields
+This is resolved from provider.effect.getProtocolParameters() and includes all fields
 needed for UPLC evaluation, unlike the minimal ProtocolParametersTag.
 
 Available to evaluation phase via Effect Context.
@@ -1210,7 +1160,7 @@ Resolved protocol parameters for the current build.
 This is resolved once at the start of build() from either:
 
 - BuildOptions.protocolParameters (per-transaction override)
-- provider.Effect.getProtocolParameters() (fetched from provider)
+- provider.effect.getProtocolParameters() (fetched from provider)
 
 Available to all phase functions via Effect Context.
 
@@ -1585,7 +1535,7 @@ export interface BuildOptions {
   /**
    * Override the change address for this specific transaction build.
    *
-   * By default, uses wallet.Effect.address() from TxBuilderConfig.
+   * By default, uses wallet.effect.address() from TxBuilderConfig.
    * Provide this to use a different address for change outputs.
    *
    * Use cases:
@@ -1610,7 +1560,7 @@ export interface BuildOptions {
   /**
    * Override the available UTxOs for this specific transaction build.
    *
-   * By default, fetches UTxOs from provider.Effect.getUtxos(wallet.address).
+   * By default, fetches UTxOs from provider.effect.getUtxos(wallet.address).
    * Provide this to use a specific set of UTxOs for coin selection.
    *
    * Use cases:
