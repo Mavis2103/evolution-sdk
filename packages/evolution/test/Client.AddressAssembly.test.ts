@@ -20,4 +20,22 @@ describe("Client address assembly", () => {
 
     await expect(addressClient.rewardAddress()).rejects.toThrow("Invalid reward address format: not-a-reward-address")
   })
+
+  it("preserves wallet errors for provider-backed wallet UTxO lookup", async () => {
+    const readOnlyClient = client(preprod)
+      .withAddress("not-an-address")
+      .withKupmios({ kupoUrl: "http://localhost:1443", ogmiosUrl: "http://localhost:1338" })
+
+    await expect(readOnlyClient.getWalletUtxos()).rejects.toThrow("Invalid address format: not-an-address")
+  })
+
+  it("preserves wallet errors for provider-backed delegation lookup", async () => {
+    const readOnlyClient = client(preprod)
+      .withAddress(VALID_TESTNET_ADDRESS, "not-a-reward-address")
+      .withKupmios({ kupoUrl: "http://localhost:1443", ogmiosUrl: "http://localhost:1338" })
+
+    await expect(readOnlyClient.getWalletDelegation()).rejects.toThrow(
+      "Invalid reward address format: not-a-reward-address"
+    )
+  })
 })
