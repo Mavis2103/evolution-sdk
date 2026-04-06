@@ -22,7 +22,13 @@ import {
   type SigningClientEffect,
   type SigningWalletClient
 } from "./Client.js"
-import { type AnyWallet, type WalletFactory } from "./Wallets.js"
+import {
+  type AnyWallet,
+  type ApiWalletFactory,
+  type ReadOnlyWalletFactory,
+  type SigningWalletFactory,
+  type WalletFactory
+} from "./Wallets.js"
 
 type ResolvedWallet = WalletNew.ReadOnlyWallet | WalletNew.SigningWallet | WalletNew.ApiWallet
 
@@ -199,15 +205,22 @@ const createSigningClient = (
  * @since 2.0.0
  * @category constructors
  */
-const createProviderOnlyClient = (chain: Chain, provider: Provider.Provider): ProviderOnlyClient => ({
-  ...provider,
-  chain,
-  attachWallet<T extends AnyWallet>(wallet: T) {
+const createProviderOnlyClient = (chain: Chain, provider: Provider.Provider): ProviderOnlyClient => {
+  function attachWallet(wallet: WalletNew.ReadOnlyWallet | ReadOnlyWalletFactory): ReadOnlyClient
+  function attachWallet(wallet: WalletNew.SigningWallet | WalletNew.ApiWallet | WalletFactory): SigningClient
+  function attachWallet(wallet: AnyWallet): ReadOnlyClient | SigningClient
+  function attachWallet(wallet: AnyWallet): ReadOnlyClient | SigningClient {
     const resolved = resolveWallet(wallet, chain)
-    if (resolved.type === "read-only") return createReadOnlyClient(chain, provider, resolved) as any
-    return createSigningClient(chain, provider, resolved) as any
+    if (resolved.type === "read-only") return createReadOnlyClient(chain, provider, resolved)
+    return createSigningClient(chain, provider, resolved)
   }
-})
+
+  return {
+    ...provider,
+    chain,
+    attachWallet
+  }
+}
 
 /**
  * Construct a MinimalClient holding chain metadata and combinator methods.
@@ -218,26 +231,33 @@ const createProviderOnlyClient = (chain: Chain, provider: Provider.Provider): Pr
 const createMinimalClient = (chain: Chain = mainnet): MinimalClient => {
   const effectInterface: MinimalClientEffect = { chain }
 
+  function attachWallet(wallet: WalletNew.ReadOnlyWallet | ReadOnlyWalletFactory): ReadOnlyWalletClient
+  function attachWallet(wallet: WalletNew.ApiWallet | ApiWalletFactory): ApiWalletClient
+  function attachWallet(wallet: WalletNew.SigningWallet | SigningWalletFactory): SigningWalletClient
+  function attachWallet(wallet: WalletFactory): SigningWalletClient | ApiWalletClient
+  function attachWallet(wallet: AnyWallet): ReadOnlyWalletClient | ApiWalletClient | SigningWalletClient
+  function attachWallet(wallet: AnyWallet): ReadOnlyWalletClient | ApiWalletClient | SigningWalletClient {
+    const resolved = resolveWallet(wallet, chain)
+    if (resolved.type === "read-only") return createReadOnlyWalletClient(chain, resolved)
+    if (resolved.type === "api") return createApiWalletClient(chain, resolved)
+    return createSigningWalletClient(chain, resolved)
+  }
+
   return {
     chain,
     attachProvider: (provider) => createProviderOnlyClient(chain, provider),
-    attachWallet<T extends AnyWallet>(wallet: T) {
-      const resolved = resolveWallet(wallet, chain)
-      if (resolved.type === "read-only") return createReadOnlyWalletClient(chain, resolved) as any
-      if (resolved.type === "api") return createApiWalletClient(chain, resolved) as any
-      return createSigningWalletClient(chain, resolved) as any
-    },
+    attachWallet,
     effect: effectInterface
   }
 }
 
 // ── createClient overloads ────────────────────────────────────────────────────
 
-// Provider + ReadOnly Wallet → ReadOnlyClient
+// Provider + ReadOnly Wallet or Factory → ReadOnlyClient
 export function createClient(config: {
   chain?: Chain
   provider: Provider.Provider
-  wallet: WalletNew.ReadOnlyWallet
+  wallet: WalletNew.ReadOnlyWallet | ReadOnlyWalletFactory
 }): ReadOnlyClient
 
 // Provider + Signing/API Wallet or Factory → SigningClient
@@ -250,17 +270,26 @@ export function createClient(config: {
 // Provider only → ProviderOnlyClient
 export function createClient(config: { chain?: Chain; provider: Provider.Provider }): ProviderOnlyClient
 
-// ReadOnly Wallet only → ReadOnlyWalletClient
-export function createClient(config: { chain?: Chain; wallet: WalletNew.ReadOnlyWallet }): ReadOnlyWalletClient
+// ReadOnly Wallet or Factory only → ReadOnlyWalletClient
+export function createClient(config: {
+  chain?: Chain
+  wallet: WalletNew.ReadOnlyWallet | ReadOnlyWalletFactory
+}): ReadOnlyWalletClient
 
 // API Wallet only → ApiWalletClient
-export function createClient(config: { chain?: Chain; wallet: WalletNew.ApiWallet }): ApiWalletClient
+export function createClient(config: {
+  chain?: Chain
+  wallet: WalletNew.ApiWallet | ApiWalletFactory
+}): ApiWalletClient
 
 // Signing Wallet or Factory only → SigningWalletClient
 export function createClient(config: {
   chain?: Chain
-  wallet: WalletNew.SigningWallet | WalletFactory
+  wallet: WalletNew.SigningWallet | SigningWalletFactory
 }): SigningWalletClient
+
+// Generic WalletFactory only → wallet-only client shape depends on the factory kind
+export function createClient(config: { chain?: Chain; wallet: WalletFactory }): SigningWalletClient | ApiWalletClient
 
 // Chain only or minimal → MinimalClient
 export function createClient(config?: { chain?: Chain }): MinimalClient

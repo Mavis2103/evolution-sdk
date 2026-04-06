@@ -6,7 +6,13 @@ import type * as Provider from "../provider/Provider.js"
 import type { EffectToPromiseAPI } from "../Type.js"
 import type * as WalletNew from "../wallet/WalletNew.js"
 import type { Chain } from "./Chain.js"
-import type { AnyWallet } from "./Wallets.js"
+import type {
+  AnyWallet,
+  ApiWalletFactory,
+  ReadOnlyWalletFactory,
+  SigningWalletFactory,
+  WalletFactory
+} from "./Wallets.js"
 
 /**
  * MinimalClient Effect - holds chain context.
@@ -52,13 +58,13 @@ export interface SigningClientEffect extends Provider.ProviderEffect, WalletNew.
 export interface MinimalClient {
   readonly chain: Chain
   readonly attachProvider: (provider: Provider.Provider) => ProviderOnlyClient
-  readonly attachWallet: <T extends AnyWallet>(
-    wallet: T
-  ) => T extends WalletNew.ReadOnlyWallet
-    ? ReadOnlyWalletClient
-    : T extends WalletNew.ApiWallet
-      ? ApiWalletClient
-      : SigningWalletClient
+  readonly attachWallet: {
+    (wallet: WalletNew.ReadOnlyWallet | ReadOnlyWalletFactory): ReadOnlyWalletClient
+    (wallet: WalletNew.ApiWallet | ApiWalletFactory): ApiWalletClient
+    (wallet: WalletNew.SigningWallet | SigningWalletFactory): SigningWalletClient
+    (wallet: WalletFactory): SigningWalletClient | ApiWalletClient
+    (wallet: AnyWallet): ReadOnlyWalletClient | ApiWalletClient | SigningWalletClient
+  }
   readonly effect: MinimalClientEffect
 }
 
@@ -70,9 +76,11 @@ export interface MinimalClient {
  */
 export type ProviderOnlyClient = EffectToPromiseAPI<Provider.ProviderEffect> & {
   readonly chain: Chain
-  readonly attachWallet: <T extends AnyWallet>(
-    wallet: T
-  ) => T extends WalletNew.ReadOnlyWallet ? ReadOnlyClient : SigningClient
+  readonly attachWallet: {
+    (wallet: WalletNew.ReadOnlyWallet | ReadOnlyWalletFactory): ReadOnlyClient
+    (wallet: WalletNew.SigningWallet | WalletNew.ApiWallet | WalletFactory): SigningClient
+    (wallet: AnyWallet): ReadOnlyClient | SigningClient
+  }
   readonly effect: Provider.ProviderEffect
 }
 

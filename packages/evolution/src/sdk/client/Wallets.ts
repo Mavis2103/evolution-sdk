@@ -1,9 +1,8 @@
 /**
  * Wallet constructors for the client API.
  *
- * `readOnlyWallet` and `cip30Wallet` return wallet instances directly.
- * `seedWallet` and `privateKeyWallet` return chain-aware factories —
- * pass them to `createClient` and chain context is injected automatically.
+ * All wallet constructors return chain-aware factories.
+ * Pass them to `createClient` and chain context is injected automatically.
  *
  * @since 2.1.0
  * @module
@@ -165,9 +164,35 @@ const computeRequiredKeyHashesSync = (params: {
   return required
 }
 
+const validateRewardAddressNetwork = (
+  rewardAddress: CoreRewardAddress.RewardAddress | null,
+  chain: Chain
+): Effect.Effect<CoreRewardAddress.RewardAddress | null, WalletNew.WalletError> => {
+  if (rewardAddress === null) return Effect.succeed(null)
+
+  return Effect.try({
+    try: () => {
+      const rewardAccount = CoreRewardAccount.fromBech32(rewardAddress)
+      if (rewardAccount.networkId !== chain.id) {
+        throw new WalletNew.WalletError({
+          message: `Reward address network mismatch: reward address is for network ${rewardAccount.networkId} but chain id is ${chain.id}`
+        })
+      }
+      return rewardAddress
+    },
+    catch: (cause) =>
+      cause instanceof WalletNew.WalletError
+        ? cause
+        : new WalletNew.WalletError({ message: `Invalid reward address format: ${rewardAddress}`, cause })
+  })
+}
+
 const makeSigningWalletEffect = (
-  derivationEffect: Effect.Effect<Derivation.SeedDerivationResult, WalletNew.WalletError>
+  rawDerivationEffect: Effect.Effect<Derivation.SeedDerivationResult, WalletNew.WalletError>
 ): WalletNew.SigningWallet => {
+  // Cache the derivation so PBKDF2 and BIP32 key derivation only run once on
+  // first wallet method call — consistent with the cip30Wallet caching strategy.
+  const derivationEffect = Effect.runSync(Effect.cached(rawDerivationEffect))
   const effectInterface: WalletNew.SigningWalletEffect = {
     address: () => Effect.map(derivationEffect, (d) => d.address),
     rewardAddress: () => Effect.map(derivationEffect, (d) => d.rewardAddress ?? null),
@@ -243,13 +268,40 @@ const makeSigningWalletEffect = (
 // ── Public wallet types ───────────────────────────────────────────────────────
 
 /**
- * A chain-aware wallet factory — receives chain context at client construction time.
+ * A chain-aware signing wallet factory — receives chain context at client construction time.
  * Returned by `seedWallet` and `privateKeyWallet`.
  *
  * @since 2.1.0
  * @category model
  */
-export type WalletFactory = (chain: Chain) => WalletNew.SigningWallet
+export type SigningWalletFactory = (chain: Chain) => WalletNew.SigningWallet
+
+/**
+ * A chain-aware API wallet factory — receives chain context at client construction time.
+ * Returned by `cip30Wallet`.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export type ApiWalletFactory = (chain: Chain) => WalletNew.ApiWallet
+
+/**
+ * A chain-aware signing or API wallet factory — receives chain context at client construction time.
+ * Returned by wallet constructors that need chain injection.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export type WalletFactory = SigningWalletFactory | ApiWalletFactory
+
+/**
+ * A chain-aware read-only wallet factory — receives chain context at client construction time.
+ * Returned by `readOnlyWallet`.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export type ReadOnlyWalletFactory = (chain: Chain) => WalletNew.ReadOnlyWallet
 
 /**
  * Any wallet instance or factory accepted by `createClient`.
@@ -257,7 +309,14 @@ export type WalletFactory = (chain: Chain) => WalletNew.SigningWallet
  * @since 2.1.0
  * @category model
  */
-export type AnyWallet = WalletNew.ReadOnlyWallet | WalletNew.SigningWallet | WalletNew.ApiWallet | WalletFactory
+export type AnyWallet =
+  | WalletNew.ReadOnlyWallet
+  | WalletNew.SigningWallet
+  | WalletNew.ApiWallet
+  | SigningWalletFactory
+  | ApiWalletFactory
+  | WalletFactory
+  | ReadOnlyWalletFactory
 
 // ── Config types ──────────────────────────────────────────────────────────────
 
@@ -292,24 +351,37 @@ export interface PrivateKeyWalletConfig {
 
 /**
  * Read-only wallet — no signing capability.
+ * Chain context validates that the address network matches the configured chain.
  *
  * @since 2.1.0
  * @category constructors
  */
-export const readOnlyWallet = (address: string, rewardAddress?: string): WalletNew.ReadOnlyWallet => {
-  const coreAddress = CoreAddress.fromBech32(address)
-  const coreRewardAddress = rewardAddress ? Schema.decodeSync(CoreRewardAddress.RewardAddress)(rewardAddress) : null
-  const effectInterface: WalletNew.ReadOnlyWalletEffect = {
-    address: () => Effect.succeed(coreAddress),
-    rewardAddress: () => Effect.succeed(coreRewardAddress)
+export const readOnlyWallet =
+  (address: string, rewardAddress?: string): ReadOnlyWalletFactory =>
+  (chain: Chain): WalletNew.ReadOnlyWallet => {
+    const coreAddress = CoreAddress.fromBech32(address)
+    const coreRewardAddress = rewardAddress ? Schema.decodeSync(CoreRewardAddress.RewardAddress)(rewardAddress) : null
+    const networkId = CoreAddress.getNetworkId(coreAddress)
+    const addressEffect: Effect.Effect<CoreAddress.Address, WalletNew.WalletError> =
+      networkId !== chain.id
+        ? Effect.fail(
+            new WalletNew.WalletError({
+              message: `Address network mismatch: address is for network ${networkId} but chain id is ${chain.id}`
+            })
+          )
+        : Effect.succeed(coreAddress)
+    const rewardAddressEffect = validateRewardAddressNetwork(coreRewardAddress, chain)
+    const effectInterface: WalletNew.ReadOnlyWalletEffect = {
+      address: () => addressEffect,
+      rewardAddress: () => rewardAddressEffect
+    }
+    return {
+      type: "read-only",
+      address: () => Effect.runPromise(addressEffect),
+      rewardAddress: () => Effect.runPromise(rewardAddressEffect),
+      effect: effectInterface
+    }
   }
-  return {
-    type: "read-only",
-    address: () => Promise.resolve(coreAddress),
-    rewardAddress: () => Promise.resolve(coreRewardAddress),
-    effect: effectInterface
-  }
-}
 
 /**
  * Seed phrase wallet — returns a chain-aware factory.
@@ -319,7 +391,7 @@ export const readOnlyWallet = (address: string, rewardAddress?: string): WalletN
  * @category constructors
  */
 export const seedWallet =
-  (config: SeedWalletConfig): WalletFactory =>
+  (config: SeedWalletConfig): SigningWalletFactory =>
   (chain: Chain): WalletNew.SigningWallet => {
     const network: WalletNew.Network = chain.id === 1 ? "Mainnet" : "Testnet"
     const derivationEffect = Derivation.walletFromSeed(config.mnemonic, {
@@ -341,7 +413,7 @@ export const seedWallet =
  * @category constructors
  */
 export const privateKeyWallet =
-  (config: PrivateKeyWalletConfig): WalletFactory =>
+  (config: PrivateKeyWalletConfig): SigningWalletFactory =>
   (chain: Chain): WalletNew.SigningWallet => {
     const network: WalletNew.Network = chain.id === 1 ? "Mainnet" : "Testnet"
     const derivationEffect = Derivation.walletFromPrivateKey(config.paymentKey, {
@@ -358,57 +430,54 @@ export const privateKeyWallet =
  * @since 2.1.0
  * @category constructors
  */
-export const cip30Wallet = (api: WalletNew.WalletApi): WalletNew.ApiWallet => {
-  // Effect.cached runs the inner effect once on first demand and replays the
-  // result (success or failure) to all subsequent callers — including failures.
-  // This is acceptable because a cip30Wallet instance is tied to a single
-  // wallet-enable session; a failed instance should be discarded and re-enabled.
-  // Effect.runSync on the outer Effect is safe here because cached() only
-  // allocates a Deferred synchronously — the actual fetch is deferred until
-  // first use.
-  const getAddress = Effect.runSync(
-    Effect.cached(
-      Effect.gen(function* () {
-        const used = yield* Effect.tryPromise({
-          try: () => api.getUsedAddresses(),
-          catch: (e) => new WalletNew.WalletError({ message: "Failed to fetch used addresses", cause: e as Error })
+export const cip30Wallet =
+  (api: WalletNew.WalletApi): ApiWalletFactory =>
+  (chain: Chain): WalletNew.ApiWallet => {
+  const fetchAddress = Effect.gen(function* () {
+    const used = yield* Effect.tryPromise({
+      try: () => api.getUsedAddresses(),
+      catch: (e) => new WalletNew.WalletError({ message: "Failed to fetch used addresses", cause: e as Error })
+    })
+    const unused = yield* Effect.tryPromise({
+      try: () => api.getUnusedAddresses(),
+      catch: (e) => new WalletNew.WalletError({ message: "Failed to fetch unused addresses", cause: e as Error })
+    })
+    const addrStr = used[0] ?? unused[0]
+    if (!addrStr) return yield* Effect.fail(new WalletNew.WalletError({ message: "Wallet API returned no addresses", cause: null }))
+    const resolvedAddress = yield* Effect.orElse(
+      Effect.try({ try: () => CoreAddress.fromBech32(addrStr), catch: () => addrStr }),
+      () =>
+        Effect.try({
+          try: () => CoreAddress.fromHex(addrStr),
+          catch: (e) => new WalletNew.WalletError({ message: `Invalid address format from wallet: ${addrStr}`, cause: e as Error })
         })
-        const unused = yield* Effect.tryPromise({
-          try: () => api.getUnusedAddresses(),
-          catch: (e) => new WalletNew.WalletError({ message: "Failed to fetch unused addresses", cause: e as Error })
-        })
-        const addrStr = used[0] ?? unused[0]
-        if (!addrStr) return yield* Effect.fail(new WalletNew.WalletError({ message: "Wallet API returned no addresses", cause: null }))
-        return yield* Effect.orElse(
-          Effect.try({ try: () => CoreAddress.fromBech32(addrStr), catch: () => addrStr }),
-          () =>
-            Effect.try({
-              try: () => CoreAddress.fromHex(addrStr),
-              catch: (e) => new WalletNew.WalletError({ message: `Invalid address format from wallet: ${addrStr}`, cause: e as Error })
-            })
-        )
-      })
     )
-  )
+    const networkId = CoreAddress.getNetworkId(resolvedAddress)
+    if (networkId !== chain.id) {
+      return yield* Effect.fail(
+        new WalletNew.WalletError({
+          message: `Wallet network mismatch: wallet is on network ${networkId} but chain id is ${chain.id}`
+        })
+      )
+    }
+    return resolvedAddress
+  })
 
-  const getRewardAddress = Effect.runSync(
-    Effect.cached(
-      Effect.gen(function* () {
-        const rewards = yield* Effect.tryPromise({
-          try: () => api.getRewardAddresses(),
-          catch: (e) => new WalletNew.WalletError({ message: "Failed to fetch reward addresses", cause: e as Error })
-        })
-        if (!rewards[0]) return null
-        return yield* Schema.decodeUnknown(CoreRewardAddress.RewardAddress)(rewards[0]).pipe(
-          Effect.mapError((e) => new WalletNew.WalletError({ message: `Invalid reward address from wallet`, cause: e }))
-        )
-      })
+  const fetchRewardAddress = Effect.gen(function* () {
+    const rewards = yield* Effect.tryPromise({
+      try: () => api.getRewardAddresses(),
+      catch: (e) => new WalletNew.WalletError({ message: "Failed to fetch reward addresses", cause: e as Error })
+    })
+    if (!rewards[0]) return null
+    const rewardAddress = yield* Schema.decodeUnknown(CoreRewardAddress.RewardAddress)(rewards[0]).pipe(
+      Effect.mapError((e) => new WalletNew.WalletError({ message: `Invalid reward address from wallet`, cause: e }))
     )
-  )
+    return yield* validateRewardAddressNetwork(rewardAddress, chain)
+  })
 
   const effectInterface: WalletNew.ApiWalletEffect = {
-    address: () => getAddress,
-    rewardAddress: () => getRewardAddress,
+    address: () => fetchAddress,
+    rewardAddress: () => fetchRewardAddress,
     signTx: (txOrHex: Transaction.Transaction | string, _context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
       Effect.gen(function* () {
         const cbor = typeof txOrHex === "string" ? txOrHex : Transaction.toCBORHex(txOrHex)
