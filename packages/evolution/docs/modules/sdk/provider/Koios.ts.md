@@ -1,6 +1,6 @@
 ---
 title: sdk/provider/Koios.ts
-nav_order: 163
+nav_order: 161
 parent: Modules
 ---
 

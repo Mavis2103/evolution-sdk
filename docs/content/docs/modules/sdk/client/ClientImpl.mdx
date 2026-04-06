@@ -10,34 +10,21 @@ parent: Modules
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [utils](#utils)
-  - [createClient](#createclient)
+- [constructors](#constructors)
+  - [client](#client)
 
 ---
 
-# utils
+# constructors
 
-## createClient
+## client
+
+Construct a chain-scoped client assembly stage.
 
 **Signature**
 
 ```ts
-export declare function createClient(config: {
-  chain?: Chain
-  provider: Provider.Provider
-  wallet: WalletNew.ReadOnlyWallet
-}): ReadOnlyClient
-export declare function createClient(config: {
-  chain?: Chain
-  provider: Provider.Provider
-  wallet: WalletNew.SigningWallet | WalletNew.ApiWallet | WalletFactory
-}): SigningClient
-export declare function createClient(config: { chain?: Chain; provider: Provider.Provider }): ProviderOnlyClient
-export declare function createClient(config: { chain?: Chain; wallet: WalletNew.ReadOnlyWallet }): ReadOnlyWalletClient
-export declare function createClient(config: { chain?: Chain; wallet: WalletNew.ApiWallet }): ApiWalletClient
-export declare function createClient(config: {
-  chain?: Chain
-  wallet: WalletNew.SigningWallet | WalletFactory
-}): SigningWalletClient
-export declare function createClient(config?: { chain?: Chain }): MinimalClient
+export declare const client: (chain?: Chain) => ClientAssembly
 ```
+
+Added in v2.1.0
