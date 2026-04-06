@@ -359,60 +359,56 @@ export const privateKeyWallet =
  * @category constructors
  */
 export const cip30Wallet = (api: WalletNew.WalletApi): WalletNew.ApiWallet => {
-  // Cache the address fetch as a single Promise so concurrent callers share the
-  // same in-flight request and subsequent calls reuse the settled result.
-  let addressPromise: Promise<CoreAddress.Address> | null = null
-  let rewardAddressPromise: Promise<CoreRewardAddress.RewardAddress | null> | null = null
-
-  const fetchPrimaryAddress = (): Promise<CoreAddress.Address> => {
-    if (!addressPromise) {
-      addressPromise = (async () => {
-        const used = await api.getUsedAddresses()
-        const unused = await api.getUnusedAddresses()
+  // Effect.cached runs the inner effect once on first demand and replays the
+  // result (success or failure) to all subsequent callers — including failures.
+  // This is acceptable because a cip30Wallet instance is tied to a single
+  // wallet-enable session; a failed instance should be discarded and re-enabled.
+  // Effect.runSync on the outer Effect is safe here because cached() only
+  // allocates a Deferred synchronously — the actual fetch is deferred until
+  // first use.
+  const getAddress = Effect.runSync(
+    Effect.cached(
+      Effect.gen(function* () {
+        const used = yield* Effect.tryPromise({
+          try: () => api.getUsedAddresses(),
+          catch: (e) => new WalletNew.WalletError({ message: "Failed to fetch used addresses", cause: e as Error })
+        })
+        const unused = yield* Effect.tryPromise({
+          try: () => api.getUnusedAddresses(),
+          catch: (e) => new WalletNew.WalletError({ message: "Failed to fetch unused addresses", cause: e as Error })
+        })
         const addrStr = used[0] ?? unused[0]
-        if (!addrStr) throw new WalletNew.WalletError({ message: "Wallet API returned no addresses", cause: null })
-        try {
-          return CoreAddress.fromBech32(addrStr)
-        } catch {
-          try {
-            return CoreAddress.fromHex(addrStr)
-          } catch (error) {
-            throw new WalletNew.WalletError({
-              message: `Invalid address format from wallet: ${addrStr}`,
-              cause: error as Error
+        if (!addrStr) return yield* Effect.fail(new WalletNew.WalletError({ message: "Wallet API returned no addresses", cause: null }))
+        return yield* Effect.orElse(
+          Effect.try({ try: () => CoreAddress.fromBech32(addrStr), catch: () => addrStr }),
+          () =>
+            Effect.try({
+              try: () => CoreAddress.fromHex(addrStr),
+              catch: (e) => new WalletNew.WalletError({ message: `Invalid address format from wallet: ${addrStr}`, cause: e as Error })
             })
-          }
-        }
-      })()
-    }
-    return addressPromise
-  }
+        )
+      })
+    )
+  )
 
-  const fetchPrimaryRewardAddress = (): Promise<CoreRewardAddress.RewardAddress | null> => {
-    if (!rewardAddressPromise) {
-      rewardAddressPromise = api
-        .getRewardAddresses()
-        .then((rewards) => (rewards[0] ? Schema.decodeSync(CoreRewardAddress.RewardAddress)(rewards[0]) : null))
-    }
-    return rewardAddressPromise
-  }
-
-  const getPrimaryAddress = Effect.tryPromise({
-    try: fetchPrimaryAddress,
-    catch: (cause) =>
-      cause instanceof WalletNew.WalletError
-        ? cause
-        : new WalletNew.WalletError({ message: (cause as Error).message, cause: cause as Error })
-  })
-
-  const getPrimaryRewardAddress = Effect.tryPromise({
-    try: fetchPrimaryRewardAddress,
-    catch: (cause) => new WalletNew.WalletError({ message: (cause as Error).message, cause: cause as Error })
-  })
+  const getRewardAddress = Effect.runSync(
+    Effect.cached(
+      Effect.gen(function* () {
+        const rewards = yield* Effect.tryPromise({
+          try: () => api.getRewardAddresses(),
+          catch: (e) => new WalletNew.WalletError({ message: "Failed to fetch reward addresses", cause: e as Error })
+        })
+        if (!rewards[0]) return null
+        return yield* Schema.decodeUnknown(CoreRewardAddress.RewardAddress)(rewards[0]).pipe(
+          Effect.mapError((e) => new WalletNew.WalletError({ message: `Invalid reward address from wallet`, cause: e }))
+        )
+      })
+    )
+  )
 
   const effectInterface: WalletNew.ApiWalletEffect = {
-    address: () => getPrimaryAddress,
-    rewardAddress: () => getPrimaryRewardAddress,
+    address: () => getAddress,
+    rewardAddress: () => getRewardAddress,
     signTx: (txOrHex: Transaction.Transaction | string, _context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
       Effect.gen(function* () {
         const cbor = typeof txOrHex === "string" ? txOrHex : Transaction.toCBORHex(txOrHex)
