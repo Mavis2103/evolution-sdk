@@ -187,6 +187,39 @@ const validateRewardAddressNetwork = (
   })
 }
 
+const decodeReadOnlyAddress = (
+  address: string,
+  chain: Chain
+): Effect.Effect<CoreAddress.Address, WalletNew.WalletError> =>
+  Effect.try({
+    try: () => CoreAddress.fromBech32(address),
+    catch: (cause) => new WalletNew.WalletError({ message: `Invalid address format: ${address}`, cause })
+  }).pipe(
+    Effect.flatMap((coreAddress) => {
+      const networkId = CoreAddress.getNetworkId(coreAddress)
+      return networkId !== chain.id
+        ? Effect.fail(
+            new WalletNew.WalletError({
+              message: `Address network mismatch: address is for network ${networkId} but chain id is ${chain.id}`
+            })
+          )
+        : Effect.succeed(coreAddress)
+    })
+  )
+
+const decodeReadOnlyRewardAddress = (
+  rewardAddress: string | undefined,
+  chain: Chain
+): Effect.Effect<CoreRewardAddress.RewardAddress | null, WalletNew.WalletError> =>
+  rewardAddress === undefined
+    ? Effect.succeed(null)
+    : Schema.decodeUnknown(CoreRewardAddress.RewardAddress)(rewardAddress).pipe(
+        Effect.mapError(
+          (cause) => new WalletNew.WalletError({ message: `Invalid reward address format: ${rewardAddress}`, cause })
+        ),
+        Effect.flatMap((coreRewardAddress) => validateRewardAddressNetwork(coreRewardAddress, chain))
+      )
+
 const makeSigningWalletEffect = (
   rawDerivationEffect: Effect.Effect<Derivation.SeedDerivationResult, WalletNew.WalletError>
 ): WalletNew.SigningWallet => {
@@ -352,6 +385,7 @@ export interface PrivateKeyWalletConfig {
 /**
  * Read-only wallet — no signing capability.
  * Chain context validates that the address network matches the configured chain.
+ * Validation is deferred until wallet methods are executed so client assembly stays pure.
  *
  * @since 2.1.0
  * @category constructors
@@ -359,18 +393,8 @@ export interface PrivateKeyWalletConfig {
 export const readOnlyWallet =
   (address: string, rewardAddress?: string): ReadOnlyWalletFactory =>
   (chain: Chain): WalletNew.ReadOnlyWallet => {
-    const coreAddress = CoreAddress.fromBech32(address)
-    const coreRewardAddress = rewardAddress ? Schema.decodeSync(CoreRewardAddress.RewardAddress)(rewardAddress) : null
-    const networkId = CoreAddress.getNetworkId(coreAddress)
-    const addressEffect: Effect.Effect<CoreAddress.Address, WalletNew.WalletError> =
-      networkId !== chain.id
-        ? Effect.fail(
-            new WalletNew.WalletError({
-              message: `Address network mismatch: address is for network ${networkId} but chain id is ${chain.id}`
-            })
-          )
-        : Effect.succeed(coreAddress)
-    const rewardAddressEffect = validateRewardAddressNetwork(coreRewardAddress, chain)
+    const addressEffect = decodeReadOnlyAddress(address, chain)
+    const rewardAddressEffect = decodeReadOnlyRewardAddress(rewardAddress, chain)
     const effectInterface: WalletNew.ReadOnlyWalletEffect = {
       address: () => addressEffect,
       rewardAddress: () => rewardAddressEffect
