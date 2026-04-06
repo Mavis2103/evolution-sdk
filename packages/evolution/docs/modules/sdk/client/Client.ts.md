@@ -10,6 +10,8 @@ parent: Modules
 
 <h2 class="text-delta">Table of contents</h2>
 
+- [constructors](#constructors)
+  - [client](#client)
 - [model](#model)
   - [AddressClient (type alias)](#addressclient-type-alias)
   - [AddressClientEffect (interface)](#addressclienteffect-interface)
@@ -29,6 +31,20 @@ parent: Modules
   - [SigningClientEffect (interface)](#signingclienteffect-interface)
 
 ---
+
+# constructors
+
+## client
+
+Construct a chain-scoped client assembly stage.
+
+**Signature**
+
+```ts
+export declare const client: (chain?: Chain) => ClientAssembly
+```
+
+Added in v2.1.0
 
 # model
 
@@ -58,7 +74,7 @@ Address capability Effect surface.
 **Signature**
 
 ```ts
-export interface AddressClientEffect extends WalletNew.ReadOnlyWalletEffect {}
+export interface AddressClientEffect extends Wallet.ReadOnlyWalletEffect {}
 ```
 
 Added in v2.1.0
@@ -94,7 +110,7 @@ export interface ClientAssembly {
   readonly withAddress: (address: string, rewardAddress?: string) => AddressClient
   readonly withSeed: (config: SeedWalletConfig) => OfflineSignerClient
   readonly withPrivateKey: (config: PrivateKeyWalletConfig) => OfflineSignerClient
-  readonly withCip30: (api: WalletNew.WalletApi) => OfflineSignerClient
+  readonly withCip30: (api: Wallet.WalletApi) => OfflineSignerClient
 }
 ```
 
@@ -178,10 +194,10 @@ Offline signing capability Effect surface.
 ```ts
 export interface OfflineSignerClientEffect extends AddressClientEffect {
   readonly signTx: (
-    tx: Parameters<WalletNew.SigningWalletEffect["signTx"]>[0],
-    context?: Parameters<WalletNew.SigningWalletEffect["signTx"]>[1]
-  ) => ReturnType<WalletNew.SigningWalletEffect["signTx"]>
-  readonly signMessage: WalletNew.SigningWalletEffect["signMessage"]
+    tx: Parameters<Wallet.SigningWalletEffect["signTx"]>[0],
+    context?: Parameters<Wallet.SigningWalletEffect["signTx"]>[1]
+  ) => ReturnType<Wallet.SigningWalletEffect["signTx"]>
+  readonly signMessage: Wallet.SigningWalletEffect["signMessage"]
 }
 ```
 
@@ -215,7 +231,7 @@ export type ReadClient = EffectToPromiseAPI<Provider.ProviderEffect> & {
   readonly withAddress: (address: string, rewardAddress?: string) => ReadOnlyClient
   readonly withSeed: (config: SeedWalletConfig) => SigningClient
   readonly withPrivateKey: (config: PrivateKeyWalletConfig) => SigningClient
-  readonly withCip30: (api: WalletNew.WalletApi) => SigningClient
+  readonly withCip30: (api: Wallet.WalletApi) => SigningClient
   readonly newTx: () => ReadOnlyTransactionBuilder
   readonly effect: Provider.ProviderEffect
 }
@@ -247,8 +263,11 @@ Read-only client Effect surface.
 
 ```ts
 export interface ReadOnlyClientEffect extends Provider.ProviderEffect, AddressClientEffect {
-  readonly getWalletUtxos: () => Effect.Effect<ReadonlyArray<CoreUTxO.UTxO>, Provider.ProviderError>
-  readonly getWalletDelegation: () => Effect.Effect<Provider.Delegation, Provider.ProviderError>
+  readonly getWalletUtxos: () => Effect.Effect<
+    ReadonlyArray<CoreUTxO.UTxO>,
+    Wallet.WalletError | Provider.ProviderError
+  >
+  readonly getWalletDelegation: () => Effect.Effect<Provider.Delegation, Wallet.WalletError | Provider.ProviderError>
 }
 ```
 
@@ -299,9 +318,9 @@ Signing client Effect surface.
 export interface SigningClientEffect extends Provider.ProviderEffect, OfflineSignerClientEffect {
   readonly getWalletUtxos: () => Effect.Effect<
     ReadonlyArray<CoreUTxO.UTxO>,
-    WalletNew.WalletError | Provider.ProviderError
+    Wallet.WalletError | Provider.ProviderError
   >
-  readonly getWalletDelegation: () => Effect.Effect<Provider.Delegation, WalletNew.WalletError | Provider.ProviderError>
+  readonly getWalletDelegation: () => Effect.Effect<Provider.Delegation, Wallet.WalletError | Provider.ProviderError>
 }
 ```
 

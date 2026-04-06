@@ -1,6 +1,6 @@
 ---
 title: sdk/provider/Provider.ts
-nav_order: 164
+nav_order: 162
 parent: Modules
 ---
 

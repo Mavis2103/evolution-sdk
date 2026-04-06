@@ -113,7 +113,7 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
     options?: BuildOptions
   ) => Effect.Effect<
     TransactionResultBase,
-    TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError,
+    TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError,
     never
   >
 
@@ -131,7 +131,7 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
   ) => Promise<
     Either<
       TransactionResultBase,
-      TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError
+      TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError
     >
   >
 }
@@ -177,7 +177,7 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
     options?: BuildOptions
   ) => Effect.Effect<
     SignBuilder,
-    TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError,
+    TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError,
     never
   >
 
@@ -193,7 +193,7 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
   readonly buildEither: (
     options?: BuildOptions
   ) => Promise<
-    Either<SignBuilder, TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError>
+    Either<SignBuilder, TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError>
   >
 }
 ```
@@ -1015,7 +1015,7 @@ export interface TxBuilderConfig {
    *
    * Override per-build via BuildOptions.changeAddress and BuildOptions.availableUtxos.
    */
-  readonly wallet?: WalletNew.SigningWallet | WalletNew.ApiWallet | WalletNew.ReadOnlyWallet
+  readonly wallet?: Wallet.SigningWallet | Wallet.ApiWallet | Wallet.ReadOnlyWallet
 
   /**
    * Optional provider for:
@@ -1077,10 +1077,10 @@ time via `BuildOptions`.
 
 ```ts
 export declare function makeTxBuilder(
-  config: TxBuilderConfig & { wallet: WalletNew.SigningWallet | WalletNew.ApiWallet }
+  config: TxBuilderConfig & { wallet: Wallet.SigningWallet | Wallet.ApiWallet }
 ): SigningTransactionBuilder
 export declare function makeTxBuilder(
-  config: TxBuilderConfig & { wallet: WalletNew.ReadOnlyWallet }
+  config: TxBuilderConfig & { wallet: Wallet.ReadOnlyWallet }
 ): ReadOnlyTransactionBuilder
 export declare function makeTxBuilder(config: TxBuilderConfig & { wallet?: undefined }): ReadOnlyTransactionBuilder
 ```

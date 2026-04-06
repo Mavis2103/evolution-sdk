@@ -1,6 +1,6 @@
 ---
 title: sdk/provider/Kupmios.ts
-nav_order: 162
+nav_order: 160
 parent: Modules
 ---
 
