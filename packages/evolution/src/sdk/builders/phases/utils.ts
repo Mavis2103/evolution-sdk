@@ -27,7 +27,6 @@ import * as PoolKeyHash from "../../../PoolKeyHash.js"
  *
  * @param certificates - Array of certificates to analyze
  * @param poolDeposits - Map of pool key hashes to their deposit amounts
- * @returns Object containing total deposits and refunds in lovelace
  *
  * @since 2.0.0
  * @category utilities
@@ -92,7 +91,6 @@ export function calculateCertificateBalance(
  * Calculate total withdrawal amount from a map of reward accounts to withdrawal amounts.
  *
  * @param withdrawals - Map of reward accounts to withdrawal amounts
- * @returns Total withdrawal amount in lovelace
  *
  * @since 2.0.0
  * @category utilities
@@ -113,7 +111,6 @@ export function calculateWithdrawals(withdrawals: ReadonlyMap<unknown, bigint>):
  * during balancing.
  *
  * @param proposalProcedures - ProposalProcedures containing one or more proposals (or undefined)
- * @returns Total proposal deposit amount in lovelace
  *
  * @since 2.0.0
  * @category utilities
@@ -147,7 +144,6 @@ export function calculateProposalDeposits(
  * redeemer indexing (lexicographic sort of voter keys).
  *
  * @param voter - The voter to convert to a key
- * @returns Unique string key for the voter
  *
  * @since 2.0.0
  * @category utilities

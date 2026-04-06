@@ -1,4 +1,4 @@
-import { Data, type Effect } from "effect"
+import { type Effect } from "effect"
 
 import type * as CoreUTxO from "../../UTxO.js"
 import type { ReadOnlyTransactionBuilder, SigningTransactionBuilder } from "../builders/TransactionBuilder.js"
@@ -7,17 +7,6 @@ import type { EffectToPromiseAPI } from "../Type.js"
 import type * as WalletNew from "../wallet/WalletNew.js"
 import type { Chain } from "./Chain.js"
 import type { AnyWallet } from "./Wallets.js"
-
-/**
- * Error class for provider-related operations.
- *
- * @since 2.0.0
- * @category errors
- */
-export class ProviderError extends Data.TaggedError("ProviderError")<{
-  message?: string
-  cause?: unknown
-}> {}
 
 /**
  * MinimalClient Effect - holds chain context.
@@ -47,7 +36,10 @@ export interface ReadOnlyClientEffect extends Provider.ProviderEffect, WalletNew
  * @category model
  */
 export interface SigningClientEffect extends Provider.ProviderEffect, WalletNew.SigningWalletEffect {
-  readonly getWalletUtxos: () => Effect.Effect<ReadonlyArray<CoreUTxO.UTxO>, WalletNew.WalletError | Provider.ProviderError>
+  readonly getWalletUtxos: () => Effect.Effect<
+    ReadonlyArray<CoreUTxO.UTxO>,
+    WalletNew.WalletError | Provider.ProviderError
+  >
   readonly getWalletDelegation: () => Effect.Effect<Provider.Delegation, WalletNew.WalletError | Provider.ProviderError>
 }
 
@@ -67,7 +59,7 @@ export interface MinimalClient {
     : T extends WalletNew.ApiWallet
       ? ApiWalletClient
       : SigningWalletClient
-  readonly Effect: MinimalClientEffect
+  readonly effect: MinimalClientEffect
 }
 
 /**
@@ -81,7 +73,7 @@ export type ProviderOnlyClient = EffectToPromiseAPI<Provider.ProviderEffect> & {
   readonly attachWallet: <T extends AnyWallet>(
     wallet: T
   ) => T extends WalletNew.ReadOnlyWallet ? ReadOnlyClient : SigningClient
-  readonly Effect: Provider.ProviderEffect
+  readonly effect: Provider.ProviderEffect
 }
 
 /**
@@ -93,7 +85,7 @@ export type ProviderOnlyClient = EffectToPromiseAPI<Provider.ProviderEffect> & {
  */
 export type ReadOnlyClient = EffectToPromiseAPI<ReadOnlyClientEffect> & {
   readonly newTx: () => ReadOnlyTransactionBuilder
-  readonly Effect: ReadOnlyClientEffect
+  readonly effect: ReadOnlyClientEffect
 }
 
 /**
@@ -105,7 +97,7 @@ export type ReadOnlyClient = EffectToPromiseAPI<ReadOnlyClientEffect> & {
  */
 export type SigningClient = EffectToPromiseAPI<SigningClientEffect> & {
   readonly newTx: () => SigningTransactionBuilder
-  readonly Effect: SigningClientEffect
+  readonly effect: SigningClientEffect
 }
 
 /**
@@ -118,7 +110,7 @@ export type SigningClient = EffectToPromiseAPI<SigningClientEffect> & {
 export type ApiWalletClient = EffectToPromiseAPI<WalletNew.ApiWalletEffect> & {
   readonly chain: Chain
   readonly attachProvider: (provider: Provider.Provider) => SigningClient
-  readonly Effect: WalletNew.ApiWalletEffect
+  readonly effect: WalletNew.ApiWalletEffect
 }
 
 /**
@@ -131,7 +123,7 @@ export type ApiWalletClient = EffectToPromiseAPI<WalletNew.ApiWalletEffect> & {
 export type SigningWalletClient = EffectToPromiseAPI<WalletNew.SigningWalletEffect> & {
   readonly chain: Chain
   readonly attachProvider: (provider: Provider.Provider) => SigningClient
-  readonly Effect: WalletNew.SigningWalletEffect
+  readonly effect: WalletNew.SigningWalletEffect
 }
 
 /**
@@ -144,9 +136,5 @@ export type SigningWalletClient = EffectToPromiseAPI<WalletNew.SigningWalletEffe
 export type ReadOnlyWalletClient = EffectToPromiseAPI<WalletNew.ReadOnlyWalletEffect> & {
   readonly chain: Chain
   readonly attachProvider: (provider: Provider.Provider) => ReadOnlyClient
-  readonly Effect: WalletNew.ReadOnlyWalletEffect
+  readonly effect: WalletNew.ReadOnlyWalletEffect
 }
-
-export type { Chain } from "./Chain.js"
-export { mainnet, preprod, preview } from "./Chain.js"
-export type { AnyWallet, WalletFactory } from "./Wallets.js"

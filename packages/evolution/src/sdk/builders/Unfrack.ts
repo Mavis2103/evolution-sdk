@@ -250,8 +250,6 @@ const bundleTokensWithRules = (
  */
 /**
  * Calculate ADA subdivision amounts based on percentages
- *
- * @returns Array of bigint amounts for subdivision
  */
 export const calculateAdaSubdivision = (
   leftoverAda: bigint,

@@ -58,7 +58,7 @@ export const createRegisterStakeProgram = (
       )
     }
 
-    const protocolParams = yield* config.provider.Effect.getProtocolParameters().pipe(
+    const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
           new TransactionBuilderError({
@@ -115,113 +115,47 @@ export const createRegisterStakeProgram = (
 
 /**
  * Creates a ProgramStep for delegateTo operation.
- * Adds delegation certificate(s) to the transaction.
+ * Delegates stake and/or voting power based on parameters provided.
  *
- * Supports three modes:
- * - Pool only: Creates StakeDelegation certificate
- * - DRep only: Creates VoteDelegCert certificate (Conway)
- * - Both: Creates StakeVoteDelegCert certificate (Conway)
- *
- * For script-controlled credentials, tracks redeemer for evaluation.
- *
+ * @deprecated Use delegateToPool, delegateToDRep, or delegateToPoolAndDRep instead
  * @since 2.0.0
  * @category programs
  */
 export const createDelegateToProgram = (
   params: DelegateToParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
-  Effect.gen(function* () {
-    const ctx = yield* TxContext
-
-    // Validate at least one delegation target
-    if (!params.poolKeyHash && !params.drep) {
-      return yield* Effect.fail(
-        new TransactionBuilderError({
-          message: "delegateTo requires either poolKeyHash or drep (or both)"
-        })
-      )
-    }
-
-    // Check if script-controlled
-    const isScriptControlled = params.stakeCredential._tag === "ScriptHash"
-
-    if (isScriptControlled && !params.redeemer) {
-      return yield* Effect.fail(
-        new TransactionBuilderError({
-          message: "Redeemer required for script-controlled stake credential delegation"
-        })
-      )
-    }
-
-    // Create appropriate certificate based on what's provided
-    let certificate: Certificate.Certificate
-
-    if (params.poolKeyHash && params.drep) {
-      // Both pool and DRep - use StakeVoteDelegCert (Conway)
-      certificate = new Certificate.StakeVoteDelegCert({
-        stakeCredential: params.stakeCredential,
-        poolKeyHash: params.poolKeyHash,
-        drep: params.drep
-      })
-    } else if (params.poolKeyHash) {
-      // Pool only - use StakeDelegation
-      certificate = new Certificate.StakeDelegation({
-        stakeCredential: params.stakeCredential,
-        poolKeyHash: params.poolKeyHash
-      })
-    } else {
-      // DRep only - use VoteDelegCert (Conway)
-      certificate = new Certificate.VoteDelegCert({
-        stakeCredential: params.stakeCredential,
-        drep: params.drep!
-      })
-    }
-
-    yield* Ref.update(ctx, (state) => {
-      let newRedeemers = state.redeemers
-      let newDeferredRedeemers = state.deferredRedeemers
-
-      // Track redeemer if script-controlled
-      if (params.redeemer && isScriptControlled) {
-        const deferred = RedeemerBuilder.toDeferredRedeemer(params.redeemer)
-        const certKey = `cert:${Bytes.toHex(params.stakeCredential.hash)}`
-
-        if (deferred._tag === "static") {
-          newRedeemers = new Map(state.redeemers)
-          newRedeemers.set(certKey, {
-            tag: "cert",
-            data: deferred.data,
-            exUnits: undefined,
-            label: params.label
-          })
-        } else {
-          newDeferredRedeemers = new Map(state.deferredRedeemers)
-          newDeferredRedeemers.set(certKey, {
-            tag: "cert",
-            deferred,
-            exUnits: undefined,
-            label: params.label
-          })
-        }
-      }
-
-      return {
-        ...state,
-        certificates: [...state.certificates, certificate],
-        redeemers: newRedeemers,
-        deferredRedeemers: newDeferredRedeemers
-      }
+): Effect.Effect<void, TransactionBuilderError, TxContext> => {
+  // Dispatch to appropriate function based on params
+  if (params.poolKeyHash && params.drep) {
+    return createDelegateToPoolAndDRepProgram({
+      stakeCredential: params.stakeCredential,
+      poolKeyHash: params.poolKeyHash,
+      drep: params.drep,
+      redeemer: params.redeemer,
+      label: params.label
     })
-
-    const delegationType =
-      params.poolKeyHash && params.drep
-        ? "StakeVoteDelegCert (pool + DRep)"
-        : params.poolKeyHash
-          ? "StakeDelegation (pool)"
-          : "VoteDelegCert (DRep)"
-
-    yield* Effect.logDebug(`[DelegateTo] Added ${delegationType} certificate`)
-  })
+  }
+  if (params.poolKeyHash) {
+    return createDelegateToPoolProgram({
+      stakeCredential: params.stakeCredential,
+      poolKeyHash: params.poolKeyHash,
+      redeemer: params.redeemer,
+      label: params.label
+    })
+  }
+  if (params.drep) {
+    return createDelegateToDRepProgram({
+      stakeCredential: params.stakeCredential,
+      drep: params.drep,
+      redeemer: params.redeemer,
+      label: params.label
+    })
+  }
+  return Effect.fail(
+    new TransactionBuilderError({
+      message: "delegateTo requires either poolKeyHash or drep (or both)"
+    })
+  )
+}
 
 /**
  * Creates a ProgramStep for delegateToPool operation.
@@ -476,7 +410,7 @@ export const createRegisterAndDelegateToProgram = (
       )
     }
 
-    const protocolParams = yield* config.provider.Effect.getProtocolParameters().pipe(
+    const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
           new TransactionBuilderError({
@@ -607,7 +541,7 @@ export const createDeregisterStakeProgram = (
       )
     }
 
-    const protocolParams = yield* config.provider.Effect.getProtocolParameters().pipe(
+    const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
           new TransactionBuilderError({

@@ -68,7 +68,7 @@ export interface ReadOnlyWalletEffect {
  * @category model
  */
 export interface ReadOnlyWallet extends EffectToPromiseAPI<ReadOnlyWalletEffect> {
-  readonly Effect: ReadOnlyWalletEffect
+  readonly effect: ReadOnlyWalletEffect
   readonly type: "read-only"
 }
 
@@ -104,7 +104,7 @@ export interface SigningWalletEffect extends ReadOnlyWalletEffect {
  * @category model
  */
 export interface SigningWallet extends EffectToPromiseAPI<SigningWalletEffect> {
-  readonly Effect: SigningWalletEffect
+  readonly effect: SigningWalletEffect
   readonly type: "signing"
 }
 
@@ -136,7 +136,7 @@ export interface WalletApi {
 export interface ApiWalletEffect extends ReadOnlyWalletEffect {
   readonly signTx: (
     tx: Transaction.Transaction | string,
-    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ) => Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletError>
   readonly signMessage: (
     address: CoreAddress.Address | RewardAddress.RewardAddress,
@@ -160,7 +160,7 @@ export interface ApiWalletEffect extends ReadOnlyWalletEffect {
  * @category model
  */
 export interface ApiWallet extends EffectToPromiseAPI<ApiWalletEffect> {
-  readonly Effect: ApiWalletEffect
+  readonly effect: ApiWalletEffect
   readonly api: WalletApi
   readonly type: "api"
 }

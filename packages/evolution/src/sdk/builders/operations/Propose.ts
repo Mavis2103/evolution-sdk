@@ -43,7 +43,7 @@ export const createProposeProgram = (
       )
     }
 
-    const protocolParams = yield* config.provider.Effect.getProtocolParameters().pipe(
+    const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
           new TransactionBuilderError({

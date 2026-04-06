@@ -30,18 +30,10 @@ export interface BlockfrostConfig {
 /**
  * Blockfrost provider constructor.
  *
- * @example
- * ```ts
- * import { createClient, preview, blockfrost } from "@evolution-sdk/evolution"
- *
- * const c = createClient({ chain: preview, provider: blockfrost({ baseUrl: "...", projectId: "..." }) })
- * ```
- *
  * @since 2.1.0
  * @category constructors
  */
-export const blockfrost = (config: BlockfrostConfig): Provider =>
-  Blockfrost.custom(config.baseUrl, config.projectId)
+export const blockfrost = (config: BlockfrostConfig): Provider => Blockfrost.custom(config.baseUrl, config.projectId)
 
 // ── Koios ─────────────────────────────────────────────────────────────────────
 
@@ -62,8 +54,7 @@ export interface KoiosConfig {
  * @since 2.1.0
  * @category constructors
  */
-export const koios = (config: KoiosConfig): Provider =>
-  new Koios.Koios(config.baseUrl, config.token)
+export const koios = (config: KoiosConfig): Provider => new Koios.Koios(config.baseUrl, config.token)
 
 // ── Kupmios ───────────────────────────────────────────────────────────────────
 

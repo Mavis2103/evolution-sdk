@@ -19,6 +19,7 @@ import {
   type ReadOnlyClient,
   type ReadOnlyWalletClient,
   type SigningClient,
+  type SigningClientEffect,
   type SigningWalletClient
 } from "./Client.js"
 import { type AnyWallet, type WalletFactory } from "./Wallets.js"
@@ -39,7 +40,7 @@ const createReadOnlyWalletClient = (chain: Chain, wallet: WalletNew.ReadOnlyWall
   rewardAddress: wallet.rewardAddress,
   chain,
   attachProvider: (provider) => createReadOnlyClient(chain, provider, wallet),
-  Effect: wallet.Effect
+  effect: wallet.effect
 })
 
 /**
@@ -57,19 +58,19 @@ const createReadOnlyClient = (
     e instanceof Provider.ProviderError ? e : new Provider.ProviderError({ message: e.message, cause: e })
 
   const effectInterface = {
-    ...provider.Effect,
-    ...wallet.Effect,
+    ...provider.effect,
+    ...wallet.effect,
     getWalletUtxos: () =>
-      wallet.Effect.address().pipe(
-        Effect.flatMap((addr) => provider.Effect.getUtxos(addr)),
+      wallet.effect.address().pipe(
+        Effect.flatMap((addr) => provider.effect.getUtxos(addr)),
         Effect.mapError(toProviderError)
       ),
     getWalletDelegation: () =>
-      wallet.Effect.rewardAddress().pipe(
+      wallet.effect.rewardAddress().pipe(
         Effect.flatMap((rewardAddr) => {
           if (!rewardAddr)
             return Effect.fail(new Provider.ProviderError({ message: "No reward address configured", cause: null }))
-          return provider.Effect.getDelegation(rewardAddr)
+          return provider.effect.getDelegation(rewardAddr)
         }),
         Effect.mapError(toProviderError)
       )
@@ -82,7 +83,7 @@ const createReadOnlyClient = (
     getWalletUtxos: () => Effect.runPromise(effectInterface.getWalletUtxos()),
     getWalletDelegation: () => Effect.runPromise(effectInterface.getWalletDelegation()),
     newTx: (): ReadOnlyTransactionBuilder => makeTxBuilder({ wallet, provider, chain }),
-    Effect: effectInterface
+    effect: effectInterface
   }
 }
 
@@ -128,7 +129,7 @@ const createSigningClient = (
   ): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletNew.WalletError> =>
     Effect.gen(function* () {
       if (context?.referenceUtxos && context.referenceUtxos.length > 0) {
-        return yield* wallet.Effect.signTx(txOrHex, context)
+        return yield* wallet.effect.signTx(txOrHex, context)
       }
 
       const tx =
@@ -142,37 +143,53 @@ const createSigningClient = (
 
       let referenceUtxos: ReadonlyArray<CoreUTxO.UTxO> = []
       if (tx.body.referenceInputs && tx.body.referenceInputs.length > 0) {
-        referenceUtxos = yield* provider.Effect.getUtxosByOutRef(tx.body.referenceInputs).pipe(
-          Effect.mapError(
-            (e) => new WalletNew.WalletError({ message: `Failed to fetch reference UTxOs: ${e.message}`, cause: e })
+        referenceUtxos = yield* provider.effect
+          .getUtxosByOutRef(tx.body.referenceInputs)
+          .pipe(
+            Effect.mapError(
+              (e) => new WalletNew.WalletError({ message: `Failed to fetch reference UTxOs: ${e.message}`, cause: e })
+            )
           )
-        )
       }
 
-      return yield* wallet.Effect.signTx(txOrHex, { ...context, referenceUtxos })
+      return yield* wallet.effect.signTx(txOrHex, { ...context, referenceUtxos })
     })
 
-  const effectInterface = {
-    ...wallet.Effect,
-    ...provider.Effect,
+  const effectInterface: SigningClientEffect = {
+    // Provider methods — explicit to avoid silent overrides if provider gains new fields
+    getProtocolParameters: provider.effect.getProtocolParameters.bind(provider.effect),
+    getUtxos: provider.effect.getUtxos.bind(provider.effect),
+    getUtxosWithUnit: provider.effect.getUtxosWithUnit.bind(provider.effect),
+    getUtxoByUnit: provider.effect.getUtxoByUnit.bind(provider.effect),
+    getUtxosByOutRef: provider.effect.getUtxosByOutRef.bind(provider.effect),
+    getDelegation: provider.effect.getDelegation.bind(provider.effect),
+    getDatum: provider.effect.getDatum.bind(provider.effect),
+    awaitTx: provider.effect.awaitTx.bind(provider.effect),
+    submitTx: provider.effect.submitTx.bind(provider.effect),
+    evaluateTx: provider.effect.evaluateTx.bind(provider.effect),
+    // Wallet methods
+    address: wallet.effect.address.bind(wallet.effect),
+    rewardAddress: wallet.effect.rewardAddress.bind(wallet.effect),
+    signMessage: wallet.effect.signMessage.bind(wallet.effect),
+    // Composite methods
     signTx: signTxWithAutoFetch,
-    getWalletUtxos: () => Effect.flatMap(wallet.Effect.address(), (addr) => provider.Effect.getUtxos(addr)),
+    getWalletUtxos: () => Effect.flatMap(wallet.effect.address(), (addr) => provider.effect.getUtxos(addr)),
     getWalletDelegation: () =>
-      Effect.flatMap(wallet.Effect.rewardAddress(), (rewardAddr) => {
+      Effect.flatMap(wallet.effect.rewardAddress(), (rewardAddr) => {
         if (!rewardAddr)
           return Effect.fail(new Provider.ProviderError({ message: "No reward address configured", cause: null }))
-        return provider.Effect.getDelegation(rewardAddr)
+        return provider.effect.getDelegation(rewardAddr)
       })
   }
 
   return {
-    ...provider,
     ...wallet,
+    ...provider,
     signTx: (txOrHex, context) => Effect.runPromise(signTxWithAutoFetch(txOrHex, context)),
     getWalletUtxos: () => Effect.runPromise(effectInterface.getWalletUtxos()),
     getWalletDelegation: () => Effect.runPromise(effectInterface.getWalletDelegation()),
     newTx: (): SigningTransactionBuilder => makeTxBuilder({ wallet, provider, chain }),
-    Effect: effectInterface
+    effect: effectInterface
   }
 }
 
@@ -210,7 +227,7 @@ const createMinimalClient = (chain: Chain = mainnet): MinimalClient => {
       if (resolved.type === "api") return createApiWalletClient(chain, resolved) as any
       return createSigningWalletClient(chain, resolved) as any
     },
-    Effect: effectInterface
+    effect: effectInterface
   }
 }
 
@@ -242,7 +259,7 @@ export function createClient(config: { chain?: Chain; wallet: WalletNew.ApiWalle
 // Signing Wallet or Factory only → SigningWalletClient
 export function createClient(config: {
   chain?: Chain
-  wallet: WalletNew.SigningWallet | AnyWallet
+  wallet: WalletNew.SigningWallet | WalletFactory
 }): SigningWalletClient
 
 // Chain only or minimal → MinimalClient
