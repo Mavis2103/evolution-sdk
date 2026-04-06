@@ -24,7 +24,7 @@ import type * as TxOut from "../../TxOut.js"
 import { hashTransaction } from "../../utils/Hash.js"
 import * as CoreUTxO from "../../UTxO.js"
 import type * as Provider from "../provider/Provider.js"
-import type * as WalletNew from "../wallet/WalletNew.js"
+import type * as Wallet from "../wallet/Wallet.js"
 import type { SignBuilder, SignBuilderEffect } from "./SignBuilder.js"
 import { makeSubmitBuilder } from "./SubmitBuilderImpl.js"
 import { type ChainResult, TransactionBuilderError } from "./TransactionBuilder.js"
@@ -36,7 +36,7 @@ import { type ChainResult, TransactionBuilderError } from "./TransactionBuilder.
 /**
  * Wallet type - can be SigningWallet or ApiWallet (both have Effect.signTx)
  */
-type Wallet = WalletNew.SigningWallet | WalletNew.ApiWallet
+type SignerWallet = Wallet.SigningWallet | Wallet.ApiWallet
 
 /**
  * Create a SignBuilder instance for a built transaction.
@@ -51,7 +51,7 @@ export const makeSignBuilder = (params: {
   utxos: ReadonlyArray<CoreUTxO.UTxO>
   referenceUtxos: ReadonlyArray<CoreUTxO.UTxO>
   provider: Provider.Provider
-  wallet: Wallet
+  wallet: SignerWallet
   // Data for lazy chainResult computation
   outputs: ReadonlyArray<TxOut.TransactionOutput>
   availableUtxos: ReadonlyArray<CoreUTxO.UTxO>

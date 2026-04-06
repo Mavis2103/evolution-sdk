@@ -64,7 +64,7 @@ export interface Delegation {
  * @category errors
  */
 export class ProviderError extends Data.TaggedError("ProviderError")<{
-  readonly cause: unknown
+  readonly cause?: unknown
   readonly message: string
 }> {}
 

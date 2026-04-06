@@ -49,7 +49,7 @@ import type * as VotingProcedures from "../../VotingProcedures.js"
 import type { Chain } from "../client/Chain.js"
 import type { EvalRedeemer } from "../EvalRedeemer.js"
 import type * as Provider from "../provider/Provider.js"
-import type * as WalletNew from "../wallet/WalletNew.js"
+import type * as Wallet from "../wallet/Wallet.js"
 import type { CoinSelectionAlgorithm, CoinSelectionFunction } from "./CoinSelection.js"
 import { createAddSignerProgram } from "./operations/AddSigner.js"
 import { attachScriptToState } from "./operations/Attach.js"
@@ -212,8 +212,7 @@ const resolveProtocolParameters = (
   return Effect.fail(
     new TransactionBuilderError({
       message:
-        "No protocol parameters provided. Either provide protocolParameters in BuildOptions or provider in config.",
-      cause: null
+        "No protocol parameters provided. Either provide protocolParameters in BuildOptions or provider in config."
     })
   )
 }
@@ -225,7 +224,7 @@ const resolveProtocolParameters = (
 const resolveChangeAddress = (
   config: TxBuilderConfig,
   options?: BuildOptions
-): Effect.Effect<CoreAddress.Address, TransactionBuilderError | WalletNew.WalletError> => {
+): Effect.Effect<CoreAddress.Address, TransactionBuilderError | Wallet.WalletError> => {
   if (options?.changeAddress) {
     return Effect.succeed(options.changeAddress)
   }
@@ -236,8 +235,7 @@ const resolveChangeAddress = (
 
   return Effect.fail(
     new TransactionBuilderError({
-      message: "No change address provided. Either provide wallet in config or changeAddress in build options.",
-      cause: null
+      message: "No change address provided. Either provide wallet in config or changeAddress in build options."
     })
   )
 }
@@ -251,7 +249,7 @@ const resolveAvailableUtxos = (
   options?: BuildOptions
 ): Effect.Effect<
   ReadonlyArray<CoreUTxO.UTxO>,
-  TransactionBuilderError | WalletNew.WalletError | Provider.ProviderError
+  TransactionBuilderError | Wallet.WalletError | Provider.ProviderError
 > => {
   if (options?.availableUtxos) {
     return Effect.succeed(options.availableUtxos)
@@ -264,8 +262,7 @@ const resolveAvailableUtxos = (
   return Effect.fail(
     new TransactionBuilderError({
       message:
-        "No available UTxOs provided. Either provide wallet+provider in config or availableUtxos in build options.",
-      cause: null
+        "No available UTxOs provided. Either provide wallet+provider in config or availableUtxos in build options."
     })
   )
 }
@@ -1220,7 +1217,7 @@ export interface TxBuilderConfig {
    *
    * Override per-build via BuildOptions.changeAddress and BuildOptions.availableUtxos.
    */
-  readonly wallet?: WalletNew.SigningWallet | WalletNew.ApiWallet | WalletNew.ReadOnlyWallet
+  readonly wallet?: Wallet.SigningWallet | Wallet.ApiWallet | Wallet.ReadOnlyWallet
 
   /**
    * Optional provider for:
@@ -1504,8 +1501,8 @@ export type ProgramStep = Effect.Effect<void, TransactionBuilderError, TxContext
  * @internal
  */
 export type BuildResultType<W extends TxBuilderConfig["wallet"] | undefined> = W extends
-  | WalletNew.SigningWallet
-  | WalletNew.ApiWallet
+  | Wallet.SigningWallet
+  | Wallet.ApiWallet
   ? SignBuilder
   : TransactionResultBase
 
@@ -2267,7 +2264,7 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
     options?: BuildOptions
   ) => Effect.Effect<
     SignBuilder,
-    TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError,
+    TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError,
     never
   >
 
@@ -2283,7 +2280,7 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
   readonly buildEither: (
     options?: BuildOptions
   ) => Promise<
-    Either<SignBuilder, TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError>
+    Either<SignBuilder, TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError>
   >
 }
 
@@ -2324,7 +2321,7 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
     options?: BuildOptions
   ) => Effect.Effect<
     TransactionResultBase,
-    TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError,
+    TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError,
     never
   >
 
@@ -2342,7 +2339,7 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
   ) => Promise<
     Either<
       TransactionResultBase,
-      TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError
+      TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError
     >
   >
 }
@@ -2384,10 +2381,10 @@ export type TransactionBuilder = SigningTransactionBuilder | ReadOnlyTransaction
  * @category constructors
  */
 export function makeTxBuilder(
-  config: TxBuilderConfig & { wallet: WalletNew.SigningWallet | WalletNew.ApiWallet }
+  config: TxBuilderConfig & { wallet: Wallet.SigningWallet | Wallet.ApiWallet }
 ): SigningTransactionBuilder
 export function makeTxBuilder(
-  config: TxBuilderConfig & { wallet: WalletNew.ReadOnlyWallet }
+  config: TxBuilderConfig & { wallet: Wallet.ReadOnlyWallet }
 ): ReadOnlyTransactionBuilder
 export function makeTxBuilder(config: TxBuilderConfig & { wallet?: undefined }): ReadOnlyTransactionBuilder
 export function makeTxBuilder(config: TxBuilderConfig): SigningTransactionBuilder | ReadOnlyTransactionBuilder {
