@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano, createClient, kupmios, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Cardano, client, preprod } from "@evolution-sdk/evolution"
 import * as CoreAddress from "@evolution-sdk/evolution/Address"
 import * as Bytes from "@evolution-sdk/evolution/Bytes"
 import * as Data from "@evolution-sdk/evolution/Data"
@@ -38,20 +38,15 @@ describe("TxBuilder Spend ScriptRef (Devnet Submit)", () => {
 
   const createTestClient = () => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return createClient({
-      chain: Cluster.getChain(devnetCluster),
-      provider: kupmios({ kupoUrl: "http://localhost:1454", ogmiosUrl: "http://localhost:1346" }),
-      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
-    })
+    return client(Cluster.getChain(devnetCluster))
+      .withKupmios({ kupoUrl: "http://localhost:1454", ogmiosUrl: "http://localhost:1346" })
+      .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
   }
 
   beforeAll(async () => {
     expect(ScriptHash.toHex(alwaysSucceedScriptHash)).toBe(ALWAYS_SUCCEED_HASH)
 
-    const testClient = createClient({
-      chain: preprod,
-      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
-    })
+    const testClient = client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
 
     const testAddress = await testClient.address()
     const testAddressHex = CoreAddress.toHex(testAddress)

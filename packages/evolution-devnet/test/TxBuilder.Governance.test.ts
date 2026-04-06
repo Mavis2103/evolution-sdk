@@ -8,7 +8,7 @@ import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import type { Cardano } from "@evolution-sdk/evolution"
-import { createClient, kupmios, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { client, preprod } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/Address"
 import * as Anchor from "@evolution-sdk/evolution/Anchor"
 import * as Bytes from "@evolution-sdk/evolution/Bytes"
@@ -28,20 +28,15 @@ describe("TxBuilder Governance Operations", () => {
 
   const createTestClient = (accountIndex: number = 0) => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return createClient({
-      chain: Cluster.getChain(devnetCluster),
-      provider: kupmios({ kupoUrl: "http://localhost:1457", ogmiosUrl: "http://localhost:1349" }),
-      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
-    })
+    return client(Cluster.getChain(devnetCluster))
+      .withKupmios({ kupoUrl: "http://localhost:1457", ogmiosUrl: "http://localhost:1349" })
+      .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
   }
 
   beforeAll(async () => {
     // Create clients for governance tests
     const accounts = [0, 1, 2, 3, 4].map((accountIndex) =>
-      createClient({
-        chain: preprod,
-        wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
-      })
+      client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     )
 
     const addresses = await Promise.all(accounts.map((client) => client.address()))

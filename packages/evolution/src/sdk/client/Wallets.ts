@@ -1,8 +1,8 @@
 /**
  * Wallet constructors for the client API.
  *
- * All wallet constructors return chain-aware factories.
- * Pass them to `createClient` and chain context is injected automatically.
+ * All wallet constructors return chain-aware factories used internally by the
+ * flat client assembly API.
  *
  * @since 2.1.0
  * @module
@@ -304,7 +304,7 @@ export type WalletFactory = SigningWalletFactory | ApiWalletFactory
 export type ReadOnlyWalletFactory = (chain: Chain) => WalletNew.ReadOnlyWallet
 
 /**
- * Any wallet instance or factory accepted by `createClient`.
+ * Any wallet instance or factory accepted internally by the client assembly implementation.
  *
  * @since 2.1.0
  * @category model
@@ -385,7 +385,7 @@ export const readOnlyWallet =
 
 /**
  * Seed phrase wallet — returns a chain-aware factory.
- * Chain context (networkId) is injected automatically by `createClient`.
+ * Chain context (networkId) is injected automatically by `client(chain).withSeed(...)`.
  *
  * @since 2.1.0
  * @category constructors
@@ -407,7 +407,7 @@ export const seedWallet =
 
 /**
  * Private key wallet — returns a chain-aware factory.
- * Chain context (networkId) is injected automatically by `createClient`.
+ * Chain context (networkId) is injected automatically by `client(chain).withPrivateKey(...)`.
  *
  * @since 2.1.0
  * @category constructors

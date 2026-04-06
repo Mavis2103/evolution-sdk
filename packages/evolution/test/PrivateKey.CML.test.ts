@@ -431,7 +431,7 @@ describe("PrivateKey CML Compatibility", () => {
       // Derive via fromMnemonicCardano
       const paymentKey = PrivateKey.fromMnemonicCardano(testMnemonic)
 
-      // Derive via Bip32PrivateKey (the known-correct path used by createClient)
+      // Derive via Bip32PrivateKey (the known-correct path used by the SDK seed wallet derivation)
       // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
       const { mnemonicToEntropy } = require("@scure/bip39") as typeof import("@scure/bip39")
       // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports

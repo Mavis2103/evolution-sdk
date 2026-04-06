@@ -11,72 +11,84 @@ import {
 import * as Provider from "../provider/Provider.js"
 import * as WalletNew from "../wallet/WalletNew.js"
 import { type Chain, mainnet } from "./Chain.js"
-import {
-  type ApiWalletClient,
-  type MinimalClient,
-  type MinimalClientEffect,
-  type ProviderOnlyClient,
-  type ReadOnlyClient,
-  type ReadOnlyWalletClient,
-  type SigningClient,
-  type SigningClientEffect,
-  type SigningWalletClient
+import type {
+  AddressClient,
+  AddressClientEffect,
+  ClientAssembly,
+  OfflineSignerClient,
+  OfflineSignerClientEffect,
+  ReadClient,
+  ReadOnlyClient,
+  ReadOnlyClientEffect,
+  SigningClient,
+  SigningClientEffect
 } from "./Client.js"
-import {
-  type AnyWallet,
-  type ApiWalletFactory,
-  type ReadOnlyWalletFactory,
-  type SigningWalletFactory,
-  type WalletFactory
-} from "./Wallets.js"
+import { blockfrost, koios, kupmios, maestro } from "./Providers.js"
+import { cip30Wallet, privateKeyWallet, readOnlyWallet, seedWallet } from "./Wallets.js"
 
-type ResolvedWallet = WalletNew.ReadOnlyWallet | WalletNew.SigningWallet | WalletNew.ApiWallet
+type ResolvedSignerWallet = WalletNew.SigningWallet | WalletNew.ApiWallet
 
-const resolveWallet = (wallet: AnyWallet, chain: Chain): ResolvedWallet =>
-  typeof wallet === "function" ? wallet(chain) : wallet
-
-/**
- * Construct a ReadOnlyWalletClient with chain metadata and combinator method.
- *
- * @since 2.0.0
- * @category constructors
- */
-const createReadOnlyWalletClient = (chain: Chain, wallet: WalletNew.ReadOnlyWallet): ReadOnlyWalletClient => ({
+const createAddressClient = (chain: Chain, wallet: WalletNew.ReadOnlyWallet): AddressClient => ({
   address: wallet.address,
   rewardAddress: wallet.rewardAddress,
   chain,
-  attachProvider: (provider) => createReadOnlyClient(chain, provider, wallet),
-  effect: wallet.effect
+  withBlockfrost: (config) => createReadOnlyClient(chain, blockfrost(config), wallet),
+  withKoios: (config) => createReadOnlyClient(chain, koios(config), wallet),
+  withKupmios: (config) => createReadOnlyClient(chain, kupmios(config), wallet),
+  withMaestro: (config) => createReadOnlyClient(chain, maestro(config), wallet),
+  effect: wallet.effect satisfies AddressClientEffect
 })
 
-/**
- * Construct a ReadOnlyClient by composing a provider and a read-only wallet.
- *
- * @since 2.0.0
- * @category constructors
- */
+const createOfflineSignerEffect = (wallet: ResolvedSignerWallet): OfflineSignerClientEffect => ({
+  address: wallet.effect.address.bind(wallet.effect),
+  rewardAddress: wallet.effect.rewardAddress.bind(wallet.effect),
+  signTx: (txOrHex, context) =>
+    wallet.type === "api"
+      ? wallet.effect.signTx(txOrHex, context ? { utxos: context.utxos } : undefined)
+      : wallet.effect.signTx(txOrHex, context),
+  signMessage: wallet.effect.signMessage.bind(wallet.effect)
+})
+
+const createOfflineSignerClient = (chain: Chain, wallet: ResolvedSignerWallet): OfflineSignerClient => {
+  const effectInterface = createOfflineSignerEffect(wallet)
+
+  return {
+    address: () => Effect.runPromise(effectInterface.address()),
+    rewardAddress: () => Effect.runPromise(effectInterface.rewardAddress()),
+    signTx: (txOrHex, context) => Effect.runPromise(effectInterface.signTx(txOrHex, context)),
+    signMessage: (address, payload) => Effect.runPromise(effectInterface.signMessage(address, payload)),
+    chain,
+    withBlockfrost: (config) => createSigningClient(chain, blockfrost(config), wallet),
+    withKoios: (config) => createSigningClient(chain, koios(config), wallet),
+    withKupmios: (config) => createSigningClient(chain, kupmios(config), wallet),
+    withMaestro: (config) => createSigningClient(chain, maestro(config), wallet),
+    effect: effectInterface
+  }
+}
+
 const createReadOnlyClient = (
   chain: Chain,
   provider: Provider.Provider,
   wallet: WalletNew.ReadOnlyWallet
 ): ReadOnlyClient => {
-  const toProviderError = (e: WalletNew.WalletError | Provider.ProviderError): Provider.ProviderError =>
-    e instanceof Provider.ProviderError ? e : new Provider.ProviderError({ message: e.message, cause: e })
+  const toProviderError = (error: WalletNew.WalletError | Provider.ProviderError): Provider.ProviderError =>
+    error instanceof Provider.ProviderError ? error : new Provider.ProviderError({ message: error.message, cause: error })
 
-  const effectInterface = {
+  const effectInterface: ReadOnlyClientEffect = {
     ...provider.effect,
     ...wallet.effect,
     getWalletUtxos: () =>
       wallet.effect.address().pipe(
-        Effect.flatMap((addr) => provider.effect.getUtxos(addr)),
+        Effect.flatMap((address) => provider.effect.getUtxos(address)),
         Effect.mapError(toProviderError)
       ),
     getWalletDelegation: () =>
       wallet.effect.rewardAddress().pipe(
-        Effect.flatMap((rewardAddr) => {
-          if (!rewardAddr)
+        Effect.flatMap((rewardAddress) => {
+          if (!rewardAddress) {
             return Effect.fail(new Provider.ProviderError({ message: "No reward address configured", cause: null }))
-          return provider.effect.getDelegation(rewardAddr)
+          }
+          return provider.effect.getDelegation(rewardAddress)
         }),
         Effect.mapError(toProviderError)
       )
@@ -88,52 +100,26 @@ const createReadOnlyClient = (
     rewardAddress: wallet.rewardAddress,
     getWalletUtxos: () => Effect.runPromise(effectInterface.getWalletUtxos()),
     getWalletDelegation: () => Effect.runPromise(effectInterface.getWalletDelegation()),
+    chain,
     newTx: (): ReadOnlyTransactionBuilder => makeTxBuilder({ wallet, provider, chain }),
     effect: effectInterface
   }
 }
 
-/**
- * Construct a SigningWalletClient with chain metadata and combinator method.
- *
- * @since 2.0.0
- * @category constructors
- */
-const createSigningWalletClient = (chain: Chain, wallet: WalletNew.SigningWallet): SigningWalletClient => ({
-  ...wallet,
-  chain,
-  attachProvider: (provider) => createSigningClient(chain, provider, wallet)
-})
-
-/**
- * Construct an ApiWalletClient with combinator method.
- *
- * @since 2.0.0
- * @category constructors
- */
-const createApiWalletClient = (chain: Chain, wallet: WalletNew.ApiWallet): ApiWalletClient => ({
-  ...wallet,
-  chain,
-  attachProvider: (provider) => createSigningClient(chain, provider, wallet)
-})
-
-/**
- * Construct a SigningClient by composing a provider and a signing or API wallet.
- *
- * @since 2.0.0
- * @category constructors
- */
 const createSigningClient = (
   chain: Chain,
   provider: Provider.Provider,
-  wallet: WalletNew.SigningWallet | WalletNew.ApiWallet
+  wallet: ResolvedSignerWallet
 ): SigningClient => {
-  // Enhanced signTx that auto-fetches reference UTxOs from the network.
   const signTxWithAutoFetch = (
     txOrHex: Transaction.Transaction | string,
     context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletNew.WalletError> =>
-    Effect.gen(function* () {
+    Effect.gen(function*() {
+      if (wallet.type === "api") {
+        return yield* wallet.effect.signTx(txOrHex, context ? { utxos: context.utxos } : undefined)
+      }
+
       if (context?.referenceUtxos && context.referenceUtxos.length > 0) {
         return yield* wallet.effect.signTx(txOrHex, context)
       }
@@ -149,20 +135,21 @@ const createSigningClient = (
 
       let referenceUtxos: ReadonlyArray<CoreUTxO.UTxO> = []
       if (tx.body.referenceInputs && tx.body.referenceInputs.length > 0) {
-        referenceUtxos = yield* provider.effect
-          .getUtxosByOutRef(tx.body.referenceInputs)
-          .pipe(
-            Effect.mapError(
-              (e) => new WalletNew.WalletError({ message: `Failed to fetch reference UTxOs: ${e.message}`, cause: e })
-            )
+        referenceUtxos = yield* provider.effect.getUtxosByOutRef(tx.body.referenceInputs).pipe(
+          Effect.mapError(
+            (error) =>
+              new WalletNew.WalletError({
+                message: `Failed to fetch reference UTxOs: ${error.message}`,
+                cause: error
+              })
           )
+        )
       }
 
       return yield* wallet.effect.signTx(txOrHex, { ...context, referenceUtxos })
     })
 
   const effectInterface: SigningClientEffect = {
-    // Provider methods — explicit to avoid silent overrides if provider gains new fields
     getProtocolParameters: provider.effect.getProtocolParameters.bind(provider.effect),
     getUtxos: provider.effect.getUtxos.bind(provider.effect),
     getUtxosWithUnit: provider.effect.getUtxosWithUnit.bind(provider.effect),
@@ -173,158 +160,59 @@ const createSigningClient = (
     awaitTx: provider.effect.awaitTx.bind(provider.effect),
     submitTx: provider.effect.submitTx.bind(provider.effect),
     evaluateTx: provider.effect.evaluateTx.bind(provider.effect),
-    // Wallet methods
     address: wallet.effect.address.bind(wallet.effect),
     rewardAddress: wallet.effect.rewardAddress.bind(wallet.effect),
     signMessage: wallet.effect.signMessage.bind(wallet.effect),
-    // Composite methods
     signTx: signTxWithAutoFetch,
-    getWalletUtxos: () => Effect.flatMap(wallet.effect.address(), (addr) => provider.effect.getUtxos(addr)),
+    getWalletUtxos: () => Effect.flatMap(wallet.effect.address(), (address) => provider.effect.getUtxos(address)),
     getWalletDelegation: () =>
-      Effect.flatMap(wallet.effect.rewardAddress(), (rewardAddr) => {
-        if (!rewardAddr)
+      Effect.flatMap(wallet.effect.rewardAddress(), (rewardAddress) => {
+        if (!rewardAddress) {
           return Effect.fail(new Provider.ProviderError({ message: "No reward address configured", cause: null }))
-        return provider.effect.getDelegation(rewardAddr)
+        }
+        return provider.effect.getDelegation(rewardAddress)
       })
   }
 
   return {
-    ...wallet,
     ...provider,
-    signTx: (txOrHex, context) => Effect.runPromise(signTxWithAutoFetch(txOrHex, context)),
+    address: () => Effect.runPromise(effectInterface.address()),
+    rewardAddress: () => Effect.runPromise(effectInterface.rewardAddress()),
+    signMessage: (address, payload) => Effect.runPromise(effectInterface.signMessage(address, payload)),
+    signTx: (txOrHex, context) => Effect.runPromise(effectInterface.signTx(txOrHex, context)),
     getWalletUtxos: () => Effect.runPromise(effectInterface.getWalletUtxos()),
     getWalletDelegation: () => Effect.runPromise(effectInterface.getWalletDelegation()),
+    chain,
     newTx: (): SigningTransactionBuilder => makeTxBuilder({ wallet, provider, chain }),
     effect: effectInterface
   }
 }
 
-/**
- * Construct a ProviderOnlyClient with chain metadata and combinator method.
- *
- * @since 2.0.0
- * @category constructors
- */
-const createProviderOnlyClient = (chain: Chain, provider: Provider.Provider): ProviderOnlyClient => {
-  function attachWallet(wallet: WalletNew.ReadOnlyWallet | ReadOnlyWalletFactory): ReadOnlyClient
-  function attachWallet(wallet: WalletNew.SigningWallet | WalletNew.ApiWallet | WalletFactory): SigningClient
-  function attachWallet(wallet: AnyWallet): ReadOnlyClient | SigningClient
-  function attachWallet(wallet: AnyWallet): ReadOnlyClient | SigningClient {
-    const resolved = resolveWallet(wallet, chain)
-    if (resolved.type === "read-only") return createReadOnlyClient(chain, provider, resolved)
-    return createSigningClient(chain, provider, resolved)
-  }
-
-  return {
-    ...provider,
-    chain,
-    attachWallet
-  }
-}
+const createReadClient = (chain: Chain, provider: Provider.Provider): ReadClient => ({
+  ...provider,
+  chain,
+  withAddress: (address, rewardAddress) => createReadOnlyClient(chain, provider, readOnlyWallet(address, rewardAddress)(chain)),
+  withSeed: (config) => createSigningClient(chain, provider, seedWallet(config)(chain)),
+  withPrivateKey: (config) => createSigningClient(chain, provider, privateKeyWallet(config)(chain)),
+  withCip30: (api) => createSigningClient(chain, provider, cip30Wallet(api)(chain)),
+  newTx: (): ReadOnlyTransactionBuilder => makeTxBuilder({ provider, chain }),
+  effect: provider.effect
+})
 
 /**
- * Construct a MinimalClient holding chain metadata and combinator methods.
+ * Construct a chain-scoped client assembly stage.
  *
- * @since 2.0.0
+ * @since 2.1.0
  * @category constructors
  */
-const createMinimalClient = (chain: Chain = mainnet): MinimalClient => {
-  const effectInterface: MinimalClientEffect = { chain }
-
-  function attachWallet(wallet: WalletNew.ReadOnlyWallet | ReadOnlyWalletFactory): ReadOnlyWalletClient
-  function attachWallet(wallet: WalletNew.ApiWallet | ApiWalletFactory): ApiWalletClient
-  function attachWallet(wallet: WalletNew.SigningWallet | SigningWalletFactory): SigningWalletClient
-  function attachWallet(wallet: WalletFactory): SigningWalletClient | ApiWalletClient
-  function attachWallet(wallet: AnyWallet): ReadOnlyWalletClient | ApiWalletClient | SigningWalletClient
-  function attachWallet(wallet: AnyWallet): ReadOnlyWalletClient | ApiWalletClient | SigningWalletClient {
-    const resolved = resolveWallet(wallet, chain)
-    if (resolved.type === "read-only") return createReadOnlyWalletClient(chain, resolved)
-    if (resolved.type === "api") return createApiWalletClient(chain, resolved)
-    return createSigningWalletClient(chain, resolved)
-  }
-
-  return {
-    chain,
-    attachProvider: (provider) => createProviderOnlyClient(chain, provider),
-    attachWallet,
-    effect: effectInterface
-  }
-}
-
-// ── createClient overloads ────────────────────────────────────────────────────
-
-// Provider + ReadOnly Wallet or Factory → ReadOnlyClient
-export function createClient(config: {
-  chain?: Chain
-  provider: Provider.Provider
-  wallet: WalletNew.ReadOnlyWallet | ReadOnlyWalletFactory
-}): ReadOnlyClient
-
-// Provider + Signing/API Wallet or Factory → SigningClient
-export function createClient(config: {
-  chain?: Chain
-  provider: Provider.Provider
-  wallet: WalletNew.SigningWallet | WalletNew.ApiWallet | WalletFactory
-}): SigningClient
-
-// Provider only → ProviderOnlyClient
-export function createClient(config: { chain?: Chain; provider: Provider.Provider }): ProviderOnlyClient
-
-// ReadOnly Wallet or Factory only → ReadOnlyWalletClient
-export function createClient(config: {
-  chain?: Chain
-  wallet: WalletNew.ReadOnlyWallet | ReadOnlyWalletFactory
-}): ReadOnlyWalletClient
-
-// API Wallet only → ApiWalletClient
-export function createClient(config: {
-  chain?: Chain
-  wallet: WalletNew.ApiWallet | ApiWalletFactory
-}): ApiWalletClient
-
-// Signing Wallet or Factory only → SigningWalletClient
-export function createClient(config: {
-  chain?: Chain
-  wallet: WalletNew.SigningWallet | SigningWalletFactory
-}): SigningWalletClient
-
-// Generic WalletFactory only → wallet-only client shape depends on the factory kind
-export function createClient(config: { chain?: Chain; wallet: WalletFactory }): SigningWalletClient | ApiWalletClient
-
-// Chain only or minimal → MinimalClient
-export function createClient(config?: { chain?: Chain }): MinimalClient
-
-// Implementation
-export function createClient(config?: {
-  chain?: Chain
-  provider?: Provider.Provider
-  wallet?: AnyWallet
-}):
-  | MinimalClient
-  | ReadOnlyClient
-  | SigningClient
-  | ProviderOnlyClient
-  | ReadOnlyWalletClient
-  | SigningWalletClient
-  | ApiWalletClient {
-  const chain = config?.chain ?? mainnet
-
-  if (config?.provider && config?.wallet) {
-    const wallet = resolveWallet(config.wallet, chain)
-    if (wallet.type === "read-only") return createReadOnlyClient(chain, config.provider, wallet)
-    return createSigningClient(chain, config.provider, wallet)
-  }
-
-  if (config?.wallet) {
-    const wallet = resolveWallet(config.wallet, chain)
-    if (wallet.type === "read-only") return createReadOnlyWalletClient(chain, wallet)
-    if (wallet.type === "api") return createApiWalletClient(chain, wallet)
-    return createSigningWalletClient(chain, wallet)
-  }
-
-  if (config?.provider) {
-    return createProviderOnlyClient(chain, config.provider)
-  }
-
-  return createMinimalClient(chain)
-}
+export const client = (chain: Chain = mainnet): ClientAssembly => ({
+  chain,
+  withBlockfrost: (config) => createReadClient(chain, blockfrost(config)),
+  withKoios: (config) => createReadClient(chain, koios(config)),
+  withKupmios: (config) => createReadClient(chain, kupmios(config)),
+  withMaestro: (config) => createReadClient(chain, maestro(config)),
+  withAddress: (address, rewardAddress) => createAddressClient(chain, readOnlyWallet(address, rewardAddress)(chain)),
+  withSeed: (config) => createOfflineSignerClient(chain, seedWallet(config)(chain)),
+  withPrivateKey: (config) => createOfflineSignerClient(chain, privateKeyWallet(config)(chain)),
+  withCip30: (api) => createOfflineSignerClient(chain, cip30Wallet(api)(chain))
+})

@@ -1,8 +1,8 @@
 /**
  * Provider constructors for the client API.
  *
- * Each constructor returns a `Provider` instance directly — usable standalone
- * or passed to `createClient({ provider: blockfrost(...) })`.
+ * Each constructor returns a `Provider` runtime used internally by the flat
+ * client assembly API, e.g. `client(preprod).withBlockfrost(...)`.
  *
  * @since 2.1.0
  * @module
