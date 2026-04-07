@@ -18,7 +18,7 @@ Added in v2.0.0
   - [createDelegateToDRepProgram](#createdelegatetodrepprogram)
   - [createDelegateToPoolAndDRepProgram](#createdelegatetopoolanddrepprogram)
   - [createDelegateToPoolProgram](#createdelegatetopoolprogram)
-  - [createDelegateToProgram](#createdelegatetoprogram)
+  - [~~createDelegateToProgram~~](#createdelegatetoprogram)
   - [createDeregisterStakeProgram](#createderegisterstakeprogram)
   - [createRegisterAndDelegateToProgram](#createregisteranddelegatetoprogram)
   - [createRegisterStakeProgram](#createregisterstakeprogram)
@@ -79,25 +79,17 @@ export declare const createDelegateToPoolProgram: (
 
 Added in v2.0.0
 
-## createDelegateToProgram
+## ~~createDelegateToProgram~~
 
 Creates a ProgramStep for delegateTo operation.
-Adds delegation certificate(s) to the transaction.
-
-Supports three modes:
-
-- Pool only: Creates StakeDelegation certificate
-- DRep only: Creates VoteDelegCert certificate (Conway)
-- Both: Creates StakeVoteDelegCert certificate (Conway)
-
-For script-controlled credentials, tracks redeemer for evaluation.
+Delegates stake and/or voting power based on parameters provided.
 
 **Signature**
 
 ```ts
 export declare const createDelegateToProgram: (
   params: DelegateToParams
-) => Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag>
+) => Effect.Effect<void, TransactionBuilderError, TxContext>
 ```
 
 Added in v2.0.0

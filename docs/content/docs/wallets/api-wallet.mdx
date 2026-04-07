@@ -36,10 +36,12 @@ Never request or store user keys. Frontend signs only and should not include pro
 
 ## Frontend Pattern (Signing Only)
 
-Frontend creates API wallet client without provider. Can sign and submit transactions but cannot build them.
+Frontend creates API wallet client without provider. It can sign transactions and prepare signed CBOR for backend submission, but it cannot build transactions or submit through the client without a provider.
+
+The raw CIP-30 wallet API can submit transactions, but Evolution keeps submission on provider-backed clients so wallet-only assembly stays strictly signing-focused.
 
 ```typescript twoslash
-import { createClient, cip30Wallet, mainnet } from "@evolution-sdk/evolution"
+import { Transaction, TransactionWitnessSet, mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 declare const cardano: any // window.cardano
 
@@ -47,11 +49,9 @@ async function signAndSubmit() {
   // 1. User connects browser extension (CIP-30)
   const walletApi = await cardano.eternl.enable()
 
-  // 2. Create API wallet client (no provider needed for signing/submitting)
-  const client = createClient({
-    chain: mainnet,
-    wallet: cip30Wallet(walletApi)
-  })
+  // 2. Create API wallet client (signing only)
+  const client = makeClient(mainnet)
+  .withCip30(walletApi)
 
   // 3. Get user address
   const userAddress = await client.address()
@@ -63,8 +63,19 @@ async function signAndSubmit() {
   // 5. Sign with user's wallet (prompts user approval)
   const witnessSet = await client.signTx(unsignedTxCbor)
 
-  // 6. Submit directly through wallet API (CIP-30 wallets can submit)
-  const txHash = await client.submitTx(unsignedTxCbor)
+  // 6. Merge witnesses into the unsigned transaction
+  const signedTxCbor = Transaction.addVKeyWitnessesHex(
+    unsignedTxCbor,
+    TransactionWitnessSet.toCBORHex(witnessSet)
+  )
+
+  // 7. Hand signed transaction back to backend for provider submission
+  const { txHash } = await fetch("/api/submit-tx", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ signedTxCbor })
+  }).then((r) => r.json()) as { txHash: string }
+
   console.log("Transaction submitted:", txHash)
 }
 ```
@@ -80,7 +91,6 @@ interface WalletApi {
 }
 
 interface ApiWalletConfig {
-  type: "api"
   api: WalletApi // CIP-30 wallet API object (required)
 }
 ```
@@ -88,7 +98,7 @@ interface ApiWalletConfig {
 ## Complete dApp Example
 
 ```typescript twoslash
-import { createClient, cip30Wallet, mainnet } from "@evolution-sdk/evolution"
+import { Address, Transaction, TransactionWitnessSet, mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 declare const cardano: any
 
@@ -104,13 +114,11 @@ async function connectAndPay() {
   const walletApi = await cardano[walletName].enable()
 
   // Create API wallet client
-  const client = createClient({
-    chain: mainnet,
-    wallet: cip30Wallet(walletApi)
-  })
+  const client = makeClient(mainnet)
+  .withCip30(walletApi)
 
   // Get user address
-  const address = await client.address()
+  const address = Address.toBech32(await client.address())
 
   // Send address to backend for transaction building
   const response = await fetch("/api/build-payment", {
@@ -128,8 +136,19 @@ async function connectAndPay() {
   // Sign with user wallet (prompts user for approval)
   const witnessSet = await client.signTx(txCbor)
 
-  // Submit directly via wallet API (CIP-30 wallets can submit)
-  const txHash = await client.submitTx(txCbor)
+  // Merge witnesses into the unsigned transaction
+  const signedTxCbor = Transaction.addVKeyWitnessesHex(
+    txCbor,
+    TransactionWitnessSet.toCBORHex(witnessSet)
+  )
+
+  // Submit through provider-backed backend
+  const { txHash } = await fetch("/api/submit-tx", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ signedTxCbor })
+  }).then((r) => r.json()) as { txHash: string }
+
   console.log("Payment sent:", txHash)
 }
 ```
@@ -139,7 +158,7 @@ async function connectAndPay() {
 Hardware wallets work through browser extensions. The extension communicates with the hardware device.
 
 ```typescript twoslash
-import { createClient, cip30Wallet, mainnet } from "@evolution-sdk/evolution"
+import { mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 declare const cardano: any
 
@@ -148,10 +167,8 @@ async function useHardwareWallet() {
   const walletApi = await cardano.eternl.enable() // Extension handles hardware
 
   // Create API wallet client (same as software wallets)
-  const client = createClient({
-    chain: mainnet,
-    wallet: cip30Wallet(walletApi)
-  })
+  const client = makeClient(mainnet)
+  .withCip30(walletApi)
 
   // Extension will prompt hardware wallet for signatures
   const txCbor = "84a400..." // Transaction CBOR from backend
@@ -181,7 +198,7 @@ Hardware wallets and extensions follow Cardano's BIP-32 derivation paths:
 ## Error Handling
 
 ```typescript twoslash
-import { createClient, cip30Wallet, mainnet } from "@evolution-sdk/evolution"
+import { mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 declare const cardano: any
 
@@ -196,10 +213,8 @@ async function connectWallet(walletName: string) {
     const walletApi = await cardano[walletName].enable()
 
     // Create API wallet client
-    const client = createClient({
-      chain: mainnet,
-      wallet: cip30Wallet(walletApi)
-    })
+    const client = makeClient(mainnet)
+  .withCip30(walletApi)
 
     return client
   } catch (error: any) {

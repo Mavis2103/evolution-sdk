@@ -49,14 +49,6 @@ export interface CodegenConfig {
   unionStyle: UnionStyle
 
   /**
-   * Force Variant style even when Blueprint fields are unnamed
-   * When true, will use custom field names from variantFieldNames map
-   * or fall back to singleFieldName/multiFieldPattern
-   * @default false
-   */
-  forceVariant?: boolean
-
-  /**
    * Custom field names for Variant constructors when Blueprint has unnamed fields
    * Map from "TypeTitle.ConstructorTitle" to array of field names
    * Example:
@@ -84,13 +76,6 @@ export interface CodegenConfig {
   includeIndex: boolean
 
   /**
-   * Whether to use `Schema.suspend()` for forward references
-   * Only disable if you're sure there are no circular dependencies
-   * @default true
-   */
-  useSuspend: boolean
-
-  /**
    * Module organization strategy
    * - "flat": Current behavior (CardanoAddressCredential)
    * - "namespaced": Nested namespaces (Cardano.Address.Credential)
@@ -106,14 +91,14 @@ export interface CodegenConfig {
   useRelativeRefs: boolean
 
   /**
-   * Explicit import lines for Data, TSchema, and effect modules
+   * Explicit import lines for Data, TSchema, and Schema modules
    * e.g. data: 'import { Data } from "@evolution-sdk/evolution/Data"'
    */
   imports: {
     data: string
     tschema: string
-    /** Optional explicit import line for Effect Schema (`Schema`). Omit to skip emitting it. */
-    effect?: string
+    /** Import line for Effect Schema. Used when cyclic types require `Schema.suspend`. */
+    schema: string
   }
 
   /**
@@ -201,7 +186,8 @@ Configuration for how to generate union types with named constructors
 
 ```ts
 export type UnionStyle =
-  | "Variant" // TSchema.Variant({ Tag1: { ... }, Tag2: { ... } })
+  | "Variant" // TSchema.Variant({ Tag1: { ... }, Tag2: { ... } }) — compact sugar
+  | "Struct" // TSchema.Union(TSchema.Struct({ Tag1: TSchema.Struct({...}) }), ...) — verbose, same encoding as Variant
   | "TaggedStruct"
 ```
 

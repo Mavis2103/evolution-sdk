@@ -519,17 +519,20 @@ export interface SlotConfig {
  * @example
  * ```typescript
  * import * as Cluster from "@evolution-sdk/devnet/Cluster"
- * import { createClient } from "@evolution-sdk/evolution/sdk/client/ClientImpl"
+ * import { client } from "@evolution-sdk/evolution"
  *
  * const cluster = await Cluster.make({ ... })
  * const slotConfig = Cluster.getSlotConfig(cluster)
  *
- * const client = createClient({
- *   network: 0,
- *   slotConfig,
- *   provider: { type: "kupmios", kupoUrl: "...", ogmiosUrl: "..." },
- *   wallet: { type: "seed", mnemonic: "..." }
+ * const sdk = client({
+ *   id: 0,
+ *   name: "Devnet",
+ *   networkMagic: 42,
+ *   epochLength: 50,
+ *   slotConfig
  * })
+ *   .withKupmios({ kupoUrl: "...", ogmiosUrl: "..." })
+ *   .withSeed({ mnemonic: "..." })
  * ```
  *
  * @since 2.0.0
@@ -552,19 +555,17 @@ export const getSlotConfig = (cluster: Cluster): SlotConfig => {
  * Build a `Chain` descriptor for a devnet cluster.
  *
  * Combines a testnet network id (0) with the cluster's actual slot timing,
- * producing a value that can be passed directly to `createClient({ chain })`.
+ * producing a value that can be passed directly to `client(chain)`.
  *
  * @example
  * ```typescript
  * import * as Cluster from "@evolution-sdk/devnet/Cluster"
- * import { createClient, kupmios, seedWallet } from "@evolution-sdk/evolution"
+ * import { client } from "@evolution-sdk/evolution"
  *
  * const cluster = await Cluster.make({ ... })
- * const client = createClient({
- *   chain: Cluster.getChain(cluster),
- *   provider: kupmios({ kupoUrl: "...", ogmiosUrl: "..." }),
- *   wallet: seedWallet({ mnemonic: "..." })
- * })
+ * const sdk = client(Cluster.getChain(cluster))
+ *   .withKupmios({ kupoUrl: "...", ogmiosUrl: "..." })
+ *   .withSeed({ mnemonic: "..." })
  * ```
  *
  * @since 2.1.0

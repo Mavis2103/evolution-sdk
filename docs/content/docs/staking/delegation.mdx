@@ -12,16 +12,14 @@ Once your stake credential is registered, you can delegate your stake to earn re
 Assign your stake to a stake pool to earn rewards:
 
 ```typescript twoslash
-import { Credential, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const stakeCredential: Credential.Credential
 declare const poolKeyHash: any
@@ -37,16 +35,14 @@ await signed.submit()
 In the Conway era, delegate your governance voting power to a Delegated Representative:
 
 ```typescript twoslash
-import { Credential, DRep, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, DRep, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const stakeCredential: Credential.Credential
 declare const drepKeyHash: any
@@ -69,16 +65,14 @@ await signed.submit()
 You can also delegate to built-in options:
 
 ```typescript twoslash
-import { Credential, DRep, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, DRep, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const stakeCredential: Credential.Credential
 
@@ -106,16 +100,14 @@ const tx2 = await client
 Delegate to a pool and DRep in a single certificate:
 
 ```typescript twoslash
-import { Credential, DRep, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, DRep, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const stakeCredential: Credential.Credential
 declare const poolKeyHash: any
@@ -139,16 +131,14 @@ await signed.submit()
 For script-controlled stake credentials, provide a redeemer:
 
 ```typescript twoslash
-import { Credential, Data, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, Data, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const scriptStakeCredential: Credential.Credential
 declare const poolKeyHash: any

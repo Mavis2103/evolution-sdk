@@ -18,16 +18,14 @@ Reference scripts (Plutus V2+) let you store a script on-chain in a UTxO and ref
 Store your validator script on-chain by including it in a UTxO output:
 
 ```typescript twoslash
-import { Address, Assets, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Address, Assets, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const validatorScript: any
 
@@ -53,16 +51,20 @@ console.log("Reference script deployed:", txHash)
 Reference the deployed script UTxO when spending from the validator:
 
 ```typescript twoslash
-import { Address, Data, blockfrost, createClient, preprod, seedWallet, type UTxO } from "@evolution-sdk/evolution"
+import {
+  Address,
+  Data,
+  preprod,
+  type UTxO,
+  client as makeClient,
+} from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const scriptUtxos: UTxO.UTxO[]
 declare const referenceScriptUtxo: UTxO.UTxO
@@ -99,16 +101,19 @@ The key difference: `readFrom` makes the UTxO available as a reference input wit
 Reference inputs aren't just for scripts — you can also read datums from UTxOs without consuming them:
 
 ```typescript twoslash
-import { Data, blockfrost, createClient, preprod, seedWallet, type UTxO } from "@evolution-sdk/evolution"
+import {
+  Data,
+  preprod,
+  type UTxO,
+  client as makeClient,
+} from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const scriptUtxos: UTxO.UTxO[]
 declare const oracleUtxo: UTxO.UTxO

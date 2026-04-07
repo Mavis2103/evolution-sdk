@@ -20,7 +20,6 @@ import type { TxBuilderState } from "./TransactionBuilder.js"
  * Returns a new Map with invalidated exUnits (immutable operation).
  *
  * @param redeemers - Map of redeemers to invalidate
- * @returns New Map with all exUnits set to zero
  *
  * @since 2.0.0
  * @category state-management
@@ -45,7 +44,6 @@ export const invalidateExUnits = (redeemers: TxBuilderState["redeemers"]): TxBui
  * (exUnits are missing or set to zero).
  *
  * @param redeemers - Map of redeemers to check
- * @returns True if any redeemer needs evaluation
  *
  * @since 2.0.0
  * @category state-management
@@ -62,7 +60,6 @@ export const hasUnevaluatedRedeemers = (redeemers: TxBuilderState["redeemers"]):
  * Returns true if all redeemers have valid execution units (mem > 0 and steps > 0).
  *
  * @param redeemers - Map of redeemers to check
- * @returns True if all redeemers are evaluated
  *
  * @since 2.0.0
  * @category state-management

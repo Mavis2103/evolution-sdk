@@ -18,24 +18,14 @@ Transaction metadata lets you attach arbitrary data to transactions without affe
 ## Attach a Message (CIP-20)
 
 ```typescript twoslash
-import {
-  Address,
-  Assets,
-  TransactionMetadatum,
-  createClient,
-  preprod,
-  blockfrost,
-  seedWallet
-} from "@evolution-sdk/evolution"
+import { Address, Assets, TransactionMetadatum, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const messageMetadata: TransactionMetadatum.TransactionMetadatum
 
@@ -60,24 +50,14 @@ await signed.submit()
 Chain multiple `attachMetadata` calls for different labels:
 
 ```typescript twoslash
-import {
-  Address,
-  Assets,
-  TransactionMetadatum,
-  createClient,
-  preprod,
-  blockfrost,
-  seedWallet
-} from "@evolution-sdk/evolution"
+import { Address, Assets, TransactionMetadatum, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const messageMetadata: TransactionMetadatum.TransactionMetadatum
 declare const nftMetadata: TransactionMetadatum.TransactionMetadatum

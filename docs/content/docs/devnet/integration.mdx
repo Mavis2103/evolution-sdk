@@ -27,17 +27,23 @@ This guide demonstrates these patterns with complete, runnable examples.
 This example shows the full cycle from cluster creation to confirmed transaction:
 
 ```typescript twoslash
-import { Cluster, Config, Genesis } from "@evolution-sdk/devnet"
-import { Address, Assets, TransactionHash, createClient, preprod, kupmios, seedWallet } from "@evolution-sdk/evolution"
+import {
+  Cluster,
+  Config,
+  Genesis } from "@evolution-sdk/devnet"
+import { Address,
+  Assets,
+  TransactionHash,
+  preprod,
+  client as makeClient,
+} from "@evolution-sdk/evolution"
 
 const MNEMONIC = "your twenty-four word mnemonic phrase here"
 
 async function completeWorkflow() {
   // Step 1: Generate sender address
-  const wallet = createClient({
-    chain: preprod,
-    wallet: seedWallet({ mnemonic: MNEMONIC, accountIndex: 0 })
-  })
+  const wallet = makeClient(preprod)
+  .withSeed({ mnemonic: MNEMONIC, accountIndex: 0 })
 
   const senderAddress = await wallet.address()
   const senderAddressHex = Address.toHex(senderAddress)
@@ -71,11 +77,9 @@ async function completeWorkflow() {
   console.log("Devnet started with Kupo and Ogmios")
 
   // Step 4: Create client connected to devnet
-  const client = createClient({
-    chain: preprod,
-    provider: kupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" }),
-    wallet: seedWallet({ mnemonic: MNEMONIC, accountIndex: 0 })
-  })
+  const client = makeClient(preprod)
+  .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
+  .withSeed({ mnemonic: MNEMONIC, accountIndex: 0 })
 
   console.log("Client connected to devnet")
 
@@ -161,8 +165,16 @@ Three key integration points connect devnet to the Evolution SDK:
 Not all workflows require a wallet. Query blockchain state using a provider-only client:
 
 ```typescript twoslash
-import { Cluster, Config, Genesis } from "@evolution-sdk/devnet"
-import { Address, Assets, TransactionHash, createClient, preprod, kupmios } from "@evolution-sdk/evolution"
+import {
+  Cluster,
+  Config,
+  Genesis } from "@evolution-sdk/devnet"
+import { Address,
+  Assets,
+  TransactionHash,
+  preprod,
+  client as makeClient,
+} from "@evolution-sdk/evolution"
 
 // Start devnet with funded address
 const cluster = await Cluster.make({
@@ -182,10 +194,8 @@ await Cluster.start(cluster)
 await new Promise((resolve) => setTimeout(resolve, 6000))
 
 // Provider-only client (no wallet configured)
-const providerClient = createClient({
-  chain: preprod,
-  provider: kupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
-})
+const providerClient = makeClient(preprod)
+  .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
 
 // Query any address on the devnet
 const utxos = await providerClient.getUtxos(
@@ -210,17 +220,21 @@ Provider-only clients are ideal for blockchain explorers, monitoring tools, and 
 **Integration Test Setup**: Create a fresh cluster for each test suite to ensure isolated state:
 
 ```typescript twoslash
-import { describe, it, beforeAll, afterAll, expect } from "vitest"
-import { Cluster, Config } from "@evolution-sdk/devnet"
+import {
+  describe,
+  it,
+  beforeAll,
+  afterAll,
+  expect } from "vitest"
+import { Cluster,
+  Config } from "@evolution-sdk/devnet"
 import {
   Address,
   Assets,
   TransactionHash,
-  createClient,
   preprod,
-  kupmios,
-  seedWallet,
-  type SigningClient
+  type SigningClient,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
 describe("Transaction Tests", () => {
@@ -232,10 +246,8 @@ describe("Transaction Tests", () => {
     const mnemonic =
       "test test test test test test test test test test test test test test test test test test test test test test test sauce"
 
-    const wallet = createClient({
-      chain: preprod,
-      wallet: seedWallet({ mnemonic, accountIndex: 0 })
-    })
+    const wallet = makeClient(preprod)
+  .withSeed({ mnemonic, accountIndex: 0 })
 
     const addressHex = Address.toHex(await wallet.address())
 
@@ -257,11 +269,9 @@ describe("Transaction Tests", () => {
     await Cluster.start(cluster)
     await new Promise((resolve) => setTimeout(resolve, 8000))
 
-    client = createClient({
-      chain: preprod,
-      provider: kupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" }),
-      wallet: seedWallet({ mnemonic, accountIndex: 0 })
-    })
+    client = makeClient(preprod)
+  .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
+  .withSeed({ mnemonic, accountIndex: 0 })
   }, 180_000) // Extended timeout for cluster startup
 
   afterAll(async () => {
@@ -320,20 +330,23 @@ The `beforeAll` setup ensures all tests share the same devnet instance, reducing
 Test multi-party protocols by funding multiple addresses in genesis:
 
 ```typescript twoslash
-import { Cluster, Config } from "@evolution-sdk/devnet"
-import { Address, Assets, TransactionHash, createClient, preprod, kupmios, seedWallet } from "@evolution-sdk/evolution"
+import {
+  Cluster,
+  Config } from "@evolution-sdk/devnet"
+import { Address,
+  Assets,
+  TransactionHash,
+  preprod,
+  client as makeClient,
+} from "@evolution-sdk/evolution"
 
 async function multiWalletExample() {
   // Create two wallets
-  const wallet1 = createClient({
-    chain: preprod,
-    wallet: seedWallet({ mnemonic: "wallet one mnemonic here", accountIndex: 0 })
-  })
+  const wallet1 = makeClient(preprod)
+  .withSeed({ mnemonic: "wallet one mnemonic here", accountIndex: 0 })
 
-  const wallet2 = createClient({
-    chain: preprod,
-    wallet: seedWallet({ mnemonic: "wallet two mnemonic here", accountIndex: 0 })
-  })
+  const wallet2 = makeClient(preprod)
+  .withSeed({ mnemonic: "wallet two mnemonic here", accountIndex: 0 })
 
   // Get addresses as hex for genesis config
   const addr1Hex = Address.toHex(await wallet1.address())
@@ -361,17 +374,13 @@ async function multiWalletExample() {
   await new Promise((resolve) => setTimeout(resolve, 8000))
 
   // Create connected clients for both wallets
-  const client1 = createClient({
-    chain: preprod,
-    provider: kupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" }),
-    wallet: seedWallet({ mnemonic: "wallet one mnemonic here", accountIndex: 0 })
-  })
+  const client1 = makeClient(preprod)
+  .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
+  .withSeed({ mnemonic: "wallet one mnemonic here", accountIndex: 0 })
 
-  const client2 = createClient({
-    chain: preprod,
-    provider: kupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" }),
-    wallet: seedWallet({ mnemonic: "wallet two mnemonic here", accountIndex: 0 })
-  })
+  const client2 = makeClient(preprod)
+  .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
+  .withSeed({ mnemonic: "wallet two mnemonic here", accountIndex: 0 })
 
   // Wallet 1 sends to Wallet 2
   const wallet2Address = await wallet2.address()

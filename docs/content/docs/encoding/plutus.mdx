@@ -275,8 +275,13 @@ const ftDatum: CIP68Metadata.CIP68Datum = {
 Time-locked escrow that holds funds for a beneficiary until a deadline. The validator checks the deadline has passed and the beneficiary signed before releasing funds.
 
 ```typescript twoslash
-import { Address, Value, OutputReference } from "@evolution-sdk/evolution/plutus"
-import { Bytes, Data } from "@evolution-sdk/evolution"
+import {
+  Address,
+  Value,
+  OutputReference } from "@evolution-sdk/evolution/plutus"
+import { Bytes,
+  Data,
+} from "@evolution-sdk/evolution"
 
 interface EscrowDatum {
   beneficiary: Address.Address

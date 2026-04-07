@@ -20,6 +20,12 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
+      "@evolution-sdk/evolution": [
+        "../packages/evolution/dist/index.d.ts"
+      ],
+      "@evolution-sdk/evolution/*": [
+        "../packages/evolution/dist/*"
+      ],
       "@/.source": [
         "./.source/index.ts"
       ],

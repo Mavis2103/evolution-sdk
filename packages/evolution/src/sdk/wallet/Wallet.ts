@@ -68,7 +68,7 @@ export interface ReadOnlyWalletEffect {
  * @category model
  */
 export interface ReadOnlyWallet extends EffectToPromiseAPI<ReadOnlyWalletEffect> {
-  readonly Effect: ReadOnlyWalletEffect
+  readonly effect: ReadOnlyWalletEffect
   readonly type: "read-only"
 }
 
@@ -104,7 +104,7 @@ export interface SigningWalletEffect extends ReadOnlyWalletEffect {
  * @category model
  */
 export interface SigningWallet extends EffectToPromiseAPI<SigningWalletEffect> {
-  readonly Effect: SigningWalletEffect
+  readonly effect: SigningWalletEffect
   readonly type: "signing"
 }
 
@@ -136,7 +136,7 @@ export interface WalletApi {
 export interface ApiWalletEffect extends ReadOnlyWalletEffect {
   readonly signTx: (
     tx: Transaction.Transaction | string,
-    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ) => Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletError>
   readonly signMessage: (
     address: CoreAddress.Address | RewardAddress.RewardAddress,
@@ -160,50 +160,7 @@ export interface ApiWalletEffect extends ReadOnlyWalletEffect {
  * @category model
  */
 export interface ApiWallet extends EffectToPromiseAPI<ApiWalletEffect> {
-  readonly Effect: ApiWalletEffect
+  readonly effect: ApiWalletEffect
   readonly api: WalletApi
   readonly type: "api"
 }
-
-/**
- * Create a signing wallet from a mnemonic seed phrase.
- * Derives wallet keys from seed with optional account index and address type configuration.
- *
- * @since 2.0.0
- * @category constructors
- */
-export declare function makeWalletFromSeed(
-  network: Network,
-  seed: string,
-  options?: {
-    addressType?: "Base" | "Enterprise"
-    accountIndex?: number
-    password?: string
-  }
-): SigningWallet
-
-/**
- * Create a signing wallet from a bech32-encoded private key.
- *
- * @since 2.0.0
- * @category constructors
- */
-export declare function makeWalletFromPrivateKey(network: Network, privateKeyBech32: string): SigningWallet
-
-/**
- * Create an API wallet from a CIP-30 wallet extension.
- * Enables interaction with browser-based wallet extensions like Nami or Eternl.
- *
- * @since 2.0.0
- * @category constructors
- */
-export declare function makeWalletFromAPI(api: WalletApi): ApiWallet
-
-/**
- * Create a read-only wallet from a Cardano address.
- * Useful for monitoring wallets and read-only operations without signing capability.
- *
- * @since 2.0.0
- * @category constructors
- */
-export declare function makeWalletFromAddress(network: Network, address: CoreAddress.Address): ReadOnlyWallet

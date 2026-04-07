@@ -16,21 +16,17 @@ import {
   Address,
   Assets,
   Data,
-  blockfrost,
-  createClient,
   preprod,
-  seedWallet,
-  type UTxO
+  type UTxO,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const scriptUtxos: UTxO.UTxO[]
 declare const validatorScript: any
@@ -59,21 +55,17 @@ import {
   Assets,
   Data,
   KeyHash,
-  blockfrost,
-  createClient,
   preprod,
-  seedWallet,
-  type UTxO
+  type UTxO,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const scriptUtxos: UTxO.UTxO[]
 declare const validatorScript: any
@@ -98,16 +90,19 @@ await signed.submit()
 For time-locked validators, set the transaction validity interval so the script can verify the current time:
 
 ```typescript twoslash
-import { Data, blockfrost, createClient, preprod, seedWallet, type UTxO } from "@evolution-sdk/evolution"
+import {
+  Data,
+  preprod,
+  type UTxO,
+  client as makeClient,
+} from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const scriptUtxos: UTxO.UTxO[]
 declare const validatorScript: any
@@ -140,21 +135,17 @@ import {
   Address,
   Assets,
   Data,
-  blockfrost,
-  createClient,
   preprod,
-  seedWallet,
-  type UTxO
+  type UTxO,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const scriptUtxos: UTxO.UTxO[]
 declare const validatorScript: any
@@ -208,16 +199,19 @@ redeemer: {
 Add labels to identify operations in error messages when debugging script failures:
 
 ```typescript twoslash
-import { Data, blockfrost, createClient, preprod, seedWallet, type UTxO } from "@evolution-sdk/evolution"
+import {
+  Data,
+  preprod,
+  type UTxO,
+  client as makeClient,
+} from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const escrowUtxos: UTxO.UTxO[]
 declare const validatorScript: any

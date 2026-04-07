@@ -10,16 +10,14 @@ Before you can delegate or earn rewards, your stake credential must be registere
 ## Basic Registration
 
 ```typescript twoslash
-import { Credential, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const stakeCredential: Credential.Credential
 
@@ -36,16 +34,14 @@ The deposit amount is fetched automatically from protocol parameters.
 The Conway era introduced combined certificates that register and delegate in one step, saving a certificate fee:
 
 ```typescript twoslash
-import { Credential, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const stakeCredential: Credential.Credential
 declare const poolKeyHash: any
@@ -67,16 +63,14 @@ await signed.submit()
 You can also combine registration with DRep delegation or both:
 
 ```typescript twoslash
-import { Credential, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const stakeCredential: Credential.Credential
 declare const poolKeyHash: any
@@ -101,16 +95,14 @@ await signed.submit()
 For stake credentials controlled by Plutus scripts, provide a redeemer:
 
 ```typescript twoslash
-import { Credential, Data, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, Data, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const scriptStakeCredential: Credential.Credential
 declare const stakeScript: any

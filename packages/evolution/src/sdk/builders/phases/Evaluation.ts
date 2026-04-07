@@ -300,7 +300,7 @@ export const executeEvaluation = (): Effect.Effect<
       )
     }
 
-    const fullProtocolParams = yield* config.provider.Effect.getProtocolParameters().pipe(
+    const fullProtocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (providerError) =>
           new TransactionBuilderError({

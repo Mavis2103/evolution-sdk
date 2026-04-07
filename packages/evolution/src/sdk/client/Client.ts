@@ -1,152 +1,231 @@
-import { Data, type Effect } from "effect"
+import { type Effect } from "effect"
 
 import type * as CoreUTxO from "../../UTxO.js"
 import type { ReadOnlyTransactionBuilder, SigningTransactionBuilder } from "../builders/TransactionBuilder.js"
 import type * as Provider from "../provider/Provider.js"
 import type { EffectToPromiseAPI } from "../Type.js"
-import type * as WalletNew from "../wallet/WalletNew.js"
+import type * as Wallet from "../wallet/Wallet.js"
 import type { Chain } from "./Chain.js"
-import type { AnyWallet } from "./Wallets.js"
+import * as internal from "./internal/Client.js"
 
 /**
- * Error class for provider-related operations.
+ * Address capability Effect surface.
  *
- * @since 2.0.0
- * @category errors
- */
-export class ProviderError extends Data.TaggedError("ProviderError")<{
-  message?: string
-  cause?: unknown
-}> {}
-
-/**
- * MinimalClient Effect - holds chain context.
- *
- * @since 2.0.0
+ * @since 2.1.0
  * @category model
  */
-export interface MinimalClientEffect {
+export interface AddressClientEffect extends Wallet.ReadOnlyWalletEffect {}
+
+/**
+ * Offline signing capability Effect surface.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface OfflineSignerClientEffect extends AddressClientEffect {
+  readonly signTx: (
+    tx: Parameters<Wallet.SigningWalletEffect["signTx"]>[0],
+    context?: Parameters<Wallet.SigningWalletEffect["signTx"]>[1]
+  ) => ReturnType<Wallet.SigningWalletEffect["signTx"]>
+  readonly signMessage: Wallet.SigningWalletEffect["signMessage"]
+}
+
+/**
+ * Read-only client Effect surface.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface ReadOnlyClientEffect extends Provider.ProviderEffect, AddressClientEffect {
+  readonly getWalletUtxos: () => Effect.Effect<
+    ReadonlyArray<CoreUTxO.UTxO>,
+    Wallet.WalletError | Provider.ProviderError
+  >
+  readonly getWalletDelegation: () => Effect.Effect<Provider.Delegation, Wallet.WalletError | Provider.ProviderError>
+}
+
+/**
+ * Signing client Effect surface.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface SigningClientEffect extends Provider.ProviderEffect, OfflineSignerClientEffect {
+  readonly getWalletUtxos: () => Effect.Effect<
+    ReadonlyArray<CoreUTxO.UTxO>,
+    Wallet.WalletError | Provider.ProviderError
+  >
+  readonly getWalletDelegation: () => Effect.Effect<Provider.Delegation, Wallet.WalletError | Provider.ProviderError>
+}
+
+/**
+ * Configuration for the Blockfrost provider.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface BlockfrostConfig {
+  readonly baseUrl: string
+  readonly projectId?: string
+}
+
+/**
+ * Configuration for the Koios provider.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface KoiosConfig {
+  readonly baseUrl: string
+  readonly token?: string
+}
+
+/**
+ * Configuration for the Kupmios provider (Kupo + Ogmios).
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface KupmiosConfig {
+  readonly kupoUrl: string
+  readonly ogmiosUrl: string
+  readonly headers?: {
+    readonly ogmiosHeader?: Record<string, string>
+    readonly kupoHeader?: Record<string, string>
+  }
+}
+
+/**
+ * Configuration for the Maestro provider.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface MaestroConfig {
+  readonly baseUrl: string
+  readonly apiKey: string
+  readonly turboSubmit?: boolean
+}
+
+/**
+ * Configuration for the seed phrase wallet.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface SeedWalletConfig {
+  readonly mnemonic: string
+  readonly accountIndex?: number
+  readonly paymentIndex?: number
+  readonly stakeIndex?: number
+  readonly addressType?: "Base" | "Enterprise"
+  readonly password?: string
+}
+
+/**
+ * Configuration for the private key wallet.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface PrivateKeyWalletConfig {
+  readonly paymentKey: string
+  readonly stakeKey?: string
+  readonly addressType?: "Base" | "Enterprise"
+}
+
+/**
+ * Client assembly stage scoped to a chain.
+ *
+ * @since 2.1.0
+ * @category model
+ */
+export interface ClientAssembly {
   readonly chain: Chain
+  readonly withBlockfrost: (config: BlockfrostConfig) => ReadClient
+  readonly withKoios: (config: KoiosConfig) => ReadClient
+  readonly withKupmios: (config: KupmiosConfig) => ReadClient
+  readonly withMaestro: (config: MaestroConfig) => ReadClient
+  readonly withAddress: (address: string, rewardAddress?: string) => AddressClient
+  readonly withSeed: (config: SeedWalletConfig) => OfflineSignerClient
+  readonly withPrivateKey: (config: PrivateKeyWalletConfig) => OfflineSignerClient
+  readonly withCip30: (api: Wallet.WalletApi) => OfflineSignerClient
 }
 
 /**
- * ReadOnlyClient Effect - provider, read-only wallet, and utility methods.
+ * Read-capable client.
  *
- * @since 2.0.0
+ * @since 2.1.0
  * @category model
  */
-export interface ReadOnlyClientEffect extends Provider.ProviderEffect, WalletNew.ReadOnlyWalletEffect {
-  readonly getWalletUtxos: () => Effect.Effect<ReadonlyArray<CoreUTxO.UTxO>, Provider.ProviderError>
-  readonly getWalletDelegation: () => Effect.Effect<Provider.Delegation, Provider.ProviderError>
-}
-
-/**
- * SigningClient Effect - provider, signing wallet, and utility methods.
- *
- * @since 2.0.0
- * @category model
- */
-export interface SigningClientEffect extends Provider.ProviderEffect, WalletNew.SigningWalletEffect {
-  readonly getWalletUtxos: () => Effect.Effect<ReadonlyArray<CoreUTxO.UTxO>, WalletNew.WalletError | Provider.ProviderError>
-  readonly getWalletDelegation: () => Effect.Effect<Provider.Delegation, WalletNew.WalletError | Provider.ProviderError>
-}
-
-/**
- * MinimalClient - network context with combinator methods to attach provider and/or wallet.
- *
- * @since 2.0.0
- * @category model
- */
-export interface MinimalClient {
+export type ReadClient = EffectToPromiseAPI<Provider.ProviderEffect> & {
   readonly chain: Chain
-  readonly attachProvider: (provider: Provider.Provider) => ProviderOnlyClient
-  readonly attachWallet: <T extends AnyWallet>(
-    wallet: T
-  ) => T extends WalletNew.ReadOnlyWallet
-    ? ReadOnlyWalletClient
-    : T extends WalletNew.ApiWallet
-      ? ApiWalletClient
-      : SigningWalletClient
-  readonly Effect: MinimalClientEffect
+  readonly withAddress: (address: string, rewardAddress?: string) => ReadOnlyClient
+  readonly withSeed: (config: SeedWalletConfig) => SigningClient
+  readonly withPrivateKey: (config: PrivateKeyWalletConfig) => SigningClient
+  readonly withCip30: (api: Wallet.WalletApi) => SigningClient
+  readonly newTx: () => ReadOnlyTransactionBuilder
+  readonly effect: Provider.ProviderEffect
 }
 
 /**
- * ProviderOnlyClient - blockchain queries and transaction submission.
+ * Address-capable client.
  *
- * @since 2.0.0
+ * @since 2.1.0
  * @category model
  */
-export type ProviderOnlyClient = EffectToPromiseAPI<Provider.ProviderEffect> & {
+export type AddressClient = EffectToPromiseAPI<AddressClientEffect> & {
   readonly chain: Chain
-  readonly attachWallet: <T extends AnyWallet>(
-    wallet: T
-  ) => T extends WalletNew.ReadOnlyWallet ? ReadOnlyClient : SigningClient
-  readonly Effect: Provider.ProviderEffect
+  readonly withBlockfrost: (config: BlockfrostConfig) => ReadOnlyClient
+  readonly withKoios: (config: KoiosConfig) => ReadOnlyClient
+  readonly withKupmios: (config: KupmiosConfig) => ReadOnlyClient
+  readonly withMaestro: (config: MaestroConfig) => ReadOnlyClient
+  readonly effect: AddressClientEffect
 }
 
 /**
- * ReadOnlyClient - blockchain queries and wallet address operations without signing.
- * Use newTx() to build unsigned transactions.
+ * Signing-capable client without read capability.
  *
- * @since 2.0.0
+ * @since 2.1.0
+ * @category model
+ */
+export type OfflineSignerClient = EffectToPromiseAPI<OfflineSignerClientEffect> & {
+  readonly chain: Chain
+  readonly withBlockfrost: (config: BlockfrostConfig) => SigningClient
+  readonly withKoios: (config: KoiosConfig) => SigningClient
+  readonly withKupmios: (config: KupmiosConfig) => SigningClient
+  readonly withMaestro: (config: MaestroConfig) => SigningClient
+  readonly effect: OfflineSignerClientEffect
+}
+
+/**
+ * Read-capable client with address resolution.
+ *
+ * @since 2.1.0
  * @category model
  */
 export type ReadOnlyClient = EffectToPromiseAPI<ReadOnlyClientEffect> & {
+  readonly chain: Chain
   readonly newTx: () => ReadOnlyTransactionBuilder
-  readonly Effect: ReadOnlyClientEffect
+  readonly effect: ReadOnlyClientEffect
 }
 
 /**
- * SigningClient - full functionality: blockchain queries, transaction signing, and submission.
- * Use newTx() to build, sign, and submit transactions.
+ * Full signing client.
  *
- * @since 2.0.0
+ * @since 2.1.0
  * @category model
  */
 export type SigningClient = EffectToPromiseAPI<SigningClientEffect> & {
+  readonly chain: Chain
   readonly newTx: () => SigningTransactionBuilder
-  readonly Effect: SigningClientEffect
+  readonly effect: SigningClientEffect
 }
 
 /**
- * ApiWalletClient - CIP-30 wallet signing and submission without blockchain queries.
- * Requires attachProvider() to access blockchain data.
+ * Construct a chain-scoped client assembly stage.
  *
- * @since 2.0.0
- * @category model
+ * @since 2.1.0
+ * @category constructors
  */
-export type ApiWalletClient = EffectToPromiseAPI<WalletNew.ApiWalletEffect> & {
-  readonly chain: Chain
-  readonly attachProvider: (provider: Provider.Provider) => SigningClient
-  readonly Effect: WalletNew.ApiWalletEffect
-}
-
-/**
- * SigningWalletClient - transaction signing without blockchain queries.
- * Requires attachProvider() to access blockchain data.
- *
- * @since 2.0.0
- * @category model
- */
-export type SigningWalletClient = EffectToPromiseAPI<WalletNew.SigningWalletEffect> & {
-  readonly chain: Chain
-  readonly attachProvider: (provider: Provider.Provider) => SigningClient
-  readonly Effect: WalletNew.SigningWalletEffect
-}
-
-/**
- * ReadOnlyWalletClient - wallet address access without signing or blockchain queries.
- * Requires attachProvider() to access blockchain data.
- *
- * @since 2.0.0
- * @category model
- */
-export type ReadOnlyWalletClient = EffectToPromiseAPI<WalletNew.ReadOnlyWalletEffect> & {
-  readonly chain: Chain
-  readonly attachProvider: (provider: Provider.Provider) => ReadOnlyClient
-  readonly Effect: WalletNew.ReadOnlyWalletEffect
-}
-
-export type { Chain } from "./Chain.js"
-export { mainnet, preprod, preview } from "./Chain.js"
-export type { AnyWallet, WalletFactory } from "./Wallets.js"
+export const client: (chain?: Chain) => ClientAssembly = internal.client

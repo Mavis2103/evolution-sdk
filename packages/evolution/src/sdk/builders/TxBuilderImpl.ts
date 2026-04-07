@@ -146,7 +146,12 @@ export const calculateTotalAssets = (utxos: ReadonlyArray<CoreUTxO.UTxO> | Set<C
  * @since 2.0.0
  * @category helpers
  */
-export const tierRefScriptFee = (multiplier: number, sizeIncrement: number, baseFee: number, totalSize: number): bigint => {
+export const tierRefScriptFee = (
+  multiplier: number,
+  sizeIncrement: number,
+  baseFee: number,
+  totalSize: number
+): bigint => {
   let acc = 0
   let curTierPrice = baseFee
   let remaining = totalSize
@@ -177,7 +182,6 @@ export const tierRefScriptFee = (multiplier: number, sizeIncrement: number, base
  *
  * @param utxos - All UTxOs (spent inputs + reference inputs) to scan for scriptRefs
  * @param costPerByte - The minFeeRefScriptCostPerByte protocol parameter
- * @returns Total reference script fee in lovelace
  *
  * @since 2.0.0
  * @category helpers
@@ -680,7 +684,7 @@ export const assembleTransaction = (
       }
 
       // Fetch full protocol params from provider (includes cost models)
-      const fullProtocolParams = yield* config.provider.Effect.getProtocolParameters().pipe(
+      const fullProtocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
         Effect.mapError(
           (providerError) =>
             new TransactionBuilderError({
@@ -760,9 +764,7 @@ export const assembleTransaction = (
         costModels,
         plutusDataArray.length > 0 ? plutusDataArray : undefined
       )
-      yield* Effect.logDebug(
-        `[Assembly] Computed scriptDataHash: ${scriptDataHash.hash.toString()}`
-      )
+      yield* Effect.logDebug(`[Assembly] Computed scriptDataHash: ${scriptDataHash.hash.toString()}`)
     }
 
     yield* Effect.logDebug(`[Assembly] WitnessSet populated:`)

@@ -9,7 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano, createClient, kupmios, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Cardano, client, preprod } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/Address"
 import * as KeyHash from "@evolution-sdk/evolution/KeyHash"
 import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
@@ -24,18 +24,13 @@ describe("TxBuilder addSigner (Devnet Submit)", () => {
 
   const createTestClient = (accountIndex: number = 0) => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return createClient({
-      chain: Cluster.getChain(devnetCluster),
-      provider: kupmios({ kupoUrl: "http://localhost:1449", ogmiosUrl: "http://localhost:1344" }),
-      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
-    })
+    return client(Cluster.getChain(devnetCluster))
+      .withKupmios({ kupoUrl: "http://localhost:1449", ogmiosUrl: "http://localhost:1344" })
+      .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
   }
 
   beforeAll(async () => {
-    const tempClient = createClient({
-      chain: preprod,
-      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex: 0, addressType: "Base" })
-    })
+    const tempClient = client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0, addressType: "Base" })
 
     const testAddress = await tempClient.address()
     const testAddressHex = Address.toHex(testAddress)

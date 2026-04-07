@@ -49,7 +49,7 @@ import type * as VotingProcedures from "../../VotingProcedures.js"
 import type { Chain } from "../client/Chain.js"
 import type { EvalRedeemer } from "../EvalRedeemer.js"
 import type * as Provider from "../provider/Provider.js"
-import type * as WalletNew from "../wallet/WalletNew.js"
+import type * as Wallet from "../wallet/Wallet.js"
 import type { CoinSelectionAlgorithm, CoinSelectionFunction } from "./CoinSelection.js"
 import { createAddSignerProgram } from "./operations/AddSigner.js"
 import { attachScriptToState } from "./operations/Attach.js"
@@ -196,7 +196,7 @@ const resolveProtocolParameters = (
 
   if (config.provider) {
     return Effect.map(
-      config.provider.Effect.getProtocolParameters(),
+      config.provider.effect.getProtocolParameters(),
       (params): ProtocolParameters => ({
         minFeeCoefficient: BigInt(params.minFeeA),
         minFeeConstant: BigInt(params.minFeeB),
@@ -212,8 +212,7 @@ const resolveProtocolParameters = (
   return Effect.fail(
     new TransactionBuilderError({
       message:
-        "No protocol parameters provided. Either provide protocolParameters in BuildOptions or provider in config.",
-      cause: null
+        "No protocol parameters provided. Either provide protocolParameters in BuildOptions or provider in config."
     })
   )
 }
@@ -225,19 +224,18 @@ const resolveProtocolParameters = (
 const resolveChangeAddress = (
   config: TxBuilderConfig,
   options?: BuildOptions
-): Effect.Effect<CoreAddress.Address, TransactionBuilderError | WalletNew.WalletError> => {
+): Effect.Effect<CoreAddress.Address, TransactionBuilderError | Wallet.WalletError> => {
   if (options?.changeAddress) {
     return Effect.succeed(options.changeAddress)
   }
 
   if (config.wallet) {
-    return config.wallet.Effect.address()
+    return config.wallet.effect.address()
   }
 
   return Effect.fail(
     new TransactionBuilderError({
-      message: "No change address provided. Either provide wallet in config or changeAddress in build options.",
-      cause: null
+      message: "No change address provided. Either provide wallet in config or changeAddress in build options."
     })
   )
 }
@@ -251,21 +249,20 @@ const resolveAvailableUtxos = (
   options?: BuildOptions
 ): Effect.Effect<
   ReadonlyArray<CoreUTxO.UTxO>,
-  TransactionBuilderError | WalletNew.WalletError | Provider.ProviderError
+  TransactionBuilderError | Wallet.WalletError | Provider.ProviderError
 > => {
   if (options?.availableUtxos) {
     return Effect.succeed(options.availableUtxos)
   }
 
   if (config.wallet && config.provider) {
-    return Effect.flatMap(config.wallet.Effect.address(), (addr) => config.provider!.Effect.getUtxos(addr))
+    return Effect.flatMap(config.wallet.effect.address(), (addr) => config.provider!.effect.getUtxos(addr))
   }
 
   return Effect.fail(
     new TransactionBuilderError({
       message:
-        "No available UTxOs provided. Either provide wallet+provider in config or availableUtxos in build options.",
-      cause: null
+        "No available UTxOs provided. Either provide wallet+provider in config or availableUtxos in build options."
     })
   )
 }
@@ -389,7 +386,7 @@ const resolveEvaluator = (config: TxBuilderConfig, options?: BuildOptions): Eval
           ? (additionalUtxos as Array<CoreUTxO.UTxO> | undefined)
           : undefined
 
-        return config.provider!.Effect.evaluateTx(tx, utxosToPass).pipe(
+        return config.provider!.effect.evaluateTx(tx, utxosToPass).pipe(
           Effect.mapError((providerError) => {
             // Parse provider error into structured failures
             const failures = parseProviderError(providerError)
@@ -890,7 +887,7 @@ export interface BuildOptions {
   /**
    * Override the change address for this specific transaction build.
    *
-   * By default, uses wallet.Effect.address() from TxBuilderConfig.
+   * By default, uses wallet.effect.address() from TxBuilderConfig.
    * Provide this to use a different address for change outputs.
    *
    * Use cases:
@@ -915,7 +912,7 @@ export interface BuildOptions {
   /**
    * Override the available UTxOs for this specific transaction build.
    *
-   * By default, fetches UTxOs from provider.Effect.getUtxos(wallet.address).
+   * By default, fetches UTxOs from provider.effect.getUtxos(wallet.address).
    * Provide this to use a specific set of UTxOs for coin selection.
    *
    * Use cases:
@@ -1194,8 +1191,8 @@ export interface ProtocolParameters {
  * Immutable configuration passed to builder at creation time.
  *
  * Wallet-centric design (when wallet provided):
- * - Wallet provides change address (via wallet.Effect.address())
- * - Provider + Wallet provide available UTxOs (via provider.Effect.getUtxos(wallet.address))
+ * - Wallet provides change address (via wallet.effect.address())
+ * - Provider + Wallet provide available UTxOs (via provider.effect.getUtxos(wallet.address))
  * - Override per-build via BuildOptions if needed
  *
  * Manual mode (no wallet):
@@ -1208,9 +1205,9 @@ export interface ProtocolParameters {
 export interface TxBuilderConfig {
   /**
    * Optional wallet provides:
-   * - Change address via wallet.Effect.address()
-   * - Available UTxOs via wallet.Effect.address() + provider.Effect.getUtxos()
-   * - Signing capability via wallet.Effect.signTx() (SigningWallet and ApiWallet only)
+   * - Change address via wallet.effect.address()
+   * - Available UTxOs via wallet.effect.address() + provider.effect.getUtxos()
+   * - Signing capability via wallet.effect.signTx() (SigningWallet and ApiWallet only)
    *
    * When provided: Automatic change address and UTxO resolution.
    * When omitted: Must provide changeAddress and availableUtxos in BuildOptions.
@@ -1220,12 +1217,12 @@ export interface TxBuilderConfig {
    *
    * Override per-build via BuildOptions.changeAddress and BuildOptions.availableUtxos.
    */
-  readonly wallet?: WalletNew.SigningWallet | WalletNew.ApiWallet | WalletNew.ReadOnlyWallet
+  readonly wallet?: Wallet.SigningWallet | Wallet.ApiWallet | Wallet.ReadOnlyWallet
 
   /**
    * Optional provider for:
-   * - Fetching UTxOs for the wallet's address (provider.Effect.getUtxos)
-   * - Transaction submission (provider.Effect.submitTx)
+   * - Fetching UTxOs for the wallet's address (provider.effect.getUtxos)
+   * - Transaction submission (provider.effect.submitTx)
    * - Protocol parameters
    *
    * Works together with wallet to provide everything needed for transaction building.
@@ -1348,7 +1345,7 @@ export class TxContext extends Context.Tag("TxContext")<TxContext, Ref.Ref<TxBui
  * Resolved change address for the current build.
  * This is resolved once at the start of build() from either:
  * - BuildOptions.changeAddress (per-transaction override)
- * - TxBuilderConfig.wallet.Effect.address() (default from wallet)
+ * - TxBuilderConfig.wallet.effect.address() (default from wallet)
  *
  * Available to all phase functions via Effect Context.
  *
@@ -1361,7 +1358,7 @@ export class ChangeAddressTag extends Context.Tag("ChangeAddress")<ChangeAddress
  * Resolved protocol parameters for the current build.
  * This is resolved once at the start of build() from either:
  * - BuildOptions.protocolParameters (per-transaction override)
- * - provider.Effect.getProtocolParameters() (fetched from provider)
+ * - provider.effect.getProtocolParameters() (fetched from provider)
  *
  * Available to all phase functions via Effect Context.
  *
@@ -1375,7 +1372,7 @@ export class ProtocolParametersTag extends Context.Tag("ProtocolParameters")<
 
 /**
  * Full protocol parameters (including cost models, execution units, etc.) for script evaluation.
- * This is resolved from provider.Effect.getProtocolParameters() and includes all fields
+ * This is resolved from provider.effect.getProtocolParameters() and includes all fields
  * needed for UPLC evaluation, unlike the minimal ProtocolParametersTag.
  *
  * Available to evaluation phase via Effect Context.
@@ -1401,7 +1398,7 @@ export class TxBuilderConfigTag extends Context.Tag("TxBuilderConfig")<TxBuilder
  * Resolved available UTxOs for the current build.
  * This is resolved once at the start of build() from either:
  * - BuildOptions.availableUtxos (per-transaction override)
- * - provider.Effect.getUtxos(wallet.address) (default from wallet + provider)
+ * - provider.effect.getUtxos(wallet.address) (default from wallet + provider)
  *
  * Available to all phase functions via Effect Context.
  *
@@ -1504,8 +1501,8 @@ export type ProgramStep = Effect.Effect<void, TransactionBuilderError, TxContext
  * @internal
  */
 export type BuildResultType<W extends TxBuilderConfig["wallet"] | undefined> = W extends
-  | WalletNew.SigningWallet
-  | WalletNew.ApiWallet
+  | Wallet.SigningWallet
+  | Wallet.ApiWallet
   ? SignBuilder
   : TransactionResultBase
 
@@ -2184,7 +2181,6 @@ export interface TransactionBuilderBase {
    * ```
    *
    * @param other - Another transaction builder whose operations will be merged
-   * @returns The same builder for method chaining
    *
    * @since 2.0.0
    * @category composition-methods
@@ -2196,8 +2192,6 @@ export interface TransactionBuilderBase {
    *
    * Returns a read-only copy of all queued operations that have been added
    * to this builder. Useful for inspection, debugging, or advanced composition patterns.
-   *
-   * @returns Read-only array of accumulated program steps
    *
    * @since 2.0.0
    * @category composition-methods
@@ -2214,8 +2208,6 @@ export interface TransactionBuilderBase {
    * Runs the full build pipeline (coin selection, fee calculation, evaluation) and returns
    * which UTxOs were consumed and which remain available for subsequent transactions.
    * Use this when building multiple dependent transactions in sequence.
-   *
-   * @returns Promise<ChainResult> with consumed and available UTxOs
    *
    * @example
    * ```typescript
@@ -2254,8 +2246,6 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
    * Can be called multiple times on the same builder instance with independent results.
    *
-   * @returns Promise<SignBuilder> which provides signing capabilities
-   *
    * @since 2.0.0
    * @category completion-methods
    */
@@ -2267,8 +2257,6 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
    * Suitable for Effect-TS compositional workflows and error handling.
    *
-   * @returns Effect<SignBuilder, ...> which provides signing capabilities
-   *
    * @since 2.0.0
    * @category completion-methods
    */
@@ -2276,7 +2264,7 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
     options?: BuildOptions
   ) => Effect.Effect<
     SignBuilder,
-    TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError,
+    TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError,
     never
   >
 
@@ -2284,9 +2272,7 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
    * Execute all queued operations with explicit error handling via Either.
    *
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
-   * Returns Either<Result, Error> for pattern-matched error recovery.
-   *
-   * @returns Promise<Either<SignBuilder, Error>>
+   * Returns `Either<Result, Error>` for pattern-matched error recovery.
    *
    * @since 2.0.0
    * @category completion-methods
@@ -2294,7 +2280,7 @@ export interface SigningTransactionBuilder extends TransactionBuilderBase {
   readonly buildEither: (
     options?: BuildOptions
   ) => Promise<
-    Either<SignBuilder, TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError>
+    Either<SignBuilder, TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError>
   >
 }
 
@@ -2317,8 +2303,6 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
    * Can be called multiple times on the same builder instance with independent results.
    *
-   * @returns Promise<TransactionResultBase> which provides query-only methods
-   *
    * @since 2.0.0
    * @category completion-methods
    */
@@ -2330,8 +2314,6 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
    * Suitable for Effect-TS compositional workflows and error handling.
    *
-   * @returns Effect<TransactionResultBase, ...> which provides query-only methods
-   *
    * @since 2.0.0
    * @category completion-methods
    */
@@ -2339,7 +2321,7 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
     options?: BuildOptions
   ) => Effect.Effect<
     TransactionResultBase,
-    TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError,
+    TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError,
     never
   >
 
@@ -2347,9 +2329,7 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
    * Execute all queued operations with explicit error handling via Either.
    *
    * Creates fresh state and runs all accumulated ProgramSteps sequentially.
-   * Returns Either<Result, Error> for pattern-matched error recovery.
-   *
-   * @returns Promise<Either<TransactionResultBase, Error>>
+   * Returns `Either<Result, Error>` for pattern-matched error recovery.
    *
    * @since 2.0.0
    * @category completion-methods
@@ -2359,7 +2339,7 @@ export interface ReadOnlyTransactionBuilder extends TransactionBuilderBase {
   ) => Promise<
     Either<
       TransactionResultBase,
-      TransactionBuilderError | EvaluationError | WalletNew.WalletError | Provider.ProviderError
+      TransactionBuilderError | EvaluationError | Wallet.WalletError | Provider.ProviderError
     >
   >
 }
@@ -2401,9 +2381,11 @@ export type TransactionBuilder = SigningTransactionBuilder | ReadOnlyTransaction
  * @category constructors
  */
 export function makeTxBuilder(
-  config: TxBuilderConfig & { wallet: WalletNew.SigningWallet | WalletNew.ApiWallet }
+  config: TxBuilderConfig & { wallet: Wallet.SigningWallet | Wallet.ApiWallet }
 ): SigningTransactionBuilder
-export function makeTxBuilder(config: TxBuilderConfig & { wallet: WalletNew.ReadOnlyWallet }): ReadOnlyTransactionBuilder
+export function makeTxBuilder(
+  config: TxBuilderConfig & { wallet: Wallet.ReadOnlyWallet }
+): ReadOnlyTransactionBuilder
 export function makeTxBuilder(config: TxBuilderConfig & { wallet?: undefined }): ReadOnlyTransactionBuilder
 export function makeTxBuilder(config: TxBuilderConfig): SigningTransactionBuilder | ReadOnlyTransactionBuilder {
   const programs: Array<ProgramStep> = []

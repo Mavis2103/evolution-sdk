@@ -18,18 +18,15 @@ import {
   RewardAddress,
   Transaction,
   TransactionHash,
-  createClient,
-  blockfrost,
-  mainnet
+  mainnet,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 interface AddressInfo {
   address: string
@@ -63,18 +60,15 @@ import {
   RewardAddress,
   Transaction,
   TransactionHash,
-  createClient,
-  blockfrost,
-  mainnet
+  mainnet,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 interface WalletBalance {
   address: string
@@ -138,18 +132,15 @@ import {
   RewardAddress,
   Transaction,
   TransactionHash,
-  createClient,
-  blockfrost,
-  mainnet
+  mainnet,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 interface SubmissionResponse {
   success: boolean
@@ -223,18 +214,15 @@ import {
   RewardAddress,
   Transaction,
   TransactionHash,
-  createClient,
-  blockfrost,
-  mainnet
+  mainnet,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 interface TokenHolder {
   address: string
@@ -292,18 +280,15 @@ import {
   RewardAddress,
   Transaction,
   TransactionHash,
-  createClient,
-  blockfrost,
-  mainnet
+  mainnet,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 interface NFTOwnership {
   tokenId: string
@@ -372,18 +357,15 @@ import {
   RewardAddress,
   Transaction,
   TransactionHash,
-  createClient,
-  blockfrost,
-  mainnet
+  mainnet,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 interface Delegator {
   rewardAddress: string
@@ -442,18 +424,15 @@ import {
   RewardAddress,
   Transaction,
   TransactionHash,
-  createClient,
-  blockfrost,
-  mainnet
+  mainnet,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: mainnet,
-  provider: blockfrost({
+const client = makeClient(mainnet)
+  .withBlockfrost({
     baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_PROJECT_ID!
   })
-})
 
 interface ParameterSnapshot {
   timestamp: Date
@@ -533,10 +512,8 @@ import {
   RewardAddress,
   Transaction,
   TransactionHash,
-  createClient,
-  blockfrost,
-  maestro,
-  mainnet
+  mainnet,
+  client as makeClient,
 } from "@evolution-sdk/evolution"
 
 // Type for clients with common provider methods
@@ -550,13 +527,8 @@ class ProviderWithFallback {
   private clients: ProviderClient[]
   private currentIndex = 0
 
-  constructor(
-    configs: Array<{
-      chain: typeof mainnet
-      provider: ReturnType<typeof blockfrost> | ReturnType<typeof maestro>
-    }>
-  ) {
-    this.clients = configs.map(({ chain, provider }) => createClient({ chain, provider }))
+  constructor(clients: ProviderClient[]) {
+    this.clients = clients
   }
 
   private async withFallback<T>(operation: (client: ProviderClient) => Promise<T>): Promise<T> {
@@ -595,20 +567,14 @@ class ProviderWithFallback {
 
 // Usage
 const resilientProvider = new ProviderWithFallback([
-  {
-    chain: mainnet,
-    provider: blockfrost({
+  makeClient(mainnet).withBlockfrost({
       baseUrl: "https://cardano-mainnet.blockfrost.io/api/v0",
       projectId: process.env.BLOCKFROST_PROJECT_ID!
-    })
-  },
-  {
-    chain: mainnet,
-    provider: maestro({
+    }),
+  makeClient(mainnet).withMaestro({
       baseUrl: "https://mainnet.gomaestro-api.org/v1",
       apiKey: process.env.MAESTRO_API_KEY!
     })
-  }
 ])
 
 const address = Address.fromBech32(

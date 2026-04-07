@@ -23,6 +23,7 @@
     "./plutus": "./src/plutus/index.ts",
     "./uplc": "./src/uplc/index.ts",
     "./*": "./src/*.ts",
+    "./sdk/client/internal/*": null,
     "./internal/*": null,
     "./*/index": null
   },
@@ -91,6 +92,7 @@
       "./plutus": "./dist/plutus/index.js",
       "./uplc": "./dist/uplc/index.js",
       "./*": "./dist/*.js",
+      "./sdk/client/internal/*": null,
       "./internal/*": null,
       "./*/index": null
     }

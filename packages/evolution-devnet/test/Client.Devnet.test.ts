@@ -2,9 +2,8 @@ import { describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano, createClient, kupmios, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Cardano, client, preprod } from "@evolution-sdk/evolution"
 import * as CoreAddress from "@evolution-sdk/evolution/Address"
-import type { ProtocolParameters } from "@evolution-sdk/evolution/sdk/ProtocolParameters"
 import { afterAll, beforeAll } from "vitest"
 
 // Alias for Cardano.Assets
@@ -22,17 +21,12 @@ describe("Client with Devnet", () => {
     "test test test test test test test test test test test test test test test test test test test test test test test sauce"
 
   const createTestClient = () =>
-    createClient({
-      chain: Cluster.getChain(devnetCluster!),
-      provider: kupmios({ kupoUrl: "http://localhost:1443", ogmiosUrl: "http://localhost:1338" }),
-      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
-    })
+    client(Cluster.getChain(devnetCluster!))
+      .withKupmios({ kupoUrl: "http://localhost:1443", ogmiosUrl: "http://localhost:1338" })
+      .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
 
   beforeAll(async () => {
-    const testClient = createClient({
-      chain: preprod,
-      wallet: seedWallet({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
-    })
+    const testClient = client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
 
     const testAddress = await testClient.address()
     const testAddressHex = CoreAddress.toHex(testAddress)
@@ -98,7 +92,7 @@ describe("Client with Devnet", () => {
 
   it("should query protocol parameters", { timeout: 10_000 }, async () => {
     const client = createTestClient()
-    const params: ProtocolParameters = await client.getProtocolParameters()
+    const params = await client.getProtocolParameters()
 
     expect(params).toBeDefined()
     expect(params.minFeeA).toBeGreaterThan(0)

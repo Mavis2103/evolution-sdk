@@ -47,32 +47,29 @@ console.log(mnemonic)
 ## Basic Setup
 
 ```typescript twoslash
-import { PrivateKey, createClient, seedWallet, preprod } from "@evolution-sdk/evolution"
+import { PrivateKey, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
 // Create a signing-only client with seed wallet (no provider)
 // Can sign transactions but cannot query blockchain or submit
-const client = createClient({
-  chain: preprod,
-  wallet: seedWallet({
+const client = makeClient(preprod)
+  .withSeed({
     mnemonic:
       "fitness juice ankle box prepare gallery purse narrow miracle next soccer category analyst wait verb patch kit era hen clerk write skin trumpet attract",
     accountIndex: 0 // First account (increment for more accounts)
   })
-})
 
 // Get address (wallet operations work without provider)
 const address = await client.address()
 console.log("Derived address:", address)
 
-// To query blockchain or submit, attach a provider:
-// const fullClient = client.attachProvider(blockfrost({ ... }));
+// To query blockchain or submit, add a provider:
+// const fullClient = client.withBlockfrost({ ... });
 ```
 
 ## Configuration Options
 
 ```typescript
 interface SeedWalletConfig {
-  type: "seed"
   mnemonic: string // 24-word BIP-39 phrase (required)
   accountIndex?: number // Account derivation index (default: 0)
 }
@@ -83,26 +80,22 @@ interface SeedWalletConfig {
 Different networks use the same wallet configuration—just change the network parameter:
 
 ```typescript twoslash
-import { PrivateKey, createClient, seedWallet, preprod, mainnet } from "@evolution-sdk/evolution"
+import { PrivateKey, preprod, mainnet, client as makeClient } from "@evolution-sdk/evolution"
 
 // Testnet client
-const testClient = createClient({
-  chain: preprod,
-  wallet: seedWallet({
+const testClient = makeClient(preprod)
+  .withSeed({
     mnemonic:
       "fitness juice ankle box prepare gallery purse narrow miracle next soccer category analyst wait verb patch kit era hen clerk write skin trumpet attract",
     accountIndex: 0
   })
-})
 
 // Mainnet client (use DIFFERENT mnemonic in production!)
-const mainClient = createClient({
-  chain: mainnet,
-  wallet: seedWallet({
+const mainClient = makeClient(mainnet)
+  .withSeed({
     mnemonic: process.env.WALLET_MNEMONIC!, // Different mnemonic!
     accountIndex: 0
   })
-})
 ```
 
 ## Environment Variables
@@ -114,15 +107,13 @@ BLOCKFROST_PROJECT_ID="preprodYourProjectIdHere"
 ```
 
 ```typescript twoslash
-import { PrivateKey, createClient, seedWallet, preprod } from "@evolution-sdk/evolution"
+import { PrivateKey, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  wallet: seedWallet({
+const client = makeClient(preprod)
+  .withSeed({
     mnemonic: process.env.WALLET_MNEMONIC!, // From environment
     accountIndex: 0
   })
-})
 ```
 
 ## Multiple Accounts
@@ -130,25 +121,21 @@ const client = createClient({
 Generate independent wallets from the same mnemonic using different `accountIndex` values:
 
 ```typescript twoslash
-import { PrivateKey, createClient, seedWallet, preprod } from "@evolution-sdk/evolution"
+import { PrivateKey, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
 // Account 0 (default)
-const account0 = createClient({
-  chain: preprod,
-  wallet: seedWallet({
+const account0 = makeClient(preprod)
+  .withSeed({
     mnemonic: process.env.WALLET_MNEMONIC!,
     accountIndex: 0
   })
-})
 
 // Account 1 (different addresses, same mnemonic)
-const account1 = createClient({
-  chain: preprod,
-  wallet: seedWallet({
+const account1 = makeClient(preprod)
+  .withSeed({
     mnemonic: process.env.WALLET_MNEMONIC!,
     accountIndex: 1
   })
-})
 
 const addr0 = await account0.address()
 const addr1 = await account1.address()
@@ -160,7 +147,7 @@ console.log("Different addresses:", addr0 !== addr1) // true
 ### Development Testing
 
 ```typescript twoslash
-import { PrivateKey, createClient, seedWallet, preprod } from "@evolution-sdk/evolution"
+import { PrivateKey, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
 // Mock test runner functions for documentation
 declare function describe(name: string, fn: () => void): void
@@ -175,18 +162,16 @@ describe("Payment tests", () => {
   let client: any
 
   beforeEach(() => {
-    client = createClient({
-      chain: preprod,
-      wallet: seedWallet({
+    client = makeClient(preprod)
+      .withSeed({
         mnemonic: process.env.TEST_WALLET_MNEMONIC!,
         accountIndex: 0
       })
-    })
   })
 
   it("should sign transaction", async () => {
     // Wallet client can sign but needs provider to build/submit
-    // For full flow, attach provider: client.attachProvider(...)
+    // For full flow, add a provider: client.withBlockfrost(...)
     const address = await client.address()
     expect(address).toBeDefined()
   })

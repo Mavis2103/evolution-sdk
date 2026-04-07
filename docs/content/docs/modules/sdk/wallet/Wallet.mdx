@@ -1,20 +1,15 @@
 ---
-title: sdk/wallet/WalletNew.ts
+title: sdk/wallet/Wallet.ts
 nav_order: 165
 parent: Modules
 ---
 
-## WalletNew overview
+## Wallet overview
 
 ---
 
 <h2 className="text-delta">Table of contents</h2>
 
-- [constructors](#constructors)
-  - [makeWalletFromAPI](#makewalletfromapi)
-  - [makeWalletFromAddress](#makewalletfromaddress)
-  - [makeWalletFromPrivateKey](#makewalletfromprivatekey)
-  - [makeWalletFromSeed](#makewalletfromseed)
 - [errors](#errors)
   - [WalletError (class)](#walleterror-class)
 - [model](#model)
@@ -30,67 +25,6 @@ parent: Modules
   - [WalletApi (interface)](#walletapi-interface)
 
 ---
-
-# constructors
-
-## makeWalletFromAPI
-
-Create an API wallet from a CIP-30 wallet extension.
-Enables interaction with browser-based wallet extensions like Nami or Eternl.
-
-**Signature**
-
-```ts
-export declare function makeWalletFromAPI(api: WalletApi): ApiWallet
-```
-
-Added in v2.0.0
-
-## makeWalletFromAddress
-
-Create a read-only wallet from a Cardano address.
-Useful for monitoring wallets and read-only operations without signing capability.
-
-**Signature**
-
-```ts
-export declare function makeWalletFromAddress(network: Network, address: CoreAddress.Address): ReadOnlyWallet
-```
-
-Added in v2.0.0
-
-## makeWalletFromPrivateKey
-
-Create a signing wallet from a bech32-encoded private key.
-
-**Signature**
-
-```ts
-export declare function makeWalletFromPrivateKey(network: Network, privateKeyBech32: string): SigningWallet
-```
-
-Added in v2.0.0
-
-## makeWalletFromSeed
-
-Create a signing wallet from a mnemonic seed phrase.
-Derives wallet keys from seed with optional account index and address type configuration.
-
-**Signature**
-
-```ts
-export declare function makeWalletFromSeed(
-  network: Network,
-  seed: string,
-  options?: {
-    addressType?: "Base" | "Enterprise"
-    accountIndex?: number
-    password?: string
-  }
-): SigningWallet
-```
-
-Added in v2.0.0
 
 # errors
 
@@ -119,7 +53,7 @@ Wraps ApiWalletEffect with promise-based API for browser contexts.
 
 ```ts
 export interface ApiWallet extends EffectToPromiseAPI<ApiWalletEffect> {
-  readonly Effect: ApiWalletEffect
+  readonly effect: ApiWalletEffect
   readonly api: WalletApi
   readonly type: "api"
 }
@@ -139,7 +73,7 @@ API wallets handle both signing and submission through the wallet extension.
 export interface ApiWalletEffect extends ReadOnlyWalletEffect {
   readonly signTx: (
     tx: Transaction.Transaction | string,
-    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ) => Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletError>
   readonly signMessage: (
     address: CoreAddress.Address | RewardAddress.RewardAddress,
@@ -191,7 +125,7 @@ Wraps ReadOnlyWalletEffect with promise-based API for browser and non-Effect con
 
 ```ts
 export interface ReadOnlyWallet extends EffectToPromiseAPI<ReadOnlyWalletEffect> {
-  readonly Effect: ReadOnlyWalletEffect
+  readonly effect: ReadOnlyWalletEffect
   readonly type: "read-only"
 }
 ```
@@ -238,7 +172,7 @@ Wraps SigningWalletEffect with promise-based API for browser and non-Effect cont
 
 ```ts
 export interface SigningWallet extends EffectToPromiseAPI<SigningWalletEffect> {
-  readonly Effect: SigningWalletEffect
+  readonly effect: SigningWalletEffect
   readonly type: "signing"
 }
 ```

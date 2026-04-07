@@ -64,7 +64,7 @@ export interface Delegation {
  * @category errors
  */
 export class ProviderError extends Data.TaggedError("ProviderError")<{
-  readonly cause: unknown
+  readonly cause?: unknown
   readonly message: string
 }> {}
 
@@ -124,7 +124,6 @@ export interface ProviderEffect {
   /**
    * Submit a signed transaction to the blockchain.
    * @param tx - Signed transaction to submit
-   * @returns Transaction hash of the submitted transaction
    */
   readonly submitTx: (tx: Transaction.Transaction) => Effect.Effect<TransactionHash.TransactionHash, ProviderError>
   /**
@@ -156,5 +155,5 @@ export const ProviderEffect: Context.Tag<ProviderEffect, ProviderEffect> =
  * @category model
  */
 export interface Provider extends EffectToPromiseAPI<ProviderEffect> {
-  readonly Effect: ProviderEffect
+  readonly effect: ProviderEffect
 }

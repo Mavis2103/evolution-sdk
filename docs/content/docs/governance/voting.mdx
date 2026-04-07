@@ -10,16 +10,14 @@ DReps, Constitutional Committee members, and Stake Pool Operators can vote on go
 ## Casting a Vote
 
 ```typescript twoslash
-import { VotingProcedures, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
+import { VotingProcedures, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const votingProcedures: VotingProcedures.VotingProcedures
 
@@ -42,16 +40,14 @@ await signed.submit()
 For DReps or Committee members with script credentials, provide a redeemer:
 
 ```typescript twoslash
-import { Data, VotingProcedures, createClient, preprod, blockfrost, seedWallet } from "@evolution-sdk/evolution"
+import { Data, VotingProcedures, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const votingProcedures: VotingProcedures.VotingProcedures
 declare const votingScript: any

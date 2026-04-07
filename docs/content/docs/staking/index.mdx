@@ -20,16 +20,14 @@ Evolution SDK provides complete staking operations — register stake credential
 ## Quick Example
 
 ```typescript twoslash
-import { Credential, blockfrost, createClient, preprod, seedWallet } from "@evolution-sdk/evolution"
+import { Credential, preprod, client as makeClient } from "@evolution-sdk/evolution"
 
-const client = createClient({
-  chain: preprod,
-  provider: blockfrost({
+const client = makeClient(preprod)
+  .withBlockfrost({
     baseUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     projectId: process.env.BLOCKFROST_API_KEY!
-  }),
-  wallet: seedWallet({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
-})
+  })
+  .withSeed({ mnemonic: process.env.WALLET_MNEMONIC!, accountIndex: 0 })
 
 declare const stakeCredential: Credential.Credential
 declare const poolKeyHash: any
