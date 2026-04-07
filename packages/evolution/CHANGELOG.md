@@ -1,5 +1,22 @@
 # @evolution-sdk/evolution
 
+## 0.3.32
+
+### Patch Changes
+
+- [#227](https://github.com/IntersectMBO/evolution-sdk/pull/227) [`b5eca41`](https://github.com/IntersectMBO/evolution-sdk/commit/b5eca41b1ccd2ac4fe23be618b303a504f241bbd) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Restructured client internals and fixed several consistency issues in the promise-based API layer.
+
+  Signing logic has been extracted from `Wallets.ts` into a dedicated `internal/Signing.ts` module, and client assembly now lives in `internal/Client.ts`. The `WalletNew` module was renamed to `Wallet`; the legacy `ClientImpl` and `dual` modules were removed.
+
+  `runEffectPromise` no longer mutates error stack traces — the `cleanErrorChain` infrastructure was removed entirely. `Cause.squash` now throws the original error object unchanged, which means `instanceof` checks and `_tag` discrimination work correctly when consumers catch errors from promise-based methods.
+
+  All 19 `Effect.runPromise` call sites in the client layer were replaced with `runEffectPromise` so errors are consistently unwrapped across `readOnlyWallet`, `cip30Wallet`, `createOfflineSignerClient`, `createReadOnlyClient`, and `createSigningClient`.
+  - Provider method wiring in `SigningClient` now uses spread instead of manual `.bind()` calls
+  - `ProviderError.cause` is now optional, matching `WalletError` and `TransactionBuilderError`
+  - Removed `cause: null` sentinels from all error constructors
+
+- [#224](https://github.com/IntersectMBO/evolution-sdk/pull/224) [`7e87db9`](https://github.com/IntersectMBO/evolution-sdk/commit/7e87db9c5c0cd934fe070579528c4d139c8d6c7e) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Introduce composable client API with Chain, Providers, and Wallets modules. Fix signMessage returning vkey instead of signature, seedWallet ignoring paymentIndex/stakeIndex, redundant RewardAddress decode in getWalletDelegation, and dualify missing prototype-chain methods. Add chain property to ProviderOnlyClient and ApiWalletClient, remove MinimalClient.attach shortcut, and align ReadOnlyClient.newTx() signature with SigningClient.
+
 ## 0.3.31
 
 ### Patch Changes
