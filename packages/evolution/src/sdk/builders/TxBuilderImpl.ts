@@ -34,10 +34,7 @@ import { hashAuxiliaryData, hashScriptData } from "../../utils/Hash.js"
 import * as CoreUTxO from "../../UTxO.js"
 import * as VKey from "../../VKey.js"
 import * as Withdrawals from "../../Withdrawals.js"
-// Internal imports
-import { voterToKey } from "./phases/utils.js"
-import type { UnfrackOptions } from "./TransactionBuilder.js"
-import { BuildOptionsTag, TransactionBuilderError, TxBuilderConfigTag, TxContext } from "./TransactionBuilder.js"
+import * as Ctx from "./internal/Ctx.js"
 import * as Unfrack from "./Unfrack.js"
 
 // ============================================================================
@@ -50,7 +47,7 @@ import * as Unfrack from "./Unfrack.js"
  *
  * Architecture:
  * - Program creators return deferred Effects (ProgramSteps)
- * - Programs access TxContext (single unified Context) containing config, state, and options
+ * - Programs access Ctx.TxContext (single unified Context) containing config, state, and options
  * - Programs are executed with fresh state on each build() call
  * - No state mutation between builds - complete isolation
  * - No prop drilling - everything accessible via single Context
@@ -78,13 +75,13 @@ export const isScriptAddressCore = (address: CoreAddress.Address): boolean => {
  * @since 2.0.0
  * @category helpers
  */
-export const isScriptAddress = (address: string): Effect.Effect<boolean, TransactionBuilderError> =>
+export const isScriptAddress = (address: string): Effect.Effect<boolean, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     // Parse address to structure
     const addressStructure = yield* Effect.try({
       try: () => CoreAddress.fromBech32(address),
       catch: (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Failed to parse address: ${address}`,
           cause: error
         })
@@ -102,7 +99,7 @@ export const isScriptAddress = (address: string): Effect.Effect<boolean, Transac
  */
 export const filterScriptUtxos = (
   utxos: ReadonlyArray<CoreUTxO.UTxO>
-): Effect.Effect<ReadonlyArray<CoreUTxO.UTxO>, TransactionBuilderError> =>
+): Effect.Effect<ReadonlyArray<CoreUTxO.UTxO>, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     const scriptUtxos: Array<CoreUTxO.UTxO> = []
 
@@ -189,7 +186,7 @@ export const tierRefScriptFee = (
 export const calculateReferenceScriptFee = (
   utxos: ReadonlyArray<CoreUTxO.UTxO>,
   costPerByte: number
-): Effect.Effect<bigint, TransactionBuilderError> =>
+): Effect.Effect<bigint, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     let totalScriptSize = 0
 
@@ -211,7 +208,7 @@ export const calculateReferenceScriptFee = (
     if (totalScriptSize > 200_000) {
       // maxRefScriptSizePerTx from Conway ledger rules (CIP-0069 / CIP-0112)
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Total reference script size (${totalScriptSize} bytes) exceeds maximum limit of 200,000 bytes`
         })
       )
@@ -230,7 +227,7 @@ export const calculateReferenceScriptFee = (
     .pipe(
       Effect.mapError(
         (error) =>
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message: `Failed to parse datum: ${error.message}`,
             cause: error
           })
@@ -422,10 +419,10 @@ export const assembleTransaction = (
   inputs: ReadonlyArray<TransactionInput.TransactionInput>,
   outputs: ReadonlyArray<TxOut.TransactionOutput>,
   fee: bigint
-): Effect.Effect<Transaction.Transaction, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
+): Effect.Effect<Transaction.Transaction, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag | Ctx.BuildOptionsTag> =>
   Effect.gen(function* () {
     // Get state ref to access scripts and redeemers
-    const stateRef = yield* TxContext
+    const stateRef = yield* Ctx.TxContext
     const state = yield* Ref.get(stateRef)
 
     yield* Effect.logDebug(`[Assembly] Building transaction with ${inputs.length} inputs, ${outputs.length} outputs`)
@@ -607,7 +604,7 @@ export const assembleTransaction = (
         // Build sorted voter keys from votingProcedures using shared utility
         const sortedVoterKeys: Array<string> = []
         for (const voter of state.votingProcedures.procedures.keys()) {
-          sortedVoterKeys.push(voterToKey(voter))
+          sortedVoterKeys.push(Ctx.voterToKey(voter))
         }
 
         // Sort keys lexicographically (as per Cardano ledger rules)
@@ -673,10 +670,10 @@ export const assembleTransaction = (
     let redeemersConcrete: Redeemers.RedeemerMap | undefined
     if (redeemers.length > 0) {
       // Get config to access provider for full protocol parameters
-      const config = yield* TxBuilderConfigTag
+      const config = yield* Ctx.TxBuilderConfigTag
 
       if (!config.provider) {
-        throw new TransactionBuilderError({
+        throw new Ctx.TransactionBuilderError({
           message:
             "Script transactions require a provider to fetch full protocol parameters for scriptDataHash calculation",
           cause: { redeemerCount: redeemers.length }
@@ -687,7 +684,7 @@ export const assembleTransaction = (
       const fullProtocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
         Effect.mapError(
           (providerError) =>
-            new TransactionBuilderError({
+            new Ctx.TransactionBuilderError({
               message: `Failed to fetch full protocol parameters for scriptDataHash calculation: ${providerError.message}`,
               cause: providerError
             })
@@ -788,8 +785,8 @@ export const assembleTransaction = (
         : undefined
 
     // Convert validity interval from Unix time to slots
-    // Use resolved slot config from BuildOptionsTag (respects BuildOptions > TxBuilderConfig > network default priority)
-    const buildOptions = yield* BuildOptionsTag
+    // Use resolved slot config from Ctx.BuildOptionsTag (respects BuildOptions > Ctx.TxBuilderConfig > network default priority)
+    const buildOptions = yield* Ctx.BuildOptionsTag
     const slotConfig = buildOptions.slotConfig!
 
     let ttl: bigint | undefined
@@ -865,7 +862,7 @@ export const assembleTransaction = (
   }).pipe(
     Effect.mapError(
       (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Failed to assemble transaction: ${error.message}`,
           cause: error
         })
@@ -885,13 +882,13 @@ export const assembleTransaction = (
  */
 export const calculateTransactionSize = (
   transaction: Transaction.Transaction
-): Effect.Effect<number, TransactionBuilderError> =>
+): Effect.Effect<number, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     // Serialize transaction to CBOR bytes using sync function
     const cborBytes = yield* Effect.try({
       try: () => Transaction.toCBORBytes(transaction),
       catch: (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Failed to encode transaction to CBOR",
           cause: error
         })
@@ -901,7 +898,7 @@ export const calculateTransactionSize = (
   }).pipe(
     Effect.mapError(
       (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Failed to calculate transaction size: ${error.message}`,
           cause: error
         })
@@ -936,12 +933,12 @@ export const calculateMinimumFee = (
  * @category fee-calculation
  * @internal
  */
-export const extractPaymentKeyHash = (address: string): Effect.Effect<Uint8Array | null, TransactionBuilderError> =>
+export const extractPaymentKeyHash = (address: string): Effect.Effect<Uint8Array | null, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     const addressStructure = yield* Effect.try({
       try: () => CoreAddress.fromBech32(address),
       catch: (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Failed to parse address ${address}`,
           cause: error
         })
@@ -982,7 +979,7 @@ const extractPaymentKeyHashFromCore = (address: CoreAddress.Address): Uint8Array
  */
 const buildFakeVKeyWitness = (
   keyHash: Uint8Array
-): Effect.Effect<TransactionWitnessSet.VKeyWitness, TransactionBuilderError> =>
+): Effect.Effect<TransactionWitnessSet.VKeyWitness, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     // Pad key hash to 32 bytes for vkey (Ed25519 public key size)
     const vkeyBytes = new Uint8Array(32)
@@ -994,7 +991,7 @@ const buildFakeVKeyWitness = (
     const vkey = yield* Effect.try({
       try: () => new VKey.VKey({ bytes: vkeyBytes }),
       catch: (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Failed to create fake VKey",
           cause: error
         })
@@ -1003,7 +1000,7 @@ const buildFakeVKeyWitness = (
     const signature = yield* Effect.try({
       try: () => new Ed25519Signature.Ed25519Signature({ bytes: signatureBytes }),
       catch: (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Failed to create fake signature",
           cause: error
         })
@@ -1026,9 +1023,9 @@ const buildFakeVKeyWitness = (
  */
 export const buildFakeWitnessSet = (
   inputUtxos: ReadonlyArray<CoreUTxO.UTxO>
-): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, TransactionBuilderError, TxContext> =>
+): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, Ctx.TransactionBuilderError, Ctx.TxContext> =>
   Effect.gen(function* () {
-    const stateRef = yield* TxContext
+    const stateRef = yield* Ctx.TxContext
     const state = yield* Ref.get(stateRef)
 
     // Extract unique key hashes from input addresses (Core Address)
@@ -1215,10 +1212,10 @@ export const calculateFeeIteratively = (
     priceMem?: number
     priceStep?: number
   }
-): Effect.Effect<bigint, TransactionBuilderError, TxContext | BuildOptionsTag> =>
+): Effect.Effect<bigint, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.BuildOptionsTag> =>
   Effect.gen(function* () {
     // Get state to access mint field and collateral
-    const stateRef = yield* TxContext
+    const stateRef = yield* Ctx.TxContext
     const state = yield* Ref.get(stateRef)
 
     // Include collateral UTxOs in witness estimation - they require VKey witnesses too!
@@ -1304,7 +1301,7 @@ export const calculateFeeIteratively = (
 
     // Convert validity interval to slots for fee calculation
     // Validity fields affect transaction size and must be included
-    const buildOptions = yield* BuildOptionsTag
+    const buildOptions = yield* Ctx.BuildOptionsTag
     const slotConfig = buildOptions.slotConfig!
     let ttl: bigint | undefined
     let validityIntervalStart: bigint | undefined
@@ -1391,7 +1388,7 @@ export const calculateFeeIteratively = (
   }).pipe(
     Effect.mapError(
       (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Fee calculation failed to converge: ${error.message}`,
           cause: error
         })
@@ -1476,7 +1473,7 @@ export const validateTransactionBalance = (params: {
   totalInputAssets: CoreAssets.Assets
   totalOutputAssets: CoreAssets.Assets
   fee: bigint
-}): Effect.Effect<void, TransactionBuilderError> =>
+}): Effect.Effect<void, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     const { fee, totalInputAssets, totalOutputAssets } = params
 
@@ -1492,7 +1489,7 @@ export const validateTransactionBalance = (params: {
         const shortfall = requiredAmount - availableAmount
 
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message: `Insufficient ${unit}: need ${requiredAmount}, have ${availableAmount} (short by ${shortfall})`,
             cause: {
               unit,
@@ -1571,9 +1568,9 @@ export const calculateMinimumUtxoLovelace = (params: {
   datum?: DatumOption.DatumOption
   scriptRef?: CoreScript.Script
   coinsPerUtxoByte: bigint
-}): Effect.Effect<bigint, TransactionBuilderError> =>
+}): Effect.Effect<bigint, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
-    const calculateRequiredLovelace = (lovelace: bigint): Effect.Effect<bigint, TransactionBuilderError> =>
+    const calculateRequiredLovelace = (lovelace: bigint): Effect.Effect<bigint, Ctx.TransactionBuilderError> =>
       Effect.gen(function* () {
         const assetsForSizing = CoreAssets.withLovelace(params.assets, lovelace)
 
@@ -1587,7 +1584,7 @@ export const calculateMinimumUtxoLovelace = (params: {
         const cborBytes = yield* Effect.try({
           try: () => TxOut.toCBORBytes(tempOutput),
           catch: (error) =>
-            new TransactionBuilderError({
+            new Ctx.TransactionBuilderError({
               message: "Failed to encode output to CBOR for min UTxO calculation",
               cause: error
             })
@@ -1610,7 +1607,7 @@ export const calculateMinimumUtxoLovelace = (params: {
     }
 
     return yield* Effect.fail(
-      new TransactionBuilderError({
+      new Ctx.TransactionBuilderError({
         message: `Minimum UTxO calculation did not converge within ${MAX_MIN_UTXO_ITERATIONS} iterations`
       })
     )
@@ -1640,8 +1637,8 @@ export const createChangeOutput = (params: {
   leftoverAssets: CoreAssets.Assets
   changeAddress: CoreAddress.Address
   coinsPerUtxoByte: bigint
-  unfrackOptions?: UnfrackOptions
-}): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, TransactionBuilderError> =>
+  unfrackOptions?: Ctx.UnfrackOptions
+}): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     const { changeAddress, coinsPerUtxoByte, leftoverAssets, unfrackOptions } = params
 
@@ -1661,7 +1658,7 @@ export const createChangeOutput = (params: {
       ).pipe(
         Effect.mapError(
           (error) =>
-            new TransactionBuilderError({
+            new Ctx.TransactionBuilderError({
               message: `Failed to create unfracked change outputs: ${error.message}`,
               cause: error
             })

@@ -9,7 +9,7 @@ import { Effect, Ref } from "effect"
 
 import * as Certificate from "../../../Certificate.js"
 import * as PoolKeyHash from "../../../PoolKeyHash.js"
-import { TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
+import * as Ctx from "../internal/Ctx.js"
 import type { RegisterPoolParams, RetirePoolParams } from "./Operations.js"
 
 // ============================================================================
@@ -26,17 +26,17 @@ import type { RegisterPoolParams, RetirePoolParams } from "./Operations.js"
  */
 export const createRegisterPoolProgram = (
   params: RegisterPoolParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
+): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
-    const config = yield* TxBuilderConfigTag
+    const ctx = yield* Ctx.TxContext
+    const config = yield* Ctx.TxBuilderConfigTag
 
     // TODO: protocol param should be resolved earlier in builder phases, not here
     // protocol param can come from the provider or the build options directly
     // Get poolDeposit from protocol parameters via provider
     if (!config.provider) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Provider required to fetch poolDeposit for pool registration"
         })
       )
@@ -45,7 +45,7 @@ export const createRegisterPoolProgram = (
     const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message: `Failed to fetch protocol parameters: ${err.message}`
           })
       )
@@ -80,9 +80,9 @@ export const createRegisterPoolProgram = (
  * @since 2.0.0
  * @category programs
  */
-export const createRetirePoolProgram = (params: RetirePoolParams): Effect.Effect<void, never, TxContext> =>
+export const createRetirePoolProgram = (params: RetirePoolParams): Effect.Effect<void, never, Ctx.TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
 
     // Create PoolRetirement certificate
     const certificate = new Certificate.PoolRetirement({

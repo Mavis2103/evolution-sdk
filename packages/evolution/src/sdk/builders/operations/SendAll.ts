@@ -17,7 +17,7 @@
 import { Effect, Ref } from "effect"
 
 import type * as CoreAddress from "../../../Address.js"
-import { TxContext } from "../TransactionBuilder.js"
+import * as Ctx from "../internal/Ctx.js"
 import type { SendAllParams } from "./Operations.js"
 
 /**
@@ -32,7 +32,7 @@ import type { SendAllParams } from "./Operations.js"
  */
 export const createSendAllProgram = (params: SendAllParams) =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
 
     yield* Ref.update(ctx, (state) => ({
       ...state,

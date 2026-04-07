@@ -15,7 +15,7 @@ import * as Effect from "effect/Effect"
 import type * as CoreAddress from "../../Address.js"
 import * as CoreAssets from "../../Assets/index.js"
 import type * as TxOut from "../../TxOut.js"
-import type { UnfrackOptions } from "./TransactionBuilder.js"
+import type * as Ctx from "./internal/Ctx.js"
 import { calculateMinimumUtxoLovelace, txOutputToTransactionOutput } from "./TxBuilderImpl.js"
 
 // ============================================================================
@@ -24,7 +24,7 @@ import { calculateMinimumUtxoLovelace, txOutputToTransactionOutput } from "./TxB
 
 /**
  * Default unfrack configuration values.
- * Applied when UnfrackOptions properties are not provided.
+ * Applied when Ctx.UnfrackOptions properties are not provided.
  */
 const DEFAULT_UNFRACK_OPTIONS = {
   ada: {
@@ -146,7 +146,7 @@ const calculateBundleMinUTxO = (
  */
 export const calculateTokenBundles = (
   tokens: ReadonlyArray<TokenInfo>,
-  options: UnfrackOptions,
+  options: Ctx.UnfrackOptions,
   changeAddress: CoreAddress.Address,
   coinsPerUtxoByte: bigint
 ): Effect.Effect<ReadonlyArray<TokenBundle>, Error, never> =>
@@ -253,7 +253,7 @@ const bundleTokensWithRules = (
  */
 export const calculateAdaSubdivision = (
   leftoverAda: bigint,
-  options: UnfrackOptions
+  options: Ctx.UnfrackOptions
 ): Effect.Effect<ReadonlyArray<bigint>, never, never> => {
   return Effect.gen(function* () {
     const threshold = options.ada?.subdivideThreshold ?? 100_000000n
@@ -353,7 +353,7 @@ export type UnfrackResult = {
 export const createUnfrackedChangeOutputs = (
   changeAddress: CoreAddress.Address,
   changeAssets: CoreAssets.Assets,
-  options: UnfrackOptions = {},
+  options: Ctx.UnfrackOptions = {},
   coinsPerUtxoByte: bigint
 ): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, Error, never> => {
   return Effect.gen(function* () {
