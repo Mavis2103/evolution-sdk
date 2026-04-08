@@ -3,42 +3,39 @@ import { Effect, Ref } from "effect"
 import type * as Array from "effect/Array"
 
 // Core imports
-import * as CoreAddress from "../../Address.js"
-import * as CoreAssets from "../../Assets/index.js"
-import * as Bytes from "../../Bytes.js"
-import type * as Certificate from "../../Certificate.js"
-import * as CostModel from "../../CostModel.js"
-import type * as PlutusData from "../../Data.js"
-import type * as DatumOption from "../../DatumOption.js"
-import * as Ed25519Signature from "../../Ed25519Signature.js"
-import type * as KeyHash from "../../KeyHash.js"
-import * as NativeScripts from "../../NativeScripts.js"
-import type * as PlutusV1 from "../../PlutusV1.js"
-import type * as PlutusV2 from "../../PlutusV2.js"
-import type * as PlutusV3 from "../../PlutusV3.js"
-import * as PolicyId from "../../PolicyId.js"
-import * as Redeemer from "../../Redeemer.js"
-import * as Redeemers from "../../Redeemers.js"
-import type * as RewardAccount from "../../RewardAccount.js"
-import * as CoreScript from "../../Script.js"
-import * as ScriptDataHash from "../../ScriptDataHash.js"
-import * as ScriptRef from "../../ScriptRef.js"
-import * as Time from "../../Time/index.js"
-import * as Transaction from "../../Transaction.js"
-import * as TransactionBody from "../../TransactionBody.js"
-import * as TransactionHash from "../../TransactionHash.js"
-import * as TransactionInput from "../../TransactionInput.js"
-import * as TransactionWitnessSet from "../../TransactionWitnessSet.js"
-import * as TxOut from "../../TxOut.js"
-import { hashAuxiliaryData, hashScriptData } from "../../utils/Hash.js"
-import * as CoreUTxO from "../../UTxO.js"
-import * as VKey from "../../VKey.js"
-import * as Withdrawals from "../../Withdrawals.js"
-// Internal imports
-import { voterToKey } from "./phases/utils.js"
-import type { UnfrackOptions } from "./TransactionBuilder.js"
-import { BuildOptionsTag, TransactionBuilderError, TxBuilderConfigTag, TxContext } from "./TransactionBuilder.js"
-import * as Unfrack from "./Unfrack.js"
+import * as CoreAddress from "../../../Address.js"
+import * as CoreAssets from "../../../Assets/index.js"
+import * as Bytes from "../../../Bytes.js"
+import type * as Certificate from "../../../Certificate.js"
+import * as CostModel from "../../../CostModel.js"
+import type * as PlutusData from "../../../Data.js"
+import type * as DatumOption from "../../../DatumOption.js"
+import * as Ed25519Signature from "../../../Ed25519Signature.js"
+import type * as KeyHash from "../../../KeyHash.js"
+import * as NativeScripts from "../../../NativeScripts.js"
+import type * as PlutusV1 from "../../../PlutusV1.js"
+import type * as PlutusV2 from "../../../PlutusV2.js"
+import type * as PlutusV3 from "../../../PlutusV3.js"
+import * as PolicyId from "../../../PolicyId.js"
+import * as Redeemer from "../../../Redeemer.js"
+import * as Redeemers from "../../../Redeemers.js"
+import type * as RewardAccount from "../../../RewardAccount.js"
+import * as CoreScript from "../../../Script.js"
+import * as ScriptDataHash from "../../../ScriptDataHash.js"
+import * as ScriptRef from "../../../ScriptRef.js"
+import * as Time from "../../../Time/index.js"
+import * as Transaction from "../../../Transaction.js"
+import * as TransactionBody from "../../../TransactionBody.js"
+import * as TransactionHash from "../../../TransactionHash.js"
+import type * as TransactionInput from "../../../TransactionInput.js"
+import * as TransactionWitnessSet from "../../../TransactionWitnessSet.js"
+import * as TxOut from "../../../TxOut.js"
+import { hashAuxiliaryData, hashScriptData } from "../../../utils/Hash.js"
+import * as CoreUTxO from "../../../UTxO.js"
+import * as VKey from "../../../VKey.js"
+import * as Withdrawals from "../../../Withdrawals.js"
+import * as Unfrack from "../Unfrack.js"
+import * as Ctx from "./ctx.js"
 
 // ============================================================================
 // TransactionBuilder Effect Programs Implementation
@@ -50,7 +47,7 @@ import * as Unfrack from "./Unfrack.js"
  *
  * Architecture:
  * - Program creators return deferred Effects (ProgramSteps)
- * - Programs access TxContext (single unified Context) containing config, state, and options
+ * - Programs access Ctx.TxContext (single unified Context) containing config, state, and options
  * - Programs are executed with fresh state on each build() call
  * - No state mutation between builds - complete isolation
  * - No prop drilling - everything accessible via single Context
@@ -64,12 +61,11 @@ import * as Unfrack from "./Unfrack.js"
  * Check if an address is a script address (payment credential is ScriptHash).
  * Works with Core Address type.
  *
+ * @deprecated Use `Address.isScript` from the core module instead.
  * @since 2.0.0
  * @category helpers
  */
-export const isScriptAddressCore = (address: CoreAddress.Address): boolean => {
-  return address.paymentCredential?._tag === "ScriptHash"
-}
+export const isScriptAddressCore = CoreAddress.isScript
 
 /**
  * Check if an address string is a script address (payment credential is ScriptHash).
@@ -78,20 +74,20 @@ export const isScriptAddressCore = (address: CoreAddress.Address): boolean => {
  * @since 2.0.0
  * @category helpers
  */
-export const isScriptAddress = (address: string): Effect.Effect<boolean, TransactionBuilderError> =>
+export const isScriptAddress = (address: string): Effect.Effect<boolean, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     // Parse address to structure
     const addressStructure = yield* Effect.try({
       try: () => CoreAddress.fromBech32(address),
       catch: (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Failed to parse address: ${address}`,
           cause: error
         })
     })
 
     // Check if payment credential is a script hash
-    return addressStructure.paymentCredential._tag === "ScriptHash"
+    return CoreAddress.isScript(addressStructure)
   })
 
 /**
@@ -102,13 +98,12 @@ export const isScriptAddress = (address: string): Effect.Effect<boolean, Transac
  */
 export const filterScriptUtxos = (
   utxos: ReadonlyArray<CoreUTxO.UTxO>
-): Effect.Effect<ReadonlyArray<CoreUTxO.UTxO>, TransactionBuilderError> =>
+): Effect.Effect<ReadonlyArray<CoreUTxO.UTxO>, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     const scriptUtxos: Array<CoreUTxO.UTxO> = []
 
     for (const utxo of utxos) {
-      // Core UTxO has address as Address class, check directly
-      if (isScriptAddressCore(utxo.address)) {
+      if (CoreAddress.isScript(utxo.address)) {
         scriptUtxos.push(utxo)
       }
     }
@@ -123,18 +118,11 @@ export const filterScriptUtxos = (
 /**
  * Calculate total assets from a set of UTxOs.
  *
+ * @deprecated Use `UTxO.totalAssets` from the core module instead.
  * @since 2.0.0
  * @category helpers
  */
-export const calculateTotalAssets = (utxos: ReadonlyArray<CoreUTxO.UTxO> | Set<CoreUTxO.UTxO>): CoreAssets.Assets => {
-  const utxoArray = (
-    globalThis.Array.isArray(utxos) ? utxos : globalThis.Array.from(utxos)
-  ) as ReadonlyArray<CoreUTxO.UTxO>
-  return utxoArray.reduce(
-    (total: CoreAssets.Assets, utxo: CoreUTxO.UTxO) => CoreAssets.merge(total, utxo.assets),
-    CoreAssets.zero
-  )
-}
+export const calculateTotalAssets = CoreUTxO.totalAssets
 
 /**
  * Calculate reference script fees using tiered pricing.
@@ -189,7 +177,7 @@ export const tierRefScriptFee = (
 export const calculateReferenceScriptFee = (
   utxos: ReadonlyArray<CoreUTxO.UTxO>,
   costPerByte: number
-): Effect.Effect<bigint, TransactionBuilderError> =>
+): Effect.Effect<bigint, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     let totalScriptSize = 0
 
@@ -211,7 +199,7 @@ export const calculateReferenceScriptFee = (
     if (totalScriptSize > 200_000) {
       // maxRefScriptSizePerTx from Conway ledger rules (CIP-0069 / CIP-0112)
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Total reference script size (${totalScriptSize} bytes) exceeds maximum limit of 200,000 bytes`
         })
       )
@@ -223,19 +211,9 @@ export const calculateReferenceScriptFee = (
     return fee
   })
 
-    // ============================================================================
-    // Helper Functions - Output Construction
-    // ============================================================================
-
-    .pipe(
-      Effect.mapError(
-        (error) =>
-          new TransactionBuilderError({
-            message: `Failed to parse datum: ${error.message}`,
-            cause: error
-          })
-      )
-    )
+// ============================================================================
+// Helper Functions - Output Construction
+// ============================================================================
 
 /**
  * Create a TransactionOutput from user-friendly parameters.
@@ -251,109 +229,19 @@ export const makeTxOutput = (params: {
   assets: CoreAssets.Assets
   datum?: DatumOption.DatumOption
   scriptRef?: CoreScript.Script
-}): Effect.Effect<TxOut.TransactionOutput, never> =>
-  Effect.gen(function* () {
-    // Convert Script to ScriptRef for CBOR encoding if provided
-    const scriptRefEncoded = params.scriptRef
-      ? new ScriptRef.ScriptRef({ bytes: CoreScript.toCBOR(params.scriptRef) })
-      : undefined
+}): TxOut.TransactionOutput => {
+  // Convert Script to ScriptRef for CBOR encoding if provided
+  const scriptRefEncoded = params.scriptRef
+    ? new ScriptRef.ScriptRef({ bytes: CoreScript.toCBOR(params.scriptRef) })
+    : undefined
 
-    // Create Core TransactionOutput directly with core types
-    const output = new TxOut.TransactionOutput({
-      address: params.address,
-      assets: params.assets,
-      datumOption: params.datum,
-      scriptRef: scriptRefEncoded
-    })
-
-    return output
+  return new TxOut.TransactionOutput({
+    address: params.address,
+    assets: params.assets,
+    datumOption: params.datum,
+    scriptRef: scriptRefEncoded
   })
-
-/**
- * Convert parameters to core TransactionOutput.
- * This is an internal conversion function used during transaction assembly.
- * Now uses Core types directly.
- *
- * @since 2.0.0
- * @category helpers
- * @internal
- */
-export const txOutputToTransactionOutput = (params: {
-  address: CoreAddress.Address
-  assets: CoreAssets.Assets
-  datum?: DatumOption.DatumOption
-  scriptRef?: CoreScript.Script
-}): Effect.Effect<TxOut.TransactionOutput, never> =>
-  Effect.gen(function* () {
-    // Convert Script to ScriptRef for CBOR encoding if provided
-    const scriptRefEncoded = params.scriptRef
-      ? new ScriptRef.ScriptRef({ bytes: CoreScript.toCBOR(params.scriptRef) })
-      : undefined
-
-    // Create TransactionOutput directly with core types
-    const output = new TxOut.TransactionOutput({
-      address: params.address,
-      assets: params.assets,
-      datumOption: params.datum,
-      scriptRef: scriptRefEncoded
-    })
-
-    return output
-  })
-
-/**
- * Merge additional assets into an existing UTxO.
- * Creates a new UTxO with combined assets from the original UTxO and additional assets.
- *
- * Use case: Draining wallet by merging leftover into an existing payment output.
- *
- * @since 2.0.0
- * @category helpers
- */
-export const mergeAssetsIntoUTxO = (
-  utxo: CoreUTxO.UTxO,
-  additionalAssets: CoreAssets.Assets
-): Effect.Effect<CoreUTxO.UTxO, never> =>
-  Effect.gen(function* () {
-    // Merge assets using Core Assets helper
-    const mergedAssets = CoreAssets.merge(utxo.assets, additionalAssets)
-    // Create new UTxO with merged assets
-    return new CoreUTxO.UTxO({
-      transactionId: utxo.transactionId,
-      index: utxo.index,
-      address: utxo.address,
-      assets: mergedAssets,
-      datumOption: utxo.datumOption,
-      scriptRef: utxo.scriptRef
-    })
-  })
-
-/**
- * Merge additional assets into an existing TransactionOutput.
- * Creates a new output with combined assets from the original output and leftover assets.
- *
- * Use case: Draining wallet by merging leftover into an existing payment output.
- *
- * @since 2.0.0
- * @category helpers
- */
-export const mergeAssetsIntoOutput = (
-  output: TxOut.TransactionOutput,
-  additionalAssets: CoreAssets.Assets
-): Effect.Effect<TxOut.TransactionOutput, never> =>
-  Effect.gen(function* () {
-    // Merge assets using Core Assets helper
-    const mergedAssets = CoreAssets.merge(output.assets, additionalAssets)
-
-    // Create new output with merged assets, preserving optional fields
-    const newOutput = new TxOut.TransactionOutput({
-      address: output.address,
-      assets: mergedAssets,
-      datumOption: output.datumOption,
-      scriptRef: output.scriptRef
-    })
-    return newOutput
-  })
+}
 
 // ============================================================================
 // Transaction Assembly
@@ -362,47 +250,12 @@ export const mergeAssetsIntoOutput = (
 /**
  * Convert an array of UTxOs to an array of TransactionInputs.
  * Inputs are sorted by txHash then outputIndex for deterministic ordering.
- * Uses Core UTxO types directly.
  *
+ * @deprecated Use `UTxO.toInputs` from the core module instead.
  * @since 2.0.0
  * @category assembly
  */
-export const buildTransactionInputs = (
-  utxos: ReadonlyArray<CoreUTxO.UTxO>
-): Effect.Effect<ReadonlyArray<TransactionInput.TransactionInput>, never> =>
-  Effect.gen(function* () {
-    // Convert each Core UTxO to TransactionInput
-    const inputs: Array<TransactionInput.TransactionInput> = []
-
-    for (const utxo of utxos) {
-      // Create TransactionInput directly from Core UTxO fields
-      const input = new TransactionInput.TransactionInput({
-        transactionId: utxo.transactionId,
-        index: utxo.index
-      })
-
-      inputs.push(input)
-    }
-
-    // Sort inputs for deterministic ordering:
-    // First by transaction hash, then by output index
-    inputs.sort((a, b) => {
-      // Compare transaction hashes (byte arrays)
-      const hashA = a.transactionId.hash
-      const hashB = b.transactionId.hash
-
-      for (let i = 0; i < hashA.length; i++) {
-        if (hashA[i] !== hashB[i]) {
-          return hashA[i] - hashB[i]
-        }
-      }
-
-      // If hashes are equal, compare by index
-      return Number(a.index - b.index)
-    })
-
-    return inputs
-  })
+export const buildTransactionInputs = CoreUTxO.toInputs
 
 /**
  * Assemble a Transaction from inputs, outputs, and calculated fee.
@@ -422,10 +275,10 @@ export const assembleTransaction = (
   inputs: ReadonlyArray<TransactionInput.TransactionInput>,
   outputs: ReadonlyArray<TxOut.TransactionOutput>,
   fee: bigint
-): Effect.Effect<Transaction.Transaction, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
+): Effect.Effect<Transaction.Transaction, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag | Ctx.BuildOptionsTag> =>
   Effect.gen(function* () {
     // Get state ref to access scripts and redeemers
-    const stateRef = yield* TxContext
+    const stateRef = yield* Ctx.TxContext
     const state = yield* Ref.get(stateRef)
 
     yield* Effect.logDebug(`[Assembly] Building transaction with ${inputs.length} inputs, ${outputs.length} outputs`)
@@ -448,9 +301,9 @@ export const assembleTransaction = (
       )
 
       // Collateral phase guarantees at least one input for script transactions
-      collateralInputs = (yield* buildTransactionInputs(
+      collateralInputs = buildTransactionInputs(
         state.collateral.inputs
-      )) as Array.NonEmptyReadonlyArray<TransactionInput.TransactionInput>
+      ) as Array.NonEmptyReadonlyArray<TransactionInput.TransactionInput>
       totalCollateral = state.collateral.totalAmount
 
       // Collateral return is already a Core TransactionOutput
@@ -467,7 +320,7 @@ export const assembleTransaction = (
       | readonly [TransactionInput.TransactionInput, ...Array<TransactionInput.TransactionInput>]
       | undefined
     if (state.referenceInputs.length > 0) {
-      const refInputs = yield* buildTransactionInputs(state.referenceInputs)
+      const refInputs = buildTransactionInputs(state.referenceInputs)
       referenceInputs = refInputs as readonly [
         TransactionInput.TransactionInput,
         ...Array<TransactionInput.TransactionInput>
@@ -478,7 +331,7 @@ export const assembleTransaction = (
     const plutusV1Scripts: Array<PlutusV1.PlutusV1> = []
     const plutusV2Scripts: Array<PlutusV2.PlutusV2> = []
     const plutusV3Scripts: Array<PlutusV3.PlutusV3> = []
-    const nativeScripts: Array<any> = [] // TODO: Add native script type
+    const nativeScripts: Array<NativeScripts.NativeScript> = []
 
     // Group scripts by type
     for (const [scriptHash, coreScript] of state.scripts) {
@@ -607,7 +460,7 @@ export const assembleTransaction = (
         // Build sorted voter keys from votingProcedures using shared utility
         const sortedVoterKeys: Array<string> = []
         for (const voter of state.votingProcedures.procedures.keys()) {
-          sortedVoterKeys.push(voterToKey(voter))
+          sortedVoterKeys.push(Ctx.voterToKey(voter))
         }
 
         // Sort keys lexicographically (as per Cardano ledger rules)
@@ -673,21 +526,23 @@ export const assembleTransaction = (
     let redeemersConcrete: Redeemers.RedeemerMap | undefined
     if (redeemers.length > 0) {
       // Get config to access provider for full protocol parameters
-      const config = yield* TxBuilderConfigTag
+      const config = yield* Ctx.TxBuilderConfigTag
 
       if (!config.provider) {
-        throw new TransactionBuilderError({
-          message:
-            "Script transactions require a provider to fetch full protocol parameters for scriptDataHash calculation",
-          cause: { redeemerCount: redeemers.length }
-        })
+        return yield* Effect.fail(
+          new Ctx.TransactionBuilderError({
+            message:
+              "Script transactions require a provider to fetch full protocol parameters for scriptDataHash calculation",
+            cause: { redeemerCount: redeemers.length }
+          })
+        )
       }
 
       // Fetch full protocol params from provider (includes cost models)
       const fullProtocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
         Effect.mapError(
           (providerError) =>
-            new TransactionBuilderError({
+            new Ctx.TransactionBuilderError({
               message: `Failed to fetch full protocol parameters for scriptDataHash calculation: ${providerError.message}`,
               cause: providerError
             })
@@ -788,8 +643,8 @@ export const assembleTransaction = (
         : undefined
 
     // Convert validity interval from Unix time to slots
-    // Use resolved slot config from BuildOptionsTag (respects BuildOptions > TxBuilderConfig > network default priority)
-    const buildOptions = yield* BuildOptionsTag
+    // Use resolved slot config from Ctx.BuildOptionsTag (respects BuildOptions > Ctx.TxBuilderConfig > network default priority)
+    const buildOptions = yield* Ctx.BuildOptionsTag
     const slotConfig = buildOptions.slotConfig!
 
     let ttl: bigint | undefined
@@ -865,7 +720,7 @@ export const assembleTransaction = (
   }).pipe(
     Effect.mapError(
       (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Failed to assemble transaction: ${error.message}`,
           cause: error
         })
@@ -885,28 +740,7 @@ export const assembleTransaction = (
  */
 export const calculateTransactionSize = (
   transaction: Transaction.Transaction
-): Effect.Effect<number, TransactionBuilderError> =>
-  Effect.gen(function* () {
-    // Serialize transaction to CBOR bytes using sync function
-    const cborBytes = yield* Effect.try({
-      try: () => Transaction.toCBORBytes(transaction),
-      catch: (error) =>
-        new TransactionBuilderError({
-          message: "Failed to encode transaction to CBOR",
-          cause: error
-        })
-    })
-
-    return cborBytes.length
-  }).pipe(
-    Effect.mapError(
-      (error) =>
-        new TransactionBuilderError({
-          message: `Failed to calculate transaction size: ${error.message}`,
-          cause: error
-        })
-    )
-  )
+): number => Transaction.toCBORBytes(transaction).length
 
 /**
  * Calculate minimum transaction fee based on protocol parameters.
@@ -929,46 +763,19 @@ export const calculateMinimumFee = (
 }
 
 /**
- * Extract payment key hash from a Cardano address.
- * Returns null if address has script credential or no payment credential.
- *
- * @since 2.0.0
- * @category fee-calculation
- * @internal
- */
-export const extractPaymentKeyHash = (address: string): Effect.Effect<Uint8Array | null, TransactionBuilderError> =>
-  Effect.gen(function* () {
-    const addressStructure = yield* Effect.try({
-      try: () => CoreAddress.fromBech32(address),
-      catch: (error) =>
-        new TransactionBuilderError({
-          message: `Failed to parse address ${address}`,
-          cause: error
-        })
-    })
-
-    // Check if payment credential is a KeyHash
-    if (addressStructure.paymentCredential?._tag === "KeyHash" && addressStructure.paymentCredential.hash) {
-      return addressStructure.paymentCredential.hash
-    }
-
-    return null
-  })
-
-/**
  * Extract payment key hash from a Core Address.
- * Returns null if address has script credential or no payment credential.
+ * Returns undefined if address has script credential or no payment credential.
  *
  * @since 2.0.0
  * @category fee-calculation
  * @internal
  */
-const extractPaymentKeyHashFromCore = (address: CoreAddress.Address): Uint8Array | null => {
+const extractPaymentKeyHashFromCore = (address: CoreAddress.Address): Uint8Array | undefined => {
   // Check if payment credential is a KeyHash
   if (address.paymentCredential._tag === "KeyHash" && address.paymentCredential.hash) {
     return address.paymentCredential.hash
   }
-  return null
+  return undefined
 }
 
 /**
@@ -982,7 +789,7 @@ const extractPaymentKeyHashFromCore = (address: CoreAddress.Address): Uint8Array
  */
 const buildFakeVKeyWitness = (
   keyHash: Uint8Array
-): Effect.Effect<TransactionWitnessSet.VKeyWitness, TransactionBuilderError> =>
+): Effect.Effect<TransactionWitnessSet.VKeyWitness, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     // Pad key hash to 32 bytes for vkey (Ed25519 public key size)
     const vkeyBytes = new Uint8Array(32)
@@ -994,7 +801,7 @@ const buildFakeVKeyWitness = (
     const vkey = yield* Effect.try({
       try: () => new VKey.VKey({ bytes: vkeyBytes }),
       catch: (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Failed to create fake VKey",
           cause: error
         })
@@ -1003,7 +810,7 @@ const buildFakeVKeyWitness = (
     const signature = yield* Effect.try({
       try: () => new Ed25519Signature.Ed25519Signature({ bytes: signatureBytes }),
       catch: (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Failed to create fake signature",
           cause: error
         })
@@ -1026,9 +833,9 @@ const buildFakeVKeyWitness = (
  */
 export const buildFakeWitnessSet = (
   inputUtxos: ReadonlyArray<CoreUTxO.UTxO>
-): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, TransactionBuilderError, TxContext> =>
+): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, Ctx.TransactionBuilderError, Ctx.TxContext> =>
   Effect.gen(function* () {
-    const stateRef = yield* TxContext
+    const stateRef = yield* Ctx.TxContext
     const state = yield* Ref.get(stateRef)
 
     // Extract unique key hashes from input addresses (Core Address)
@@ -1215,10 +1022,10 @@ export const calculateFeeIteratively = (
     priceMem?: number
     priceStep?: number
   }
-): Effect.Effect<bigint, TransactionBuilderError, TxContext | BuildOptionsTag> =>
+): Effect.Effect<bigint, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.BuildOptionsTag> =>
   Effect.gen(function* () {
     // Get state to access mint field and collateral
-    const stateRef = yield* TxContext
+    const stateRef = yield* Ctx.TxContext
     const state = yield* Ref.get(stateRef)
 
     // Include collateral UTxOs in witness estimation - they require VKey witnesses too!
@@ -1238,7 +1045,7 @@ export const calculateFeeIteratively = (
     let collateralReturn: TxOut.TransactionOutput | undefined
     let totalCollateral: bigint | undefined
     if (state.collateral) {
-      const builtCollateralInputs = yield* buildTransactionInputs(state.collateral.inputs)
+      const builtCollateralInputs = buildTransactionInputs(state.collateral.inputs)
       // Only set collateralInputs if there's at least one input
       if (builtCollateralInputs.length > 0) {
         collateralInputs = builtCollateralInputs as Array.NonEmptyReadonlyArray<TransactionInput.TransactionInput>
@@ -1295,7 +1102,7 @@ export const calculateFeeIteratively = (
       | readonly [TransactionInput.TransactionInput, ...Array<TransactionInput.TransactionInput>]
       | undefined
     if (state.referenceInputs.length > 0) {
-      const refInputs = yield* buildTransactionInputs(state.referenceInputs)
+      const refInputs = buildTransactionInputs(state.referenceInputs)
       referenceInputsForFee = refInputs as readonly [
         TransactionInput.TransactionInput,
         ...Array<TransactionInput.TransactionInput>
@@ -1304,7 +1111,7 @@ export const calculateFeeIteratively = (
 
     // Convert validity interval to slots for fee calculation
     // Validity fields affect transaction size and must be included
-    const buildOptions = yield* BuildOptionsTag
+    const buildOptions = yield* Ctx.BuildOptionsTag
     const slotConfig = buildOptions.slotConfig!
     let ttl: bigint | undefined
     let validityIntervalStart: bigint | undefined
@@ -1345,7 +1152,7 @@ export const calculateFeeIteratively = (
       })
 
       // Calculate size
-      const size = yield* calculateTransactionSize(transaction)
+      const size = calculateTransactionSize(transaction)
 
       // Calculate base fee from serialized transaction size
       // Note: reference script fees are a separate additive component, NOT included in base fee
@@ -1391,7 +1198,7 @@ export const calculateFeeIteratively = (
   }).pipe(
     Effect.mapError(
       (error) =>
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Fee calculation failed to converge: ${error.message}`,
           cause: error
         })
@@ -1476,7 +1283,7 @@ export const validateTransactionBalance = (params: {
   totalInputAssets: CoreAssets.Assets
   totalOutputAssets: CoreAssets.Assets
   fee: bigint
-}): Effect.Effect<void, TransactionBuilderError> =>
+}): Effect.Effect<void, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     const { fee, totalInputAssets, totalOutputAssets } = params
 
@@ -1492,7 +1299,7 @@ export const validateTransactionBalance = (params: {
         const shortfall = requiredAmount - availableAmount
 
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message: `Insufficient ${unit}: need ${requiredAmount}, have ${availableAmount} (short by ${shortfall})`,
             cause: {
               unit,
@@ -1571,30 +1378,22 @@ export const calculateMinimumUtxoLovelace = (params: {
   datum?: DatumOption.DatumOption
   scriptRef?: CoreScript.Script
   coinsPerUtxoByte: bigint
-}): Effect.Effect<bigint, TransactionBuilderError> =>
+}): Effect.Effect<bigint, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
-    const calculateRequiredLovelace = (lovelace: bigint): Effect.Effect<bigint, TransactionBuilderError> =>
-      Effect.gen(function* () {
-        const assetsForSizing = CoreAssets.withLovelace(params.assets, lovelace)
+    const calculateRequiredLovelace = (lovelace: bigint): bigint => {
+      const assetsForSizing = CoreAssets.withLovelace(params.assets, lovelace)
 
-        const tempOutput = yield* txOutputToTransactionOutput({
-          address: params.address,
-          assets: assetsForSizing,
-          datum: params.datum,
-          scriptRef: params.scriptRef
-        })
-
-        const cborBytes = yield* Effect.try({
-          try: () => TxOut.toCBORBytes(tempOutput),
-          catch: (error) =>
-            new TransactionBuilderError({
-              message: "Failed to encode output to CBOR for min UTxO calculation",
-              cause: error
-            })
-        })
-
-        return params.coinsPerUtxoByte * (UTXO_ENTRY_OVERHEAD_BYTES + BigInt(cborBytes.length))
+      const tempOutput = makeTxOutput({
+        address: params.address,
+        assets: assetsForSizing,
+        datum: params.datum,
+        scriptRef: params.scriptRef
       })
+
+      const cborBytes = TxOut.toCBORBytes(tempOutput)
+
+      return params.coinsPerUtxoByte * (UTXO_ENTRY_OVERHEAD_BYTES + BigInt(cborBytes.length))
+    }
 
     // Exact fixed-point solve for minUTxO:
     // required = f(lovelace), where f uses serialized size that depends on lovelace.
@@ -1602,7 +1401,7 @@ export const calculateMinimumUtxoLovelace = (params: {
     let currentLovelace = 0n
 
     for (let i = 0; i < MAX_MIN_UTXO_ITERATIONS; i++) {
-      const requiredLovelace = yield* calculateRequiredLovelace(currentLovelace)
+      const requiredLovelace = calculateRequiredLovelace(currentLovelace)
       if (requiredLovelace === currentLovelace) {
         return requiredLovelace
       }
@@ -1610,7 +1409,7 @@ export const calculateMinimumUtxoLovelace = (params: {
     }
 
     return yield* Effect.fail(
-      new TransactionBuilderError({
+      new Ctx.TransactionBuilderError({
         message: `Minimum UTxO calculation did not converge within ${MAX_MIN_UTXO_ITERATIONS} iterations`
       })
     )
@@ -1640,8 +1439,8 @@ export const createChangeOutput = (params: {
   leftoverAssets: CoreAssets.Assets
   changeAddress: CoreAddress.Address
   coinsPerUtxoByte: bigint
-  unfrackOptions?: UnfrackOptions
-}): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, TransactionBuilderError> =>
+  unfrackOptions?: Ctx.UnfrackOptions
+}): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, Ctx.TransactionBuilderError> =>
   Effect.gen(function* () {
     const { changeAddress, coinsPerUtxoByte, leftoverAssets, unfrackOptions } = params
 
@@ -1661,7 +1460,7 @@ export const createChangeOutput = (params: {
       ).pipe(
         Effect.mapError(
           (error) =>
-            new TransactionBuilderError({
+            new Ctx.TransactionBuilderError({
               message: `Failed to create unfracked change outputs: ${error.message}`,
               cause: error
             })
@@ -1697,7 +1496,7 @@ export const createChangeOutput = (params: {
     }
 
     // Create change output using Core TransactionOutput
-    const changeOutput = yield* makeTxOutput({
+    const changeOutput = makeTxOutput({
       address: changeAddress,
       assets: leftoverAssets
     })

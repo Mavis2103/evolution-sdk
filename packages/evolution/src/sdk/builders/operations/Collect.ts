@@ -10,9 +10,9 @@ import { Effect, Ref } from "effect"
 import * as CoreAssets from "../../../Assets/index.js"
 import * as ScriptHash from "../../../ScriptHash.js"
 import * as UTxO from "../../../UTxO.js"
+import * as Ctx from "../internal/ctx.js"
+import { filterScriptUtxos } from "../internal/txBuilder.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
-import { TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
-import { calculateTotalAssets, filterScriptUtxos } from "../TxBuilderImpl.js"
 import type { CollectFromParams } from "./Operations.js"
 
 /**
@@ -37,15 +37,15 @@ import type { CollectFromParams } from "./Operations.js"
  */
 export const createCollectFromProgram = (
   params: CollectFromParams
-): Effect.Effect<void, TransactionBuilderError, TxContext> =>
+): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
     const state = yield* Ref.get(ctx)
 
     // 1. Validate inputs exist
     if (params.inputs.length === 0) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "No inputs provided to collectFrom"
         })
       )
@@ -83,14 +83,14 @@ export const createCollectFromProgram = (
     // 4. Validate redeemer for Plutus script UTxOs only
     if (plutusScriptUtxos.length > 0 && !params.redeemer) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Redeemer required for ${plutusScriptUtxos.length} script-locked UTxO(s)`
         })
       )
     }
 
     // 5. Add UTxOs to selected inputs and track redeemers and input assets
-    const inputAssets = calculateTotalAssets(params.inputs)
+    const inputAssets = UTxO.totalAssets(params.inputs)
 
     yield* Ref.update(ctx, (state) => {
       let newRedeemers = state.redeemers

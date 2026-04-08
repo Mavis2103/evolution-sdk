@@ -15,16 +15,8 @@ import * as CoreUTxO from "../../../UTxO.js"
 import type { CoinSelectionAlgorithm, CoinSelectionFunction } from "../CoinSelection.js"
 import { largestFirstSelection } from "../CoinSelection.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
+import * as Ctx from "../internal/ctx.js"
 import { negatedMintAssets } from "../operations/Mint.js"
-import {
-  AvailableUtxosTag,
-  BuildOptionsTag,
-  PhaseContextTag,
-  TransactionBuilderError,
-  TxContext
-} from "../TransactionBuilder.js"
-import { calculateTotalAssets } from "../TxBuilderImpl.js"
-import type { PhaseResult } from "./Phases.js"
 
 /**
  * Helper: Format assets for logging (BigInt-safe, truncates long unit names)
@@ -63,17 +55,17 @@ const getCoinSelectionAlgorithm = (algorithm: CoinSelectionAlgorithm): CoinSelec
     case "largest-first":
       return largestFirstSelection
     case "random-improve":
-      throw new TransactionBuilderError({
+      throw new Ctx.TransactionBuilderError({
         message: "random-improve algorithm not yet implemented",
         cause: { algorithm }
       })
     case "optimal":
-      throw new TransactionBuilderError({
+      throw new Ctx.TransactionBuilderError({
         message: "optimal algorithm not yet implemented",
         cause: { algorithm }
       })
     default:
-      throw new TransactionBuilderError({
+      throw new Ctx.TransactionBuilderError({
         message: `Unknown coin selection algorithm: ${algorithm}`,
         cause: { algorithm }
       })
@@ -96,9 +88,9 @@ const resolveCoinSelectionFn = (
  * Add selected UTxOs to transaction context state.
  * Updates both the selected UTxOs list and total input assets.
  */
-const addUtxosToState = (selectedUtxos: ReadonlyArray<CoreUTxO.UTxO>): Effect.Effect<void, never, TxContext> =>
+const addUtxosToState = (selectedUtxos: ReadonlyArray<CoreUTxO.UTxO>): Effect.Effect<void, never, Ctx.TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
 
     // Log each UTxO being added
     for (const utxo of selectedUtxos) {
@@ -107,7 +99,7 @@ const addUtxosToState = (selectedUtxos: ReadonlyArray<CoreUTxO.UTxO>): Effect.Ef
     }
 
     // Calculate total assets from selected UTxOs
-    const additionalAssets = calculateTotalAssets(selectedUtxos)
+    const additionalAssets = CoreUTxO.totalAssets(selectedUtxos)
 
     // Update state with new UTxOs and input assets
     const state = yield* Ref.get(ctx)
@@ -134,17 +126,17 @@ const addUtxosToState = (selectedUtxos: ReadonlyArray<CoreUTxO.UTxO>): Effect.Ef
   })
 
 /**
- * Helper: Perform coin selection and update TxContext.state
+ * Helper: Perform coin selection and update Ctx.TxContext.state
  */
 const performCoinSelectionUpdateState = (assetShortfalls: CoreAssets.Assets) =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
     const state = yield* Ref.get(ctx)
     const alreadySelected = state.selectedUtxos
 
     // Get resolved availableUtxos from context tag
-    const allAvailableUtxos = yield* AvailableUtxosTag
-    const buildOptions = yield* BuildOptionsTag
+    const allAvailableUtxos = yield* Ctx.AvailableUtxosTag
+    const buildOptions = yield* Ctx.BuildOptionsTag
     const availableUtxos = getAvailableUtxos(allAvailableUtxos, alreadySelected, state.referenceInputs)
     const coinSelectionFn = resolveCoinSelectionFn(buildOptions.coinSelection)
 
@@ -152,7 +144,7 @@ const performCoinSelectionUpdateState = (assetShortfalls: CoreAssets.Assets) =>
       try: () => coinSelectionFn(availableUtxos, assetShortfalls),
       catch: (error) => {
         // Custom serialization for Assets (handles BigInt)
-        return new TransactionBuilderError({
+        return new Ctx.TransactionBuilderError({
           message: `Coin selection failed for ${formatAssetsForLog(assetShortfalls)}`,
           cause: error
         })
@@ -202,13 +194,13 @@ const performCoinSelectionUpdateState = (assetShortfalls: CoreAssets.Assets) =>
  * - Selection is deterministic (same inputs = same selection)
  */
 export const executeSelection = (): Effect.Effect<
-  PhaseResult,
-  TransactionBuilderError,
-  PhaseContextTag | TxContext | AvailableUtxosTag | BuildOptionsTag
+  Ctx.PhaseResult,
+  Ctx.TransactionBuilderError,
+  Ctx.PhaseContextTag | Ctx.TxContext | Ctx.AvailableUtxosTag | Ctx.BuildOptionsTag
 > =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
-    const buildCtxRef = yield* PhaseContextTag
+    const ctx = yield* Ctx.TxContext
+    const buildCtxRef = yield* Ctx.PhaseContextTag
     const buildCtx = yield* Ref.get(buildCtxRef)
 
     const state = yield* Ref.get(ctx)
@@ -221,7 +213,7 @@ export const executeSelection = (): Effect.Effect<
       // Validation: sendAll is mutually exclusive with other builder operations
       if (state.outputs.length > 0) {
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message:
               "sendAll() cannot be used with payToAddress(). " +
               "sendAll automatically creates the output with all wallet assets."
@@ -231,7 +223,7 @@ export const executeSelection = (): Effect.Effect<
 
       if (state.selectedUtxos.length > 0) {
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message:
               "sendAll() cannot be used with collectFrom(). " + "sendAll automatically collects all wallet UTxOs."
           })
@@ -240,7 +232,7 @@ export const executeSelection = (): Effect.Effect<
 
       if (state.mint !== undefined) {
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message:
               "sendAll() cannot be used with mintAssets(). " +
               "sendAll is designed for draining a wallet, not minting operations."
@@ -250,7 +242,7 @@ export const executeSelection = (): Effect.Effect<
 
       if (state.certificates.length > 0) {
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message:
               "sendAll() cannot be used with staking operations (registerStake, deregisterStake, delegateTo, etc.). " +
               "sendAll is designed for simple wallet drain operations only."
@@ -260,7 +252,7 @@ export const executeSelection = (): Effect.Effect<
 
       if (state.withdrawals.size > 0) {
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message:
               "sendAll() cannot be used with withdraw(). " +
               "sendAll is designed for simple wallet drain operations only."
@@ -270,7 +262,7 @@ export const executeSelection = (): Effect.Effect<
 
       if (state.votingProcedures !== undefined || state.proposalProcedures !== undefined) {
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message:
               "sendAll() cannot be used with governance operations (vote, propose). " +
               "sendAll is designed for simple wallet drain operations only."
@@ -279,11 +271,11 @@ export const executeSelection = (): Effect.Effect<
       }
 
       // Get all available UTxOs
-      const allAvailableUtxos = yield* AvailableUtxosTag
+      const allAvailableUtxos = yield* Ctx.AvailableUtxosTag
 
       if (allAvailableUtxos.length === 0) {
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message: "sendAll() failed: Wallet has no UTxOs to send."
           })
         )
@@ -364,7 +356,7 @@ export const executeSelection = (): Effect.Effect<
     const stateAfterSelection = yield* Ref.get(ctx)
     if (stateAfterSelection.selectedUtxos.length === 0) {
       //TODO: double check if this is a good approach, it seems that this condition is only needed when refunds/withdrawals cover all costs
-      const allAvailableUtxos = yield* AvailableUtxosTag
+      const allAvailableUtxos = yield* Ctx.AvailableUtxosTag
       const state = yield* Ref.get(ctx)
 
       // Filter out reference inputs - they can't be used as transaction inputs
@@ -372,7 +364,7 @@ export const executeSelection = (): Effect.Effect<
 
       if (selectableUtxos.length === 0) {
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message:
               "Cannot build transaction: no UTxOs available and no explicit inputs provided. " +
               "Cardano protocol requires at least one input to prevent transaction replay."

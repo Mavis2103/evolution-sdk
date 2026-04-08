@@ -15,8 +15,8 @@ import * as Effect from "effect/Effect"
 import type * as CoreAddress from "../../Address.js"
 import * as CoreAssets from "../../Assets/index.js"
 import type * as TxOut from "../../TxOut.js"
-import type { UnfrackOptions } from "./TransactionBuilder.js"
-import { calculateMinimumUtxoLovelace, txOutputToTransactionOutput } from "./TxBuilderImpl.js"
+import type * as Ctx from "./internal/ctx.js"
+import { calculateMinimumUtxoLovelace, makeTxOutput } from "./internal/txBuilder.js"
 
 // ============================================================================
 // Default Unfrack Options
@@ -24,7 +24,7 @@ import { calculateMinimumUtxoLovelace, txOutputToTransactionOutput } from "./TxB
 
 /**
  * Default unfrack configuration values.
- * Applied when UnfrackOptions properties are not provided.
+ * Applied when Ctx.UnfrackOptions properties are not provided.
  */
 const DEFAULT_UNFRACK_OPTIONS = {
   ada: {
@@ -121,12 +121,11 @@ const calculateBundleMinUTxO = (
 ): Effect.Effect<bigint, Error, never> =>
   Effect.gen(function* () {
     // Build Assets object with the bundle tokens using CoreAssets
-    let bundleAssets = CoreAssets.zero // Start with empty assets
+    // Use fromHexStrings (pure) since policyId/assetName are already validated hex strings
+    let bundleAssets = CoreAssets.zero
 
     for (const token of bundleTokens) {
-      // Build unit as "policyId.assetName"
-      const unit = token.policyId + "." + token.assetName
-      const tokenAssets = yield* CoreAssets.fromUnit(unit, token.quantity)
+      const tokenAssets = CoreAssets.fromHexStrings(token.policyId, token.assetName, token.quantity)
       bundleAssets = CoreAssets.merge(bundleAssets, tokenAssets)
     }
 
@@ -146,7 +145,7 @@ const calculateBundleMinUTxO = (
  */
 export const calculateTokenBundles = (
   tokens: ReadonlyArray<TokenInfo>,
-  options: UnfrackOptions,
+  options: Ctx.UnfrackOptions,
   changeAddress: CoreAddress.Address,
   coinsPerUtxoByte: bigint
 ): Effect.Effect<ReadonlyArray<TokenBundle>, Error, never> =>
@@ -253,7 +252,7 @@ const bundleTokensWithRules = (
  */
 export const calculateAdaSubdivision = (
   leftoverAda: bigint,
-  options: UnfrackOptions
+  options: Ctx.UnfrackOptions
 ): Effect.Effect<ReadonlyArray<bigint>, never, never> => {
   return Effect.gen(function* () {
     const threshold = options.ada?.subdivideThreshold ?? 100_000000n
@@ -353,7 +352,7 @@ export type UnfrackResult = {
 export const createUnfrackedChangeOutputs = (
   changeAddress: CoreAddress.Address,
   changeAssets: CoreAssets.Assets,
-  options: UnfrackOptions = {},
+  options: Ctx.UnfrackOptions = {},
   coinsPerUtxoByte: bigint
 ): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, Error, never> => {
   return Effect.gen(function* () {
@@ -410,7 +409,7 @@ export const createUnfrackedChangeOutputs = (
               remaining = remaining - amount
             }
 
-            const output = yield* txOutputToTransactionOutput({
+            const output = makeTxOutput({
               address: changeAddress,
               assets: CoreAssets.fromLovelace(amount)
             })
@@ -423,7 +422,7 @@ export const createUnfrackedChangeOutputs = (
           yield* Effect.logDebug(
             `[Unfrack] Subdivision NOT affordable (smallest output ${smallestAmount} < minUTxO ${adaMinUTxO}), returning single ADA output`
           )
-          const output = yield* txOutputToTransactionOutput({
+          const output = makeTxOutput({
             address: changeAddress,
             assets: CoreAssets.fromLovelace(availableLovelace)
           })
@@ -431,7 +430,7 @@ export const createUnfrackedChangeOutputs = (
         }
       } else {
         yield* Effect.logDebug(`[Unfrack] No tokens, ADA below threshold, returning single ADA output`)
-        const output = yield* txOutputToTransactionOutput({
+        const output = makeTxOutput({
           address: changeAddress,
           assets: CoreAssets.fromLovelace(availableLovelace)
         })
@@ -522,7 +521,7 @@ export const createUnfrackedChangeOutputs = (
 
       // Return single output with all assets
       // Note: ChangeCreation's Step 4 has already verified this is affordable
-      const output = yield* txOutputToTransactionOutput({
+      const output = makeTxOutput({
         address: changeAddress,
         assets: changeAssets
       })
@@ -549,7 +548,7 @@ export const createUnfrackedChangeOutputs = (
         // Create bundle outputs with minUTxO
         const bundleOutputs: Array<TxOut.TransactionOutput> = []
         for (const b of bundles) {
-          const output = yield* txOutputToTransactionOutput({
+          const output = makeTxOutput({
             address: changeAddress,
             assets: b.assets
           })
@@ -582,7 +581,7 @@ export const createUnfrackedChangeOutputs = (
               remainingAda = remainingAda - amount
             }
 
-            const output = yield* txOutputToTransactionOutput({
+            const output = makeTxOutput({
               address: changeAddress,
               assets: CoreAssets.fromLovelace(amount)
             })
@@ -596,7 +595,7 @@ export const createUnfrackedChangeOutputs = (
             `[Unfrack] Subdivision NOT affordable (smallest output ${smallestAmount} < minUTxO ${adaMinUTxO}), creating ${bundles.length} bundles + 1 ADA output`
           )
 
-          const adaOutput = yield* txOutputToTransactionOutput({
+          const adaOutput = makeTxOutput({
             address: changeAddress,
             assets: CoreAssets.fromLovelace(remaining)
           })
@@ -628,7 +627,7 @@ export const createUnfrackedChangeOutputs = (
     for (let i = 0; i < bundles.length; i++) {
       const bundle = bundles[i]
       const extra = i === bundles.length - 1 ? perBundle + extraForLast : perBundle
-      const output = yield* txOutputToTransactionOutput({
+      const output = makeTxOutput({
         address: changeAddress,
         assets: CoreAssets.merge(bundle.assets, CoreAssets.fromLovelace(extra))
       })

@@ -9,9 +9,8 @@ import { Effect, Ref } from "effect"
 
 import type * as GovernanceAction from "../../../GovernanceAction.js"
 import * as VotingProcedures from "../../../VotingProcedures.js"
-import { voterToKey } from "../phases/utils.js"
+import * as Ctx from "../internal/ctx.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
-import { TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
 import type { VoteParams } from "./Operations.js"
 
 /**
@@ -46,14 +45,14 @@ const isScriptVoter = (voter: VotingProcedures.Voter): boolean => {
  * @since 2.0.0
  * @category programs
  */
-export const createVoteProgram = (params: VoteParams): Effect.Effect<void, TransactionBuilderError, TxContext> =>
+export const createVoteProgram = (params: VoteParams): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
 
     // 1. Validate voting procedures
     if (params.votingProcedures.procedures.size === 0) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "VotingProcedures must contain at least one voter",
           cause: params.votingProcedures
         })
@@ -64,7 +63,7 @@ export const createVoteProgram = (params: VoteParams): Effect.Effect<void, Trans
     const scriptVoters = new Set<string>()
     for (const [voter, _] of params.votingProcedures.procedures.entries()) {
       if (isScriptVoter(voter)) {
-        scriptVoters.add(voterToKey(voter))
+        scriptVoters.add(Ctx.voterToKey(voter))
       }
     }
 
@@ -78,7 +77,7 @@ export const createVoteProgram = (params: VoteParams): Effect.Effect<void, Trans
     // 4. If script voters exist but no redeemer, fail
     if (scriptVoters.size > 0 && !params.redeemer) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Redeemer required for script-controlled voters",
           cause: Array.from(scriptVoters)
         })

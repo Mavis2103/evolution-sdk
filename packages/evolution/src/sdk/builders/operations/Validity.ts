@@ -14,7 +14,7 @@
 
 import { Effect, Ref } from "effect"
 
-import { TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
+import * as Ctx from "../internal/ctx.js"
 import type { ValidityParams } from "./Operations.js"
 
 /**
@@ -30,14 +30,14 @@ import type { ValidityParams } from "./Operations.js"
  */
 export const createSetValidityProgram = (
   params: ValidityParams
-): Effect.Effect<void, TransactionBuilderError, TxContext> =>
+): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
 
     // 1. Validate at least one bound is provided
     if (params.from === undefined && params.to === undefined) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "setValidity requires at least one of 'from' or 'to' to be specified"
         })
       )
@@ -46,7 +46,7 @@ export const createSetValidityProgram = (
     // 2. Validate from < to if both provided
     if (params.from !== undefined && params.to !== undefined && params.from >= params.to) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Invalid validity interval: 'from' (${params.from}) must be less than 'to' (${params.to})`
         })
       )

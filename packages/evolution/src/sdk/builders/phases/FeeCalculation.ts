@@ -11,10 +11,9 @@
 import { Effect, Ref } from "effect"
 
 import * as CoreAssets from "../../../Assets/index.js"
-import type { BuildOptionsTag, TransactionBuilderError } from "../TransactionBuilder.js"
-import { PhaseContextTag, ProtocolParametersTag, TxContext } from "../TransactionBuilder.js"
-import { buildTransactionInputs, calculateFeeIteratively, calculateReferenceScriptFee } from "../TxBuilderImpl.js"
-import type { PhaseResult } from "./Phases.js"
+import * as CoreUTxO from "../../../UTxO.js"
+import * as Ctx from "../internal/ctx.js"
+import { calculateFeeIteratively, calculateReferenceScriptFee } from "../internal/txBuilder.js"
 
 /**
  * Fee Calculation Phase
@@ -52,14 +51,14 @@ import type { PhaseResult } from "./Phases.js"
  * - No phase retries here; Balance phase decides next step based on leftover
  */
 export const executeFeeCalculation = (): Effect.Effect<
-  PhaseResult,
-  TransactionBuilderError,
-  PhaseContextTag | TxContext | ProtocolParametersTag | BuildOptionsTag
+  Ctx.PhaseResult,
+  Ctx.TransactionBuilderError,
+  Ctx.PhaseContextTag | Ctx.TxContext | Ctx.ProtocolParametersTag | Ctx.BuildOptionsTag
 > =>
   Effect.gen(function* () {
     // Step 1: Get contexts and current state
-    const ctx = yield* TxContext
-    const buildCtxRef = yield* PhaseContextTag
+    const ctx = yield* Ctx.TxContext
+    const buildCtxRef = yield* Ctx.PhaseContextTag
     const buildCtx = yield* Ref.get(buildCtxRef)
 
     const state = yield* Ref.get(ctx)
@@ -67,7 +66,7 @@ export const executeFeeCalculation = (): Effect.Effect<
     const baseOutputs = state.outputs
 
     // Step 2: Build transaction inputs
-    const inputs = yield* buildTransactionInputs(selectedUtxos)
+    const inputs = CoreUTxO.toInputs(selectedUtxos)
 
     // Step 3: Combine base outputs + change outputs
     yield* Effect.logDebug(
@@ -77,7 +76,7 @@ export const executeFeeCalculation = (): Effect.Effect<
     const allOutputs = [...baseOutputs, ...buildCtx.changeOutputs]
 
     // Step 4: Calculate base fee WITH change outputs
-    const protocolParams = yield* ProtocolParametersTag
+    const protocolParams = yield* Ctx.ProtocolParametersTag
     const baseFee = yield* calculateFeeIteratively(selectedUtxos, inputs, allOutputs, state.redeemers, {
       minFeeCoefficient: protocolParams.minFeeCoefficient,
       minFeeConstant: protocolParams.minFeeConstant,

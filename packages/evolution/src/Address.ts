@@ -193,6 +193,14 @@ export const FromBech32 = Schema.transformOrFail(Schema.String, Schema.typeSchem
 export const hasStakingCredential = (address: Address): boolean => address.stakingCredential !== undefined
 
 /**
+ * Check if address has a script payment credential.
+ *
+ * @since 2.0.0
+ * @category predicates
+ */
+export const isScript = (address: Address): boolean => address.paymentCredential?._tag === "ScriptHash"
+
+/**
  * Check if AddressStructure is enterprise-like (no staking credential)
  *
  * @since 2.0.0

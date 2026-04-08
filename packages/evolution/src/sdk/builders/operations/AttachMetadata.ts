@@ -14,7 +14,7 @@ import { Effect, Ref } from "effect"
 
 import * as AuxiliaryData from "../../../AuxiliaryData.js"
 import type * as TransactionMetadatum from "../../../TransactionMetadatum.js"
-import { TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
+import * as Ctx from "../internal/ctx.js"
 import type { AttachMetadataParams } from "./Operations.js"
 
 /**
@@ -31,9 +31,9 @@ import type { AttachMetadataParams } from "./Operations.js"
  */
 export const createAttachMetadataProgram = (
   params: AttachMetadataParams
-): Effect.Effect<void, TransactionBuilderError, TxContext> =>
+): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
 
     // Read current state and check for duplicate label
     const state = yield* Ref.get(ctx)
@@ -45,7 +45,7 @@ export const createAttachMetadataProgram = (
 
     if (existingMetadata && existingMetadata.has(params.label)) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: `Metadata label ${params.label} already exists. Each metadata label can only be used once per transaction.`
         })
       )

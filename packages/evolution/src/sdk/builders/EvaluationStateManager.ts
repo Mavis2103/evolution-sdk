@@ -8,8 +8,7 @@
  * @since 2.0.0
  */
 
-import type { TxBuilderState } from "./TransactionBuilder.js"
-
+import type * as Ctx from "./internal/ctx.js"
 /**
  * Invalidate all redeemer exUnits.
  *
@@ -24,8 +23,8 @@ import type { TxBuilderState } from "./TransactionBuilder.js"
  * @since 2.0.0
  * @category state-management
  */
-export const invalidateExUnits = (redeemers: TxBuilderState["redeemers"]): TxBuilderState["redeemers"] => {
-  const invalidated = new Map<string, TxBuilderState["redeemers"] extends Map<string, infer V> ? V : never>()
+export const invalidateExUnits = (redeemers: Ctx.TxBuilderState["redeemers"]): Ctx.TxBuilderState["redeemers"] => {
+  const invalidated = new Map<string, Ctx.TxBuilderState["redeemers"] extends Map<string, infer V> ? V : never>()
 
   for (const [key, redeemer] of redeemers.entries()) {
     invalidated.set(key, {
@@ -48,7 +47,7 @@ export const invalidateExUnits = (redeemers: TxBuilderState["redeemers"]): TxBui
  * @since 2.0.0
  * @category state-management
  */
-export const hasUnevaluatedRedeemers = (redeemers: TxBuilderState["redeemers"]): boolean => {
+export const hasUnevaluatedRedeemers = (redeemers: Ctx.TxBuilderState["redeemers"]): boolean => {
   return Array.from(redeemers.values()).some(
     (redeemer) => !redeemer.exUnits || redeemer.exUnits.mem === 0n || redeemer.exUnits.steps === 0n
   )
@@ -64,7 +63,7 @@ export const hasUnevaluatedRedeemers = (redeemers: TxBuilderState["redeemers"]):
  * @since 2.0.0
  * @category state-management
  */
-export const allRedeemersEvaluated = (redeemers: TxBuilderState["redeemers"]): boolean => {
+export const allRedeemersEvaluated = (redeemers: Ctx.TxBuilderState["redeemers"]): boolean => {
   if (redeemers.size === 0) return false
 
   return Array.from(redeemers.values()).every(

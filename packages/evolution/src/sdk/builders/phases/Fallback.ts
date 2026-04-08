@@ -10,8 +10,7 @@
 
 import { Effect, Ref } from "effect"
 
-import { BuildOptionsTag, PhaseContextTag, TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
-import type { PhaseResult } from "./Phases.js"
+import * as Ctx from "../internal/ctx.js"
 
 /**
  * Fallback Phase - Terminal Strategy Selection
@@ -50,15 +49,15 @@ import type { PhaseResult } from "./Phases.js"
  * - Fee recalculation after clearing change ensures accurate final fee
  */
 export const executeFallback = (): Effect.Effect<
-  PhaseResult,
-  TransactionBuilderError,
-  PhaseContextTag | TxContext | BuildOptionsTag
+  Ctx.PhaseResult,
+  Ctx.TransactionBuilderError,
+  Ctx.PhaseContextTag | Ctx.TxContext | Ctx.BuildOptionsTag
 > =>
   Effect.gen(function* () {
     yield* Effect.logDebug("Phase: Fallback")
 
-    const ctx = yield* TxContext
-    const buildCtxRef = yield* PhaseContextTag
+    const ctx = yield* Ctx.TxContext
+    const buildCtxRef = yield* Ctx.PhaseContextTag
     // Note: We don't merge the leftover here. Instead, we just clear change outputs
     // and let the balance phase handle the merge after fee calculation.
     // This avoids circular dependency: fee depends on outputs, but drain amount depends on fee.
@@ -67,7 +66,7 @@ export const executeFallback = (): Effect.Effect<
     // Strategy 1: drainTo - Merge leftover into existing output
     // ---------------------------------------------------------------
 
-    const buildOptions = yield* BuildOptionsTag
+    const buildOptions = yield* Ctx.BuildOptionsTag
 
     if (buildOptions.drainTo !== undefined) {
       // Validate drainTo index
@@ -77,7 +76,7 @@ export const executeFallback = (): Effect.Effect<
 
       if (drainToIndex < 0 || drainToIndex >= outputs.length) {
         return yield* Effect.fail(
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message:
               `Invalid drainTo index: ${drainToIndex}. ` +
               `Transaction has ${outputs.length} output(s), valid indices are 0-${outputs.length - 1}.`,
@@ -130,7 +129,7 @@ export const executeFallback = (): Effect.Effect<
     // ChangeCreation should only route to fallback if drainTo or burn is configured
 
     return yield* Effect.fail(
-      new TransactionBuilderError({
+      new Ctx.TransactionBuilderError({
         message:
           `[Fallback] CRITICAL BUG: Fallback phase reached without drainTo or burn configured. ` +
           `ChangeCreation should have prevented this.`,

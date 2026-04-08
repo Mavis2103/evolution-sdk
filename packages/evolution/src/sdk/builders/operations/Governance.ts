@@ -9,8 +9,8 @@ import { Effect, Ref } from "effect"
 
 import * as Bytes from "../../../Bytes.js"
 import * as Certificate from "../../../Certificate.js"
+import * as Ctx from "../internal/ctx.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
-import { TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type {
   AuthCommitteeHotParams,
   DeregisterDRepParams,
@@ -33,10 +33,10 @@ import type {
  */
 export const createRegisterDRepProgram = (
   params: RegisterDRepParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
+): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
-    const config = yield* TxBuilderConfigTag
+    const ctx = yield* Ctx.TxContext
+    const config = yield* Ctx.TxBuilderConfigTag
 
     // Check if script-controlled
     const isScriptControlled = params.drepCredential._tag === "ScriptHash"
@@ -45,7 +45,7 @@ export const createRegisterDRepProgram = (
     // The script is invoked to authorize the registration.
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Redeemer required for script-controlled DRep credential registration"
         })
       )
@@ -54,7 +54,7 @@ export const createRegisterDRepProgram = (
     // Get drepDeposit from protocol parameters via provider
     if (!config.provider) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Provider required to fetch drepDeposit for DRep registration"
         })
       )
@@ -63,7 +63,7 @@ export const createRegisterDRepProgram = (
     const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message: `Failed to fetch protocol parameters: ${err.message}`
           })
       )
@@ -127,16 +127,16 @@ export const createRegisterDRepProgram = (
  */
 export const createUpdateDRepProgram = (
   params: UpdateDRepParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
+): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
 
     // Check if script-controlled
     const isScriptControlled = params.drepCredential._tag === "ScriptHash"
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Redeemer required for script-controlled DRep credential update"
         })
       )
@@ -196,15 +196,15 @@ export const createUpdateDRepProgram = (
  */
 export const createDeregisterDRepProgram = (
   params: DeregisterDRepParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
+): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
-    const config = yield* TxBuilderConfigTag
+    const ctx = yield* Ctx.TxContext
+    const config = yield* Ctx.TxBuilderConfigTag
 
     // Get drepDeposit from protocol parameters via provider
     if (!config.provider) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Provider required to fetch drepDeposit for DRep deregistration"
         })
       )
@@ -215,7 +215,7 @@ export const createDeregisterDRepProgram = (
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Redeemer required for script-controlled DRep credential deregistration"
         })
       )
@@ -224,7 +224,7 @@ export const createDeregisterDRepProgram = (
     const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
-          new TransactionBuilderError({
+          new Ctx.TransactionBuilderError({
             message: `Failed to fetch protocol parameters: ${err.message}`
           })
       )
@@ -292,16 +292,16 @@ export const createDeregisterDRepProgram = (
  */
 export const createAuthCommitteeHotProgram = (
   params: AuthCommitteeHotParams
-): Effect.Effect<void, TransactionBuilderError, TxContext> =>
+): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
 
     // Check if script-controlled
     const isScriptControlled = params.coldCredential._tag === "ScriptHash"
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Redeemer required for script-controlled cold credential authorization"
         })
       )
@@ -364,16 +364,16 @@ export const createAuthCommitteeHotProgram = (
  */
 export const createResignCommitteeColdProgram = (
   params: ResignCommitteeColdParams
-): Effect.Effect<void, TransactionBuilderError, TxContext> =>
+): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* TxContext
+    const ctx = yield* Ctx.TxContext
 
     // Check if script-controlled
     const isScriptControlled = params.coldCredential._tag === "ScriptHash"
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new TransactionBuilderError({
+        new Ctx.TransactionBuilderError({
           message: "Redeemer required for script-controlled cold credential resignation"
         })
       )
