@@ -10,9 +10,9 @@
 
 import { Effect, Ref } from "effect"
 
-import * as CoreAssets from "../../../Assets/index.js"
-import type * as Certificate from "../../../Certificate.js"
-import * as PoolKeyHash from "../../../PoolKeyHash.js"
+import * as CoreAssets from "../../../assets/index.js"
+import type * as Certificate from "../../../certificate/Certificate.js"
+import * as PoolKeyHash from "../../../staking/PoolKeyHash.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
 import * as Ctx from "../internal/ctx.js"
 import { mintToAssets } from "../operations/Mint.js"

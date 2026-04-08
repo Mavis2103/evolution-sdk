@@ -1,11 +1,11 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as AssetName from "../AssetName.js"
-import * as Bytes from "../Bytes.js"
-import * as CBOR from "../CBOR.js"
-import * as Coin from "../Coin.js"
-import * as MultiAsset from "../MultiAsset.js"
-import * as PolicyId from "../PolicyId.js"
+import * as Bytes from "../bytes/Bytes.js"
+import * as CBOR from "../encoding/CBOR.js"
+import * as AssetName from "../value/AssetName.js"
+import * as Coin from "../value/Coin.js"
+import * as MultiAsset from "../value/MultiAsset.js"
+import * as PolicyId from "../value/PolicyId.js"
 
 /**
  * Assets representing both ADA and native tokens.

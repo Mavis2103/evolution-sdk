@@ -10,10 +10,10 @@
 
 import { Effect, Ref } from "effect"
 
-import type * as CoreAddress from "../../../Address.js"
-import * as CoreAssets from "../../../Assets/index.js"
-import type * as TxOut from "../../../TxOut.js"
-import * as CoreUTxO from "../../../UTxO.js"
+import type * as CoreAddress from "../../../address/Address.js"
+import * as CoreAssets from "../../../assets/index.js"
+import type * as TxOut from "../../../transaction/TxOut.js"
+import * as CoreUTxO from "../../../transaction/UTxO.js"
 import * as Ctx from "../internal/ctx.js"
 import { calculateMinimumUtxoLovelace, makeTxOutput } from "../internal/txBuilder.js"
 import { mintToAssets } from "../operations/Mint.js"

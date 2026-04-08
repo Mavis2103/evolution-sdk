@@ -1,9 +1,9 @@
 import { describe, expect, it } from "@effect/vitest"
 import { Effect } from "effect"
 
-import * as Address from "../src/Address.js"
-import * as CoreAssets from "../src/Assets/index.js"
-import * as PlutusV3 from "../src/PlutusV3.js"
+import * as Address from "../src/address/Address.js"
+import * as CoreAssets from "../src/assets/index.js"
+import * as PlutusV3 from "../src/script/PlutusV3.js"
 import { calculateMinimumUtxoLovelace } from "../src/sdk/builders/internal/txBuilder.js"
 
 const TEST_ADDRESS = Address.fromBech32(

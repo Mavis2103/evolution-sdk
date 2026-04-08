@@ -1,20 +1,20 @@
 import { Effect, Equal, ParseResult, Schema } from "effect"
 
-import * as Bytes from "../../../Bytes.js"
-import * as Ed25519Signature from "../../../Ed25519Signature.js"
-import * as KeyHash from "../../../KeyHash.js"
-import type * as NativeScripts from "../../../NativeScripts.js"
-import * as PoolKeyHash from "../../../PoolKeyHash.js"
-import * as PrivateKey from "../../../PrivateKey.js"
-import * as CoreRewardAccount from "../../../RewardAccount.js"
-import type * as CoreRewardAddress from "../../../RewardAddress.js"
-import * as Transaction from "../../../Transaction.js"
-import * as TransactionHash from "../../../TransactionHash.js"
-import * as TransactionWitnessSet from "../../../TransactionWitnessSet.js"
-import { runEffectPromise } from "../../../utils/effect-runtime.js"
-import { hashTransaction, hashTransactionRaw } from "../../../utils/Hash.js"
-import * as CoreUTxO from "../../../UTxO.js"
-import * as VKey from "../../../VKey.js"
+import * as CoreRewardAccount from "../../../address/RewardAccount.js"
+import type * as CoreRewardAddress from "../../../address/RewardAddress.js"
+import * as Bytes from "../../../bytes/Bytes.js"
+import * as Ed25519Signature from "../../../credential/Ed25519Signature.js"
+import * as KeyHash from "../../../credential/KeyHash.js"
+import * as PrivateKey from "../../../credential/PrivateKey.js"
+import * as VKey from "../../../credential/VKey.js"
+import { runEffectPromise } from "../../../EffectRuntime.js"
+import type * as NativeScripts from "../../../script/NativeScripts.js"
+import * as PoolKeyHash from "../../../staking/PoolKeyHash.js"
+import * as Transaction from "../../../transaction/Transaction.js"
+import * as TransactionBody from "../../../transaction/TransactionBody.js"
+import * as TransactionHash from "../../../transaction/TransactionHash.js"
+import * as TransactionWitnessSet from "../../../transaction/TransactionWitnessSet.js"
+import * as CoreUTxO from "../../../transaction/UTxO.js"
 import type * as Provider from "../../provider/Provider.js"
 import type * as Derivation from "../../wallet/Derivation.js"
 import * as Wallet from "../../wallet/Wallet.js"
@@ -263,8 +263,8 @@ export const makeSigningWalletEffect = (
 
         const txHash =
           typeof txOrHex === "string"
-            ? hashTransactionRaw(Transaction.extractBodyBytes(Bytes.fromHex(txOrHex)))
-            : hashTransaction(tx.body)
+            ? TransactionBody.toHashFromBytes(Transaction.extractBodyBytes(Bytes.fromHex(txOrHex)))
+            : TransactionBody.toHash(tx.body)
 
         const message = txHash.hash
         const witnesses: Array<TransactionWitnessSet.VKeyWitness> = []

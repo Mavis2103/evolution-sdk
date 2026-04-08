@@ -1,4 +1,4 @@
-import type * as Network from "../Network.js"
+import type * as Network from "../network/Network.js"
 
 /**
  * Slot configuration for a Cardano network.

@@ -6,7 +6,7 @@
  * @since 2.0.0
  */
 
-import type * as Network from "../Network.js"
+import type * as Network from "../network/Network.js"
 import type { Slot } from "./Slot.js"
 import type { SlotConfig } from "./SlotConfig.js"
 import { SLOT_CONFIG_NETWORK } from "./SlotConfig.js"

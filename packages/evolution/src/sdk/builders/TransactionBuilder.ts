@@ -28,8 +28,8 @@
 import type * as Effect from "effect/Effect"
 import type { Either } from "effect/Either"
 
-import type * as CoreScript from "../../Script.js"
-import type * as CoreUTxO from "../../UTxO.js"
+import type * as CoreScript from "../../script/Script.js"
+import type * as CoreUTxO from "../../transaction/UTxO.js"
 import type * as Provider from "../provider/Provider.js"
 import type * as Wallet from "../wallet/Wallet.js"
 import type {
@@ -248,8 +248,8 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as Script from "../../Script.js"
-   * import * as NativeScripts from "../../NativeScripts.js"
+   * import * as Script from "../../script/Script.js"
+   * import * as NativeScripts from "../../script/NativeScripts.js"
    *
    * const nativeScript = NativeScripts.makeScriptPubKey(keyHashBytes)
    * const script = Script.fromNativeScript(nativeScript)
@@ -326,7 +326,7 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as UTxO from "../../UTxO.js"
+   * import * as UTxO from "../../transaction/UTxO.js"
    *
    * // Use reference script stored on-chain instead of attaching to transaction
    * const refScriptUtxo = await provider.getUtxoByTxHash("abc123...")

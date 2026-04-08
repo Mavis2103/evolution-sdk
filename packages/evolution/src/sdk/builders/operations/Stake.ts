@@ -7,9 +7,9 @@
 
 import { Effect, Ref } from "effect"
 
-import * as Bytes from "../../../Bytes.js"
-import * as Certificate from "../../../Certificate.js"
-import * as RewardAccount from "../../../RewardAccount.js"
+import * as RewardAccount from "../../../address/RewardAccount.js"
+import * as Bytes from "../../../bytes/Bytes.js"
+import * as Certificate from "../../../certificate/Certificate.js"
 import * as Ctx from "../internal/ctx.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
 import type {

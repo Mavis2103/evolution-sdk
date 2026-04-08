@@ -3,37 +3,37 @@ import { Effect, Ref } from "effect"
 import type * as Array from "effect/Array"
 
 // Core imports
-import * as CoreAddress from "../../../Address.js"
-import * as CoreAssets from "../../../Assets/index.js"
-import * as Bytes from "../../../Bytes.js"
-import type * as Certificate from "../../../Certificate.js"
-import * as CostModel from "../../../CostModel.js"
-import type * as PlutusData from "../../../Data.js"
-import type * as DatumOption from "../../../DatumOption.js"
-import * as Ed25519Signature from "../../../Ed25519Signature.js"
-import type * as KeyHash from "../../../KeyHash.js"
-import * as NativeScripts from "../../../NativeScripts.js"
-import type * as PlutusV1 from "../../../PlutusV1.js"
-import type * as PlutusV2 from "../../../PlutusV2.js"
-import type * as PlutusV3 from "../../../PlutusV3.js"
-import * as PolicyId from "../../../PolicyId.js"
-import * as Redeemer from "../../../Redeemer.js"
-import * as Redeemers from "../../../Redeemers.js"
-import type * as RewardAccount from "../../../RewardAccount.js"
-import * as CoreScript from "../../../Script.js"
-import * as ScriptDataHash from "../../../ScriptDataHash.js"
-import * as ScriptRef from "../../../ScriptRef.js"
-import * as Time from "../../../Time/index.js"
-import * as Transaction from "../../../Transaction.js"
-import * as TransactionBody from "../../../TransactionBody.js"
-import * as TransactionHash from "../../../TransactionHash.js"
-import type * as TransactionInput from "../../../TransactionInput.js"
-import * as TransactionWitnessSet from "../../../TransactionWitnessSet.js"
-import * as TxOut from "../../../TxOut.js"
-import { hashAuxiliaryData, hashScriptData } from "../../../utils/Hash.js"
-import * as CoreUTxO from "../../../UTxO.js"
-import * as VKey from "../../../VKey.js"
-import * as Withdrawals from "../../../Withdrawals.js"
+import * as CoreAddress from "../../../address/Address.js"
+import type * as RewardAccount from "../../../address/RewardAccount.js"
+import * as CoreAssets from "../../../assets/index.js"
+import * as Bytes from "../../../bytes/Bytes.js"
+import type * as Certificate from "../../../certificate/Certificate.js"
+import * as Ed25519Signature from "../../../credential/Ed25519Signature.js"
+import type * as KeyHash from "../../../credential/KeyHash.js"
+import * as VKey from "../../../credential/VKey.js"
+import type * as PlutusData from "../../../data/Data.js"
+import type * as DatumOption from "../../../data/DatumOption.js"
+import * as AuxiliaryData from "../../../metadata/AuxiliaryData.js"
+import * as CostModel from "../../../script/CostModel.js"
+import * as NativeScripts from "../../../script/NativeScripts.js"
+import type * as PlutusV1 from "../../../script/PlutusV1.js"
+import type * as PlutusV2 from "../../../script/PlutusV2.js"
+import type * as PlutusV3 from "../../../script/PlutusV3.js"
+import * as Redeemer from "../../../script/Redeemer.js"
+import * as Redeemers from "../../../script/Redeemers.js"
+import * as CoreScript from "../../../script/Script.js"
+import * as ScriptDataHash from "../../../script/ScriptDataHash.js"
+import * as ScriptRef from "../../../script/ScriptRef.js"
+import * as Withdrawals from "../../../staking/Withdrawals.js"
+import * as Time from "../../../time/index.js"
+import * as Transaction from "../../../transaction/Transaction.js"
+import * as TransactionBody from "../../../transaction/TransactionBody.js"
+import * as TransactionHash from "../../../transaction/TransactionHash.js"
+import type * as TransactionInput from "../../../transaction/TransactionInput.js"
+import * as TransactionWitnessSet from "../../../transaction/TransactionWitnessSet.js"
+import * as TxOut from "../../../transaction/TxOut.js"
+import * as CoreUTxO from "../../../transaction/UTxO.js"
+import * as PolicyId from "../../../value/PolicyId.js"
 import * as Unfrack from "../Unfrack.js"
 import * as Ctx from "./ctx.js"
 
@@ -522,7 +522,7 @@ export const assembleTransaction = (
     }
 
     // Compute scriptDataHash if there are Plutus scripts (redeemers present)
-    let scriptDataHash: ReturnType<typeof hashScriptData> | undefined
+    let scriptDataHash: ReturnType<typeof Redeemers.toScriptDataHash> | undefined
     let redeemersConcrete: Redeemers.RedeemerMap | undefined
     if (redeemers.length > 0) {
       // Get config to access provider for full protocol parameters
@@ -614,7 +614,7 @@ export const assembleTransaction = (
       // Compute the hash of script data (redeemers + optional datums + cost models)
       // Use the same concrete Redeemers type that goes into the witness set
       redeemersConcrete = Redeemers.makeRedeemerMap(redeemers)
-      scriptDataHash = hashScriptData(
+      scriptDataHash = Redeemers.toScriptDataHash(
         redeemersConcrete,
         costModels,
         plutusDataArray.length > 0 ? plutusDataArray : undefined
@@ -670,9 +670,9 @@ export const assembleTransaction = (
     }
 
     // Compute auxiliary data hash if auxiliary data is present
-    let auxiliaryDataHash: ReturnType<typeof hashAuxiliaryData> | undefined
+    let auxiliaryDataHash: ReturnType<typeof AuxiliaryData.toHash> | undefined
     if (state.auxiliaryData) {
-      auxiliaryDataHash = hashAuxiliaryData(state.auxiliaryData)
+      auxiliaryDataHash = AuxiliaryData.toHash(state.auxiliaryData)
       yield* Effect.logDebug(`[Assembly] Computed auxiliaryDataHash: ${auxiliaryDataHash.toString()}`)
     }
 
@@ -1072,7 +1072,7 @@ export const calculateFeeIteratively = (
 
     // Create placeholder auxiliaryDataHash if auxiliary data is present
     // This is needed for accurate size estimation (32 bytes + CBOR overhead)
-    const placeholderAuxiliaryDataHash = state.auxiliaryData ? hashAuxiliaryData(state.auxiliaryData) : undefined
+    const placeholderAuxiliaryDataHash = state.auxiliaryData ? AuxiliaryData.toHash(state.auxiliaryData) : undefined
 
     let currentFee = 0n
     let previousSize = 0

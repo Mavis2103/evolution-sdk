@@ -12,9 +12,9 @@
 
 import * as Effect from "effect/Effect"
 
-import type * as CoreAddress from "../../Address.js"
-import * as CoreAssets from "../../Assets/index.js"
-import type * as TxOut from "../../TxOut.js"
+import type * as CoreAddress from "../../address/Address.js"
+import * as CoreAssets from "../../assets/index.js"
+import type * as TxOut from "../../transaction/TxOut.js"
 import type * as Ctx from "./internal/ctx.js"
 import { calculateMinimumUtxoLovelace, makeTxOutput } from "./internal/txBuilder.js"
 

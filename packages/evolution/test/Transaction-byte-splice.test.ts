@@ -1,10 +1,10 @@
 import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as CBOR from "../src/CBOR.js"
-import * as PlutusData from "../src/Data.js"
-import * as Transaction from "../src/Transaction.js"
-import * as TransactionBody from "../src/TransactionBody.js"
+import * as PlutusData from "../src/data/Data.js"
+import * as CBOR from "../src/encoding/CBOR.js"
+import * as Transaction from "../src/transaction/Transaction.js"
+import * as TransactionBody from "../src/transaction/TransactionBody.js"
 
 // ---------------------------------------------------------------------------
 // addVKeyWitnessesBytes — byte-level witness merging

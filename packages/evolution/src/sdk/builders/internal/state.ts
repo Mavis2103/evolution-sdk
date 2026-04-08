@@ -1,4 +1,4 @@
-import * as CoreAssets from "../../../Assets/index.js"
+import * as CoreAssets from "../../../assets/index.js"
 import type * as Ctx from "./ctx.js"
 
 /**

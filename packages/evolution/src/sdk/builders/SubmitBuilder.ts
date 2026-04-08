@@ -10,8 +10,8 @@
 
 import type { Effect } from "effect"
 
-import type * as TransactionHash from "../../TransactionHash.js"
-import type * as TransactionWitnessSet from "../../TransactionWitnessSet.js"
+import type * as TransactionHash from "../../transaction/TransactionHash.js"
+import type * as TransactionWitnessSet from "../../transaction/TransactionWitnessSet.js"
 import type { EffectToPromiseAPI } from "../Type.js"
 import type { TransactionBuilderError } from "./TransactionBuilder.js"
 

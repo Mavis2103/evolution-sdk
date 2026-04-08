@@ -1,7 +1,7 @@
 import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as TransactionBody from "../src/TransactionBody.js"
+import * as TransactionBody from "../src/transaction/TransactionBody.js"
 
 describe("TransactionBody WithFormat", () => {
   it("round-trips via hex with an explicit format tree", () => {

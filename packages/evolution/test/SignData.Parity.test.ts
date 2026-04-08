@@ -4,10 +4,10 @@ import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
 import * as M from "@emurgo/cardano-message-signing-nodejs"
 import { describe, expect, it } from "vitest"
 
-import { fromHex, toHex } from "../src/Bytes.js"
-import * as KeyHash from "../src/KeyHash.js"
-import { SignData } from "../src/message-signing/index.js"
-import * as PrivateKey from "../src/PrivateKey.js"
+import { fromHex, toHex } from "../src/bytes/Bytes.js"
+import * as KeyHash from "../src/credential/KeyHash.js"
+import * as PrivateKey from "../src/credential/PrivateKey.js"
+import { SignData } from "../src/messageSigning/index.js"
 
 function signData(addressHex: string, payload: string, privateKey: string): { signature: string; key: string } {
   const protectedHeaders = M.HeaderMap.new()

@@ -1,6 +1,6 @@
 import { type Effect } from "effect"
 
-import type * as CoreUTxO from "../../UTxO.js"
+import type * as CoreUTxO from "../../transaction/UTxO.js"
 import type { ReadOnlyTransactionBuilder, SigningTransactionBuilder } from "../builders/TransactionBuilder.js"
 import type * as Provider from "../provider/Provider.js"
 import type { EffectToPromiseAPI } from "../Type.js"

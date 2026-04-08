@@ -1,8 +1,8 @@
 import { Schema } from "effect"
 
-import * as AssetName from "../AssetName.js"
-import * as Bytes from "../Bytes.js"
-import * as PolicyId from "../PolicyId.js"
+import * as Bytes from "../bytes/Bytes.js"
+import * as AssetName from "../value/AssetName.js"
+import * as PolicyId from "../value/PolicyId.js"
 import * as Label from "./Label.js"
 
 /**

@@ -1,6 +1,6 @@
 import { Effect } from "effect"
 
-import { runEffectPromise } from "../../../utils/effect-runtime.js"
+import { runEffectPromise } from "../../../EffectRuntime.js"
 import {
   makeTxBuilder,
   type ReadOnlyTransactionBuilder,

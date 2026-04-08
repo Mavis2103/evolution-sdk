@@ -7,8 +7,8 @@
 
 import { Effect, Ref } from "effect"
 
-import * as ProposalProcedure from "../../../ProposalProcedure.js"
-import * as ProposalProcedures from "../../../ProposalProcedures.js"
+import * as ProposalProcedure from "../../../governance/ProposalProcedure.js"
+import * as ProposalProcedures from "../../../governance/ProposalProcedures.js"
 import * as Ctx from "../internal/ctx.js"
 import type { ProposeParams } from "./Operations.js"
 

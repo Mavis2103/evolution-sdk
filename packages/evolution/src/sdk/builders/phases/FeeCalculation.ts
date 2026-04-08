@@ -10,8 +10,8 @@
 
 import { Effect, Ref } from "effect"
 
-import * as CoreAssets from "../../../Assets/index.js"
-import * as CoreUTxO from "../../../UTxO.js"
+import * as CoreAssets from "../../../assets/index.js"
+import * as CoreUTxO from "../../../transaction/UTxO.js"
 import * as Ctx from "../internal/ctx.js"
 import { calculateFeeIteratively, calculateReferenceScriptFee } from "../internal/txBuilder.js"
 

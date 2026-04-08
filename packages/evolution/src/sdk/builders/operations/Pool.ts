@@ -7,8 +7,8 @@
 
 import { Effect, Ref } from "effect"
 
-import * as Certificate from "../../../Certificate.js"
-import * as PoolKeyHash from "../../../PoolKeyHash.js"
+import * as Certificate from "../../../certificate/Certificate.js"
+import * as PoolKeyHash from "../../../staking/PoolKeyHash.js"
 import * as Ctx from "../internal/ctx.js"
 import type { RegisterPoolParams, RetirePoolParams } from "./Operations.js"
 

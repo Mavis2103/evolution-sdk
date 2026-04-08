@@ -1,15 +1,15 @@
 import { Equal, ParseResult } from "effect"
 import { describe, expect, test } from "vitest"
 
-import type * as Coin from "../src/Coin.js"
-import * as Credential from "../src/Credential.js"
-import type * as EpochNo from "../src/EpochNo.js"
-import * as GovernanceAction from "../src/GovernanceAction.js"
-import * as KeyHash from "../src/KeyHash.js"
-import * as RewardAccount from "../src/RewardAccount.js"
-import * as ScriptHash from "../src/ScriptHash.js"
-import * as TransactionHash from "../src/TransactionHash.js"
-import * as UnitInterval from "../src/UnitInterval.js"
+import * as RewardAccount from "../src/address/RewardAccount.js"
+import * as Credential from "../src/credential/Credential.js"
+import * as KeyHash from "../src/credential/KeyHash.js"
+import * as GovernanceAction from "../src/governance/GovernanceAction.js"
+import type * as EpochNo from "../src/network/EpochNo.js"
+import * as UnitInterval from "../src/numeric/UnitInterval.js"
+import * as ScriptHash from "../src/script/ScriptHash.js"
+import * as TransactionHash from "../src/transaction/TransactionHash.js"
+import type * as Coin from "../src/value/Coin.js"
 
 describe("GovernanceAction Map types CBOR round-trip", () => {
   test("TreasuryWithdrawalsAction with Map<RewardAccount, Coin> should round-trip correctly", () => {

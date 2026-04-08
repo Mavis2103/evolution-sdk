@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { fromHex } from "../src/Bytes.js"
-import * as TSchema from "../src/TSchema.js"
+import { fromHex } from "../src/bytes/Bytes.js"
+import * as TSchema from "../src/data/TSchema.js"
 
 describe("TSchema Equivalence", () => {
   describe("Basic Types", () => {
