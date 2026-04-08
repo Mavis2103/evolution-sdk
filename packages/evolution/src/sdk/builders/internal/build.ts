@@ -1,6 +1,7 @@
 import { Effect, Ref } from "effect"
 
 import * as Transaction from "../../../Transaction.js"
+import * as CoreUTxO from "../../../UTxO.js"
 import * as Balance from "../phases/Balance.js"
 import * as ChangeCreation from "../phases/ChangeCreation.js"
 import * as Collateral from "../phases/Collateral.js"
@@ -10,17 +11,17 @@ import * as FeeCalculation from "../phases/FeeCalculation.js"
 import * as Selection from "../phases/Selection.js"
 import * as SignBuilderImpl from "../SignBuilderImpl.js"
 import * as TransactionResult from "../TransactionResult.js"
-import * as TxBuilderImpl from "../TxBuilderImpl.js"
-import * as Ctx from "./Ctx.js"
-import * as BuilderLayers from "./Layers.js"
-import * as BuilderState from "./State.js"
+import * as Ctx from "./ctx.js"
+import * as BuilderLayers from "./layers.js"
+import * as BuilderState from "./state.js"
+import * as TxBuilderImpl from "./txBuilder.js"
 
 const assembleFinalResult = (
-  config: Ctx.TxBuilderConfig,
   transaction: Transaction.Transaction,
   txWithFakeWitnesses: Transaction.Transaction
 ) =>
   Effect.gen(function* () {
+    const config = yield* Ctx.TxBuilderConfigTag
     const buildContextRef = yield* Ctx.PhaseContextTag
     const buildContext = yield* Ref.get(buildContextRef)
     const stateRef = yield* Ctx.TxContext
@@ -90,7 +91,7 @@ const assembleAndValidateTransaction = Effect.gen(function* () {
     `Assembling transaction: ${selectedUtxos.length} inputs, ${allOutputs.length} outputs, fee: ${buildContext.calculatedFee}`
   )
 
-  const inputs = yield* TxBuilderImpl.buildTransactionInputs(selectedUtxos)
+  const inputs = CoreUTxO.toInputs(selectedUtxos)
   const transaction = yield* TxBuilderImpl.assembleTransaction(inputs, allOutputs, buildContext.calculatedFee)
 
   const allUtxosForWitnesses = finalState.collateral !== undefined
@@ -105,7 +106,7 @@ const assembleAndValidateTransaction = Effect.gen(function* () {
     auxiliaryData: finalState.auxiliaryData ?? null
   })
 
-  const txSizeWithWitnesses = yield* TxBuilderImpl.calculateTransactionSize(txWithFakeWitnesses)
+  const txSizeWithWitnesses = TxBuilderImpl.calculateTransactionSize(txWithFakeWitnesses)
   const protocolParameters = yield* Ctx.ProtocolParametersTag
 
   yield* Effect.logDebug(
@@ -166,28 +167,9 @@ export const makeBuild = (
 
     const { transaction, txWithFakeWitnesses } = yield* phaseStateMachine
 
-    return yield* assembleFinalResult(config, transaction, txWithFakeWitnesses)
+    return yield* assembleFinalResult(transaction, txWithFakeWitnesses)
   }).pipe(Effect.provide(BuilderLayers.makeBuildRuntimeLayer(config, options)))
 
-/**
- * Executes the partial-build debug pipeline with a reduced runtime environment.
- */
-export const buildPartialEffectCore = (
-  config: Ctx.TxBuilderConfig,
-  programs: Array<Ctx.ProgramStep>,
-  _options: Ctx.BuildOptions = BuilderState.DEFAULT_BUILD_OPTIONS
-) =>
-  Effect.gen(function* () {
-    yield* Effect.all(programs, { concurrency: "unbounded" })
-
-    return {} as Transaction.Transaction
-  }).pipe(
-    Effect.provide(BuilderLayers.makePartialBuildRuntimeLayer(config)),
-    Effect.mapError(
-      (error) =>
-        new Ctx.TransactionBuilderError({
-          message: `Partial build failed: ${error.message}`,
-          cause: error
-        })
-    )
-  )
+// TODO: Add a real "debug build" API that lets developers preview how a transaction
+// looks (inputs, outputs, fees, scripts) without requiring a full provider round-trip.
+// Useful for local development and troubleshooting transaction assembly issues.

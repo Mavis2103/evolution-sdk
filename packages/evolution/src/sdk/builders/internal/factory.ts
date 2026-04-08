@@ -18,7 +18,7 @@ import * as Stake from "../operations/Stake.js"
 import * as Validity from "../operations/Validity.js"
 import * as Vote from "../operations/Vote.js"
 import type * as Builder from "../TransactionBuilder.js"
-import * as BuilderBuild from "./Build.js"
+import * as BuilderBuild from "./build.js"
 
 const debugLayer = Layer.merge(Logger.pretty, Logger.minimumLogLevel(LogLevel.Debug))
 
@@ -86,7 +86,7 @@ export const makeTxBuilder = (
       return txBuilder
     },
     withdraw: (params: Operations.WithdrawParams) => {
-      programs.push(Stake.createWithdrawProgram(params, config))
+      programs.push(Stake.createWithdrawProgram(params))
       return txBuilder
     },
     registerAndDelegateTo: (params: Operations.RegisterAndDelegateToParams) => {
@@ -154,9 +154,6 @@ export const makeTxBuilder = (
       EffectRuntime.runEffectPromise(withDebugLogging(BuilderBuild.makeBuild(config, programs, options), options?.debug)),
     buildEither: (options?: Builder.BuildOptions) =>
       EffectRuntime.runEffectPromise(withDebugLogging(BuilderBuild.makeBuild(config, programs, options).pipe(Effect.either), options?.debug)),
-    buildPartialEffect: (options?: Builder.BuildOptions) => BuilderBuild.buildPartialEffectCore(config, programs, options),
-    buildPartial: (options?: Builder.BuildOptions) =>
-      EffectRuntime.runEffectPromise(BuilderBuild.buildPartialEffectCore(config, programs, options))
   }
 
   return txBuilder as Builder.SigningTransactionBuilder | Builder.ReadOnlyTransactionBuilder

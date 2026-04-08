@@ -10,7 +10,7 @@ import { Effect, Ref } from "effect"
 import * as Bytes from "../../../Bytes.js"
 import * as Certificate from "../../../Certificate.js"
 import * as RewardAccount from "../../../RewardAccount.js"
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
 import type {
   DelegateToDRepParams,
@@ -608,11 +608,11 @@ export const createDeregisterStakeProgram = (
  * @category programs
  */
 export const createWithdrawProgram = (
-  params: WithdrawParams,
-  config: Ctx.TxBuilderConfig
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
+  params: WithdrawParams
+): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag> =>
   Effect.gen(function* () {
     const ctx = yield* Ctx.TxContext
+    const config = yield* Ctx.TxBuilderConfigTag
 
     // Check if script-controlled
     const isScriptControlled = params.stakeCredential._tag === "ScriptHash"

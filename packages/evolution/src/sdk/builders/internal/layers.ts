@@ -1,8 +1,8 @@
 import { Layer, Ref } from "effect"
 
-import * as Ctx from "./Ctx.js"
-import * as BuilderResolve from "./Resolve.js"
-import * as BuilderState from "./State.js"
+import * as Ctx from "./ctx.js"
+import * as BuilderResolve from "./resolve.js"
+import * as BuilderState from "./state.js"
 
 const makeBuildOptions = (config: Ctx.TxBuilderConfig, options: Ctx.BuildOptions): Ctx.BuildOptions => ({
   ...options,
@@ -33,13 +33,3 @@ export const makeBuildRuntimeLayer = (
     Layer.effect(Ctx.AvailableUtxosTag, BuilderResolve.resolveAvailableUtxos(config, buildOptions))
   )
 }
-
-/**
- * Builds the minimal scoped runtime environment required by partial-build debug
- * entry points.
- */
-export const makePartialBuildRuntimeLayer = (config: Ctx.TxBuilderConfig) =>
-  Layer.mergeAll(
-    Layer.effect(Ctx.TxContext, Ref.make(BuilderState.makeInitialTxBuilderState())),
-    Layer.succeed(Ctx.TxBuilderConfigTag, config)
-  )

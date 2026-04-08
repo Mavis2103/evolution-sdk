@@ -12,7 +12,7 @@ import * as Assets from "../../../Assets/index.js"
 import * as Mint from "../../../Mint.js"
 import * as NonZeroInt64 from "../../../NonZeroInt64.js"
 import * as PolicyId from "../../../PolicyId.js"
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
 import type { MintTokensParams } from "./Operations.js"
 

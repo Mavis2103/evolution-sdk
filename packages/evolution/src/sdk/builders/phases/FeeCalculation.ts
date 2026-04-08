@@ -11,8 +11,9 @@
 import { Effect, Ref } from "effect"
 
 import * as CoreAssets from "../../../Assets/index.js"
-import * as Ctx from "../internal/Ctx.js"
-import { buildTransactionInputs, calculateFeeIteratively, calculateReferenceScriptFee } from "../TxBuilderImpl.js"
+import * as Ctx from "../internal/ctx.js"
+import * as CoreUTxO from "../../../UTxO.js"
+import { calculateFeeIteratively, calculateReferenceScriptFee } from "../internal/txBuilder.js"
 
 /**
  * Fee Calculation Phase
@@ -65,7 +66,7 @@ export const executeFeeCalculation = (): Effect.Effect<
     const baseOutputs = state.outputs
 
     // Step 2: Build transaction inputs
-    const inputs = yield* buildTransactionInputs(selectedUtxos)
+    const inputs = CoreUTxO.toInputs(selectedUtxos)
 
     // Step 3: Combine base outputs + change outputs
     yield* Effect.logDebug(

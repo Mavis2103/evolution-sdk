@@ -5,8 +5,8 @@ import type * as Transaction from "../../../Transaction.js"
 import type * as CoreUTxO from "../../../UTxO.js"
 import type * as Provider from "../../provider/Provider.js"
 import type * as Wallet from "../../wallet/Wallet.js"
-import * as Ctx from "./Ctx.js"
-import { parseProviderError } from "./ProviderErrorParser.js"
+import * as Ctx from "./ctx.js"
+import { parseProviderError } from "./providerErrorParser.js"
 
 /**
  * Resolve protocol parameters for a build invocation.

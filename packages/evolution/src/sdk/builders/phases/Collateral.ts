@@ -14,10 +14,10 @@ import { Effect, Ref } from "effect"
 import * as CoreAssets from "../../../Assets/index.js"
 import * as TxOut from "../../../TxOut.js"
 import * as UTxO from "../../../UTxO.js"
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
 import {
   calculateMinimumUtxoLovelace
-} from "../TxBuilderImpl.js"
+} from "../internal/txBuilder.js"
 
 // ============================================================================
 // Constants

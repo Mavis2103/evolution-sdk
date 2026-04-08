@@ -11,7 +11,7 @@
 
 import { Effect, Equal, Ref } from "effect"
 
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
 import type { AddSignerParams } from "./Operations.js"
 
 /**

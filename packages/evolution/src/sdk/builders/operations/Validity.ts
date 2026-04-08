@@ -14,7 +14,7 @@
 
 import { Effect, Ref } from "effect"
 
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
 import type { ValidityParams } from "./Operations.js"
 
 /**

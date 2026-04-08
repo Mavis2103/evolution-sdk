@@ -9,7 +9,7 @@ import { Effect, Ref } from "effect"
 
 import type * as GovernanceAction from "../../../GovernanceAction.js"
 import * as VotingProcedures from "../../../VotingProcedures.js"
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
 import type { VoteParams } from "./Operations.js"
 

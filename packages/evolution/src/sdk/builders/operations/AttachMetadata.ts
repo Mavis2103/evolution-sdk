@@ -14,7 +14,7 @@ import { Effect, Ref } from "effect"
 
 import * as AuxiliaryData from "../../../AuxiliaryData.js"
 import type * as TransactionMetadatum from "../../../TransactionMetadatum.js"
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
 import type { AttachMetadataParams } from "./Operations.js"
 
 /**

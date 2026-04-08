@@ -8,8 +8,8 @@
 import { Effect, Ref } from "effect"
 
 import * as CoreAssets from "../../../Assets/index.js"
-import * as Ctx from "../internal/Ctx.js"
-import { makeTxOutput } from "../TxBuilderImpl.js"
+import * as Ctx from "../internal/ctx.js"
+import { makeTxOutput } from "../internal/txBuilder.js"
 import type { PayToAddressParams } from "./Operations.js"
 
 /**
@@ -29,7 +29,7 @@ export const createPayToAddressProgram = (params: PayToAddressParams) =>
     const ctx = yield* Ctx.TxContext
 
     // 1. Create Core TransactionOutput from params
-    const output = yield* makeTxOutput({
+    const output = makeTxOutput({
       address: params.address,
       assets: params.assets,
       datum: params.datum,

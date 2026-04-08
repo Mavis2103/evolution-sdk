@@ -1,5 +1,5 @@
 import * as CoreAssets from "../../../Assets/index.js"
-import type * as Ctx from "./Ctx.js"
+import type * as Ctx from "./ctx.js"
 
 /**
  * Default build options used for transaction construction when callers do not

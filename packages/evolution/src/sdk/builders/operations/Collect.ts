@@ -10,9 +10,9 @@ import { Effect, Ref } from "effect"
 import * as CoreAssets from "../../../Assets/index.js"
 import * as ScriptHash from "../../../ScriptHash.js"
 import * as UTxO from "../../../UTxO.js"
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
+import { filterScriptUtxos } from "../internal/txBuilder.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
-import { calculateTotalAssets, filterScriptUtxos } from "../TxBuilderImpl.js"
 import type { CollectFromParams } from "./Operations.js"
 
 /**
@@ -90,7 +90,7 @@ export const createCollectFromProgram = (
     }
 
     // 5. Add UTxOs to selected inputs and track redeemers and input assets
-    const inputAssets = calculateTotalAssets(params.inputs)
+    const inputAssets = UTxO.totalAssets(params.inputs)
 
     yield* Ref.update(ctx, (state) => {
       let newRedeemers = state.redeemers

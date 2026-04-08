@@ -17,9 +17,9 @@ import * as PolicyId from "../../../PolicyId.js"
 import * as CoreUTxO from "../../../UTxO.js"
 import type * as Provider from "../../provider/Provider.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
+import { assembleTransaction } from "../internal/txBuilder.js"
 import type { IndexedInput } from "../RedeemerBuilder.js"
-import { assembleTransaction, buildTransactionInputs } from "../TxBuilderImpl.js"
 
 /**
  * Convert ProtocolParameters cost models to CostModels core type for evaluation.
@@ -450,7 +450,7 @@ export const executeEvaluation = (): Effect.Effect<
       }
     }
 
-    const inputs = yield* buildTransactionInputs(sortedUtxos)
+    const inputs = CoreUTxO.toInputs(sortedUtxos)
     const allOutputs = [...updatedState.outputs, ...buildCtx.changeOutputs]
     const transaction = yield* assembleTransaction(inputs, allOutputs, buildCtx.calculatedFee)
 

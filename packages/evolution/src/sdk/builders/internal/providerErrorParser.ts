@@ -1,4 +1,4 @@
-import type * as Ctx from "./Ctx.js"
+import type * as Ctx from "./ctx.js"
 
 interface OgmiosValidatorError {
   readonly validator: { readonly index: number; readonly purpose: string }

@@ -2,7 +2,7 @@ import { Effect, Ref } from "effect"
 
 import type * as ScriptCore from "../../../Script.js"
 import * as ScriptHashCore from "../../../ScriptHash.js"
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
 /**
  * Attaches a script to the transaction by storing it in the builder state.
  * The script is indexed by its hash for efficient lookup during transaction assembly.

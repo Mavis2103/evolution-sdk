@@ -9,7 +9,7 @@ import { Effect, Ref } from "effect"
 
 import * as Bytes from "../../../Bytes.js"
 import * as Certificate from "../../../Certificate.js"
-import * as Ctx from "../internal/Ctx.js"
+import * as Ctx from "../internal/ctx.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
 import type {
   AuthCommitteeHotParams,

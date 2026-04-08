@@ -521,7 +521,7 @@ export interface BuildOptions {
    * **Execution Priority:** unfrack attempt → changeOutput >= minUtxo check → drainTo → onInsufficientChange
    * 
    * **Note:** When drainTo is set, onInsufficientChange is never evaluated (unreachable code path)
-   * 
+   */
 
   /**
    * Output index to merge leftover assets into as a fallback when change output cannot be created.
@@ -773,30 +773,21 @@ export interface PhaseResult {
  * @since 2.0.0
  * @category utilities
  */
-export const voterToKey = (voter: {
-  readonly _tag: "ConstitutionalCommitteeVoter" | "DRepVoter" | "StakePoolVoter"
-  readonly credential?: { readonly hash: Uint8Array }
-  readonly drep?: {
-    readonly _tag: "KeyHashDRep" | "ScriptHashDRep" | "AlwaysAbstainDRep" | "AlwaysNoConfidenceDRep"
-    readonly keyHash?: { readonly hash: Uint8Array }
-    readonly scriptHash?: { readonly hash: Uint8Array }
-  }
-  readonly poolKeyHash?: { readonly hash: Uint8Array }
-}): string => {
+export const voterToKey = (voter: VotingProcedures.Voter): string => {
   switch (voter._tag) {
     case "ConstitutionalCommitteeVoter":
-      return `cc:${Bytes.toHex(voter.credential!.hash)}`
+      return `cc:${Bytes.toHex(voter.credential.hash)}`
     case "DRepVoter":
-      switch (voter.drep!._tag) {
+      switch (voter.drep._tag) {
         case "KeyHashDRep":
-          return `drep:${Bytes.toHex(voter.drep!.keyHash!.hash)}`
+          return `drep:${Bytes.toHex(voter.drep.keyHash.hash)}`
         case "ScriptHashDRep":
-          return `drep:${Bytes.toHex(voter.drep!.scriptHash!.hash)}`
+          return `drep:${Bytes.toHex(voter.drep.scriptHash.hash)}`
         default:
           // AlwaysAbstain or AlwaysNoConfidence - shouldn't need redeemers
-          return `drep:${voter.drep!._tag}`
+          return `drep:${voter.drep._tag}`
       }
     case "StakePoolVoter":
-      return `pool:${Bytes.toHex(voter.poolKeyHash!.hash)}`
+      return `pool:${Bytes.toHex(voter.poolKeyHash.hash)}`
   }
 }

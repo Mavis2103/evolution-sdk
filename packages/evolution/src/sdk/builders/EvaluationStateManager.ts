@@ -8,7 +8,7 @@
  * @since 2.0.0
  */
 
-import type * as Ctx from "./internal/Ctx.js"
+import type * as Ctx from "./internal/ctx.js"
 /**
  * Invalidate all redeemer exUnits.
  *
