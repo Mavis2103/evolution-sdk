@@ -10,8 +10,9 @@ import * as Fallback from "../phases/Fallback.js"
 import * as FeeCalculation from "../phases/FeeCalculation.js"
 import * as Selection from "../phases/Selection.js"
 import * as SignBuilderImpl from "../SignBuilderImpl.js"
+import type { BuildOptions, ProgramStep, TxBuilderConfig } from "../TransactionBuilder.js"
+import { AvailableUtxosTag, PhaseContextTag, ProtocolParametersTag, TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import * as TransactionResult from "../TransactionResult.js"
-import * as Ctx from "./ctx.js"
 import * as BuilderLayers from "./layers.js"
 import * as BuilderState from "./state.js"
 import * as TxBuilderImpl from "./txBuilder.js"
@@ -21,19 +22,19 @@ const assembleFinalResult = (
   txWithFakeWitnesses: Transaction.Transaction
 ) =>
   Effect.gen(function* () {
-    const config = yield* Ctx.TxBuilderConfigTag
-    const buildContextRef = yield* Ctx.PhaseContextTag
+    const config = yield* TxBuilderConfigTag
+    const buildContextRef = yield* PhaseContextTag
     const buildContext = yield* Ref.get(buildContextRef)
-    const stateRef = yield* Ctx.TxContext
+    const stateRef = yield* TxContext
     const state = yield* Ref.get(stateRef)
-    const availableUtxos = yield* Ctx.AvailableUtxosTag
+    const availableUtxos = yield* AvailableUtxosTag
 
     const wallet = config.wallet
     if (wallet?.type === "signing" || wallet?.type === "api") {
       const provider = config.provider
       if (provider === undefined) {
         return yield* Effect.fail(
-          new Ctx.TransactionBuilderError({ message: "Signing transaction builds require a provider." })
+          new TransactionBuilderError({ message: "Signing transaction builds require a provider." })
         )
       }
 
@@ -68,9 +69,9 @@ const phaseMap = {
 }
 
 const assembleAndValidateTransaction = Effect.gen(function* () {
-  const buildContextRef = yield* Ctx.PhaseContextTag
+  const buildContextRef = yield* PhaseContextTag
   const buildContext = yield* Ref.get(buildContextRef)
-  const stateRef = yield* Ctx.TxContext
+  const stateRef = yield* TxContext
 
   yield* Effect.logDebug(`Build complete - fee: ${buildContext.calculatedFee}`)
 
@@ -107,7 +108,7 @@ const assembleAndValidateTransaction = Effect.gen(function* () {
   })
 
   const txSizeWithWitnesses = TxBuilderImpl.calculateTransactionSize(txWithFakeWitnesses)
-  const protocolParameters = yield* Ctx.ProtocolParametersTag
+  const protocolParameters = yield* ProtocolParametersTag
 
   yield* Effect.logDebug(
     `Transaction size: ${txSizeWithWitnesses} bytes ` +
@@ -117,7 +118,7 @@ const assembleAndValidateTransaction = Effect.gen(function* () {
 
   if (txSizeWithWitnesses > protocolParameters.maxTxSize) {
     return yield* Effect.fail(
-      new Ctx.TransactionBuilderError({
+      new TransactionBuilderError({
         message:
           `Transaction size (${txSizeWithWitnesses} bytes) exceeds protocol maximum (${protocolParameters.maxTxSize} bytes). ` +
           `Consider splitting into multiple transactions.`
@@ -129,7 +130,7 @@ const assembleAndValidateTransaction = Effect.gen(function* () {
 })
 
 const phaseStateMachine = Effect.gen(function* () {
-  const phaseContextRef = yield* Ctx.PhaseContextTag
+  const phaseContextRef = yield* PhaseContextTag
 
   while (true) {
     const phaseContext = yield* Ref.get(phaseContextRef)
@@ -141,7 +142,7 @@ const phaseStateMachine = Effect.gen(function* () {
     const phase = phaseMap[phaseContext.phase]
     if (phase === undefined) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({ message: `Unknown phase: ${phaseContext.phase}` })
+        new TransactionBuilderError({ message: `Unknown phase: ${phaseContext.phase}` })
       )
     }
 
@@ -158,9 +159,9 @@ const phaseStateMachine = Effect.gen(function* () {
  * environment.
  */
 export const makeBuild = (
-  config: Ctx.TxBuilderConfig,
-  programs: Array<Ctx.ProgramStep>,
-  options: Ctx.BuildOptions = BuilderState.DEFAULT_BUILD_OPTIONS
+  config: TxBuilderConfig,
+  programs: Array<ProgramStep>,
+  options: BuildOptions = BuilderState.DEFAULT_BUILD_OPTIONS
 ) =>
   Effect.gen(function* () {
     yield* Effect.all(programs, { concurrency: "unbounded" })

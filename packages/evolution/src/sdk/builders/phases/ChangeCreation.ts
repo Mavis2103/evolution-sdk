@@ -14,9 +14,10 @@ import type * as CoreAddress from "../../../address/Address.js"
 import * as CoreAssets from "../../../assets/index.js"
 import type * as TxOut from "../../../transaction/TxOut.js"
 import * as CoreUTxO from "../../../transaction/UTxO.js"
-import * as Ctx from "../internal/ctx.js"
 import { calculateMinimumUtxoLovelace, makeTxOutput } from "../internal/txBuilder.js"
 import { mintToAssets } from "../operations/Mint.js"
+import type { PhaseResult } from "../TransactionBuilder.js"
+import { AvailableUtxosTag, BuildOptionsTag, ChangeAddressTag, PhaseContextTag, ProtocolParametersTag, TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
 import * as Unfrack from "../Unfrack.js"
 import { calculateCertificateBalance, calculateProposalDeposits, calculateWithdrawals } from "./Balance.js"
 
@@ -53,7 +54,7 @@ const createChangeOutputs = (
   leftoverAfterFee: CoreAssets.Assets,
   changeAddress: CoreAddress.Address,
   coinsPerUtxoByte: bigint
-): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, Ctx.TransactionBuilderError, Ctx.BuildOptionsTag> =>
+): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, TransactionBuilderError, BuildOptionsTag> =>
   Effect.gen(function* () {
     // Empty leftover = no change needed
     if (CoreAssets.isEmpty(leftoverAfterFee)) {
@@ -61,7 +62,7 @@ const createChangeOutputs = (
     }
 
     // Create unfracked outputs with proper minUTxO calculation
-    const buildOptions = yield* Ctx.BuildOptionsTag
+    const buildOptions = yield* BuildOptionsTag
     const unfrackOptions = buildOptions.unfrack! // Safe: only called when unfrack is enabled
 
     const changeOutputs = yield* Unfrack.createUnfrackedChangeOutputs(
@@ -72,7 +73,7 @@ const createChangeOutputs = (
     ).pipe(
       Effect.mapError(
         (err) =>
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message: `Failed to create unfracked change outputs: ${err.message}`,
             cause: err
           })
@@ -143,16 +144,16 @@ const createChangeOutputs = (
  * - Unfrack outputs bypass drainTo/burn (they're already valid)
  */
 export const executeChangeCreation = (): Effect.Effect<
-  Ctx.PhaseResult,
-  Ctx.TransactionBuilderError,
-  Ctx.PhaseContextTag | Ctx.TxContext | Ctx.ChangeAddressTag | Ctx.BuildOptionsTag | Ctx.ProtocolParametersTag | Ctx.AvailableUtxosTag
+  PhaseResult,
+  TransactionBuilderError,
+  PhaseContextTag | TxContext | ChangeAddressTag | BuildOptionsTag | ProtocolParametersTag | AvailableUtxosTag
 > =>
   Effect.gen(function* () {
-    const stateRef = yield* Ctx.TxContext
-    const buildCtxRef = yield* Ctx.PhaseContextTag
+    const stateRef = yield* TxContext
+    const buildCtxRef = yield* PhaseContextTag
     const buildCtx = yield* Ref.get(buildCtxRef)
-    const changeAddress = yield* Ctx.ChangeAddressTag
-    const buildOptions = yield* Ctx.BuildOptionsTag
+    const changeAddress = yield* ChangeAddressTag
+    const buildOptions = yield* BuildOptionsTag
 
     yield* Effect.logDebug(`[ChangeCreation] Fee from context: ${buildCtx.calculatedFee}`)
 
@@ -199,7 +200,7 @@ export const executeChangeCreation = (): Effect.Effect<
       const leftoverLovelace = CoreAssets.lovelaceOf(tentativeLeftover)
 
       // Validate that we have enough for minUTxO
-      const protocolParams = yield* Ctx.ProtocolParametersTag
+      const protocolParams = yield* ProtocolParametersTag
       const sendAllMinUtxo = yield* calculateMinimumUtxoLovelace({
         address: state.sendAllTo,
         assets: tentativeLeftover,
@@ -208,7 +209,7 @@ export const executeChangeCreation = (): Effect.Effect<
 
       if (leftoverLovelace < sendAllMinUtxo) {
         return yield* Effect.fail(
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message:
               `sendAll() failed: Insufficient funds to create valid output. ` +
               `Available: ${leftoverLovelace} lovelace, Required: ${sendAllMinUtxo} lovelace (minUTxO). ` +
@@ -256,7 +257,7 @@ export const executeChangeCreation = (): Effect.Effect<
     }
 
     // Step 4: Affordability check - verify minimum (single output) is affordable
-    const protocolParams = yield* Ctx.ProtocolParametersTag
+    const protocolParams = yield* ProtocolParametersTag
     const minLovelaceForSingle = yield* calculateMinimumUtxoLovelace({
       address: changeAddress,
       assets: tentativeLeftover,
@@ -275,7 +276,7 @@ export const executeChangeCreation = (): Effect.Effect<
       // Check if we have available UTxOs for reselection
       const state = yield* Ref.get(stateRef)
       const alreadySelected = state.selectedUtxos
-      const allAvailableUtxos = yield* Ctx.AvailableUtxosTag
+      const allAvailableUtxos = yield* AvailableUtxosTag
       const availableUtxos = getAvailableUtxos(allAvailableUtxos, alreadySelected)
       const hasMoreUtxos = availableUtxos.length > 0
 
@@ -305,7 +306,7 @@ export const executeChangeCreation = (): Effect.Effect<
       // CASE 1: Native assets present - cannot use drain/burn fallback
       if (!isAdaOnlyLeftover) {
         return yield* Effect.fail(
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message:
               `Cannot balance transaction: Native assets present in leftover ` +
               `but insufficient lovelace (${leftoverLovelace} < ${minLovelaceForSingle} minUTxO) ` +
@@ -328,7 +329,7 @@ export const executeChangeCreation = (): Effect.Effect<
       if (!hasFallbackStrategy) {
         // No fallback configured - fail with clear user-facing error
         return yield* Effect.fail(
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message:
               `Cannot create valid change: Insufficient funds to cover payment, fees, and minimum UTxO requirements.\n\n` +
               `Available: ${leftoverLovelace} lovelace\n` +
@@ -349,7 +350,7 @@ export const executeChangeCreation = (): Effect.Effect<
 
     // Step 5: Unfrack path (single output IS affordable, try bundles/subdivision)
     if (buildOptions.unfrack && buildCtx.canUnfrack) {
-      const protocolParams = yield* Ctx.ProtocolParametersTag
+      const protocolParams = yield* ProtocolParametersTag
       const changeOutputs = yield* createChangeOutputs(
         tentativeLeftover,
         changeAddress,

@@ -274,7 +274,7 @@ export const derive = (privateKey: PrivateKey, path: string): PrivateKey => {
  *
  * @example
  * ```ts
- * import * as PrivateKey from "@evolution-sdk/evolution/PrivateKey"
+ * import * as PrivateKey from "@evolution-sdk/evolution/credential/PrivateKey"
  *
  * const mnemonic = PrivateKey.generateMnemonic()
  *

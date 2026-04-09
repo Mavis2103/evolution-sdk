@@ -1,6 +1,6 @@
 ---
-title: Assets/Label.ts
-nav_order: 6
+title: assets/Label.ts
+nav_order: 12
 parent: Modules
 ---
 
@@ -36,7 +36,7 @@ export declare const fromLabel: (label: string) => number | undefined
 **Example**
 
 ```typescript
-import * as Label from "@evolution-sdk/evolution/Assets/Label"
+import * as Label from "@evolution-sdk/evolution/assets/Label"
 
 const num = Label.fromLabel("000de140")
 // => 222
@@ -63,7 +63,7 @@ export declare const toLabel: (num: number) => string
 **Example**
 
 ```typescript
-import * as Label from "@evolution-sdk/evolution/Assets/Label"
+import * as Label from "@evolution-sdk/evolution/assets/Label"
 
 const label = Label.toLabel(222)
 // => "000de140"
@@ -91,7 +91,7 @@ export declare const LabelFromHex: Schema.transformOrFail<
 **Example**
 
 ```typescript
-import * as Label from "@evolution-sdk/evolution/Assets/Label"
+import * as Label from "@evolution-sdk/evolution/assets/Label"
 import { Schema } from "effect"
 
 const decoded = Schema.decodeSync(Label.LabelFromHex)("000de140")

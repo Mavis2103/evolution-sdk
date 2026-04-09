@@ -1,9 +1,21 @@
+/**
+ * Stake certificate types.
+ *
+ * @since 2.0.0
+ * @module certificate/StakeCertificates
+ */
 import { Equal, Hash, Inspectable, Schema } from "effect"
 
 import * as Credential from "../credential/Credential.js"
 import * as PoolKeyHash from "../staking/PoolKeyHash.js"
 import * as Coin from "../value/Coin.js"
 
+/**
+ * Register a stake credential (CDDL: stake_registration = 0).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class StakeRegistration extends Schema.TaggedClass<StakeRegistration>("StakeRegistration")("StakeRegistration", {
   stakeCredential: Credential.Credential
 }) {
@@ -31,6 +43,12 @@ export class StakeRegistration extends Schema.TaggedClass<StakeRegistration>("St
   }
 }
 
+/**
+ * Deregister a stake credential (CDDL: stake_deregistration = 1).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class StakeDeregistration extends Schema.TaggedClass<StakeDeregistration>("StakeDeregistration")(
   "StakeDeregistration",
   {
@@ -61,6 +79,12 @@ export class StakeDeregistration extends Schema.TaggedClass<StakeDeregistration>
   }
 }
 
+/**
+ * Delegate stake to a pool (CDDL: stake_delegation = 2).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class StakeDelegation extends Schema.TaggedClass<StakeDelegation>("StakeDelegation")("StakeDelegation", {
   stakeCredential: Credential.Credential,
   poolKeyHash: PoolKeyHash.PoolKeyHash
@@ -99,6 +123,12 @@ export class StakeDelegation extends Schema.TaggedClass<StakeDelegation>("StakeD
   }
 }
 
+/**
+ * Conway-era stake registration with deposit (CDDL: reg_cert = 7).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class RegCert extends Schema.TaggedClass<RegCert>("RegCert")("RegCert", {
   stakeCredential: Credential.Credential,
   coin: Coin.Coin
@@ -135,6 +165,12 @@ export class RegCert extends Schema.TaggedClass<RegCert>("RegCert")("RegCert", {
   }
 }
 
+/**
+ * Conway-era stake deregistration with deposit refund (CDDL: unreg_cert = 8).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class UnregCert extends Schema.TaggedClass<UnregCert>("UnregCert")("UnregCert", {
   stakeCredential: Credential.Credential,
   coin: Coin.Coin

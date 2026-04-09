@@ -10,8 +10,8 @@ import { Effect, Ref } from "effect"
 import * as RewardAccount from "../../../address/RewardAccount.js"
 import * as Bytes from "../../../bytes/Bytes.js"
 import * as Certificate from "../../../certificate/Certificate.js"
-import * as Ctx from "../internal/ctx.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
+import { TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type {
   DelegateToDRepParams,
   DelegateToParams,
@@ -33,15 +33,15 @@ import type {
  */
 export const createRegisterStakeProgram = (
   params: RegisterStakeParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
-    const config = yield* Ctx.TxBuilderConfigTag
+    const ctx = yield* TxContext
+    const config = yield* TxBuilderConfigTag
 
     // Get keyDeposit from protocol parameters via provider
     if (!config.provider) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Provider required to fetch keyDeposit for stake registration"
         })
       )
@@ -52,7 +52,7 @@ export const createRegisterStakeProgram = (
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Redeemer required for script-controlled stake credential registration"
         })
       )
@@ -61,7 +61,7 @@ export const createRegisterStakeProgram = (
     const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message: `Failed to fetch protocol parameters: ${err.message}`
           })
       )
@@ -123,7 +123,7 @@ export const createRegisterStakeProgram = (
  */
 export const createDelegateToProgram = (
   params: DelegateToParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> => {
+): Effect.Effect<void, TransactionBuilderError, TxContext> => {
   // Dispatch to appropriate function based on params
   if (params.poolKeyHash && params.drep) {
     return createDelegateToPoolAndDRepProgram({
@@ -151,7 +151,7 @@ export const createDelegateToProgram = (
     })
   }
   return Effect.fail(
-    new Ctx.TransactionBuilderError({
+    new TransactionBuilderError({
       message: "delegateTo requires either poolKeyHash or drep (or both)"
     })
   )
@@ -168,16 +168,16 @@ export const createDelegateToProgram = (
  */
 export const createDelegateToPoolProgram = (
   params: DelegateToPoolParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
+    const ctx = yield* TxContext
 
     // Check if script-controlled
     const isScriptControlled = params.stakeCredential._tag === "ScriptHash"
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Redeemer required for script-controlled stake credential delegation"
         })
       )
@@ -239,16 +239,16 @@ export const createDelegateToPoolProgram = (
  */
 export const createDelegateToDRepProgram = (
   params: DelegateToDRepParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
+    const ctx = yield* TxContext
 
     // Check if script-controlled
     const isScriptControlled = params.stakeCredential._tag === "ScriptHash"
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Redeemer required for script-controlled stake credential delegation"
         })
       )
@@ -310,16 +310,16 @@ export const createDelegateToDRepProgram = (
  */
 export const createDelegateToPoolAndDRepProgram = (
   params: DelegateToPoolAndDRepParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
+    const ctx = yield* TxContext
 
     // Check if script-controlled
     const isScriptControlled = params.stakeCredential._tag === "ScriptHash"
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Redeemer required for script-controlled stake credential delegation"
         })
       )
@@ -387,15 +387,15 @@ export const createDelegateToPoolAndDRepProgram = (
  */
 export const createRegisterAndDelegateToProgram = (
   params: RegisterAndDelegateToParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
-    const config = yield* Ctx.TxBuilderConfigTag
+    const ctx = yield* TxContext
+    const config = yield* TxBuilderConfigTag
 
     // Validate at least one delegation target
     if (!params.poolKeyHash && !params.drep) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "registerAndDelegateTo requires either poolKeyHash or drep (or both)"
         })
       )
@@ -404,7 +404,7 @@ export const createRegisterAndDelegateToProgram = (
     // Get keyDeposit from protocol parameters via provider
     if (!config.provider) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Provider required to fetch keyDeposit for stake registration"
         })
       )
@@ -413,7 +413,7 @@ export const createRegisterAndDelegateToProgram = (
     const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message: `Failed to fetch protocol parameters: ${err.message}`
           })
       )
@@ -425,7 +425,7 @@ export const createRegisterAndDelegateToProgram = (
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Redeemer required for script-controlled stake credential registration and delegation"
         })
       )
@@ -516,17 +516,17 @@ export const createRegisterAndDelegateToProgram = (
  */
 export const createDeregisterStakeProgram = (
   params: DeregisterStakeParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
-    const config = yield* Ctx.TxBuilderConfigTag
+    const ctx = yield* TxContext
+    const config = yield* TxBuilderConfigTag
 
     // Check if script-controlled
     const isScriptControlled = params.stakeCredential._tag === "ScriptHash"
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Redeemer required for script-controlled stake credential deregistration"
         })
       )
@@ -535,7 +535,7 @@ export const createDeregisterStakeProgram = (
     // Get keyDeposit from protocol parameters via provider
     if (!config.provider) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Provider required to fetch keyDeposit for stake deregistration"
         })
       )
@@ -544,7 +544,7 @@ export const createDeregisterStakeProgram = (
     const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message: `Failed to fetch protocol parameters: ${err.message}`
           })
       )
@@ -609,17 +609,17 @@ export const createDeregisterStakeProgram = (
  */
 export const createWithdrawProgram = (
   params: WithdrawParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
-    const config = yield* Ctx.TxBuilderConfigTag
+    const ctx = yield* TxContext
+    const config = yield* TxBuilderConfigTag
 
     // Check if script-controlled
     const isScriptControlled = params.stakeCredential._tag === "ScriptHash"
 
     if (isScriptControlled && !params.redeemer) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Redeemer required for script-controlled stake credential withdrawal"
         })
       )

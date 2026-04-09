@@ -11,41 +11,203 @@ import * as PoolKeyHash from "../staking/PoolKeyHash.js"
 import * as PoolMetadata from "../staking/PoolMetadata.js"
 import * as PoolParams from "../staking/PoolParams.js"
 import * as Coin from "../value/Coin.js"
-// Import for local use in schemas
-import { AuthCommitteeHotCert, ResignCommitteeColdCert } from "./CommitteeCertificates.js"
 import {
-  StakeRegDelegCert,
-  StakeVoteDelegCert,
-  StakeVoteRegDelegCert,
-  VoteDelegCert,
-  VoteRegDelegCert} from "./DelegationCertificates.js"
-import { RegDrepCert, UnregDrepCert, UpdateDrepCert } from "./DRepCertificates.js"
-import { PoolRegistration, PoolRetirement } from "./PoolCertificates.js"
+  AuthCommitteeHotCert as _AuthCommitteeHotCert,
+  ResignCommitteeColdCert as _ResignCommitteeColdCert
+} from "./CommitteeCertificates.js"
 import {
-  RegCert,
-  StakeDelegation,
-  StakeDeregistration,
-  StakeRegistration,
-  UnregCert
+  StakeRegDelegCert as _StakeRegDelegCert,
+  StakeVoteDelegCert as _StakeVoteDelegCert,
+  StakeVoteRegDelegCert as _StakeVoteRegDelegCert,
+  VoteDelegCert as _VoteDelegCert,
+  VoteRegDelegCert as _VoteRegDelegCert
+} from "./DelegationCertificates.js"
+import {
+  RegDrepCert as _RegDrepCert,
+  UnregDrepCert as _UnregDrepCert,
+  UpdateDrepCert as _UpdateDrepCert
+} from "./DRepCertificates.js"
+import {
+  PoolRegistration as _PoolRegistration,
+  PoolRetirement as _PoolRetirement
+} from "./PoolCertificates.js"
+import {
+  RegCert as _RegCert,
+  StakeDelegation as _StakeDelegation,
+  StakeDeregistration as _StakeDeregistration,
+  StakeRegistration as _StakeRegistration,
+  UnregCert as _UnregCert
 } from "./StakeCertificates.js"
 
-// Re-export all certificate types from group modules
-export { AuthCommitteeHotCert, ResignCommitteeColdCert } from "./CommitteeCertificates.js"
-export {
-  StakeRegDelegCert,
-  StakeVoteDelegCert,
-  StakeVoteRegDelegCert,
-  VoteDelegCert,
-  VoteRegDelegCert} from "./DelegationCertificates.js"
-export { RegDrepCert, UnregDrepCert, UpdateDrepCert } from "./DRepCertificates.js"
-export { PoolRegistration, PoolRetirement } from "./PoolCertificates.js"
-export {
-  RegCert,
-  StakeDelegation,
-  StakeDeregistration,
-  StakeRegistration,
-  UnregCert
-} from "./StakeCertificates.js"
+/**
+ * Authorize a committee hot credential (CDDL: auth_committee_hot_cert = 14).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const AuthCommitteeHotCert = _AuthCommitteeHotCert
+/** @ignore */
+export type AuthCommitteeHotCert = _AuthCommitteeHotCert
+
+/**
+ * Resign a committee cold credential (CDDL: resign_committee_cold_cert = 15).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const ResignCommitteeColdCert = _ResignCommitteeColdCert
+/** @ignore */
+export type ResignCommitteeColdCert = _ResignCommitteeColdCert
+
+/**
+ * Register stake and delegate to a pool in one certificate (CDDL: stake_reg_deleg_cert = 11).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const StakeRegDelegCert = _StakeRegDelegCert
+/** @ignore */
+export type StakeRegDelegCert = _StakeRegDelegCert
+
+/**
+ * Delegate stake to a pool and voting rights to a DRep (CDDL: stake_vote_deleg_cert = 10).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const StakeVoteDelegCert = _StakeVoteDelegCert
+/** @ignore */
+export type StakeVoteDelegCert = _StakeVoteDelegCert
+
+/**
+ * Register stake, delegate to a pool, and delegate voting rights to a DRep (CDDL: stake_vote_reg_deleg_cert = 13).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const StakeVoteRegDelegCert = _StakeVoteRegDelegCert
+/** @ignore */
+export type StakeVoteRegDelegCert = _StakeVoteRegDelegCert
+
+/**
+ * Delegate voting rights to a DRep (CDDL: vote_deleg_cert = 9).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const VoteDelegCert = _VoteDelegCert
+/** @ignore */
+export type VoteDelegCert = _VoteDelegCert
+
+/**
+ * Register stake and delegate voting rights to a DRep (CDDL: vote_reg_deleg_cert = 12).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const VoteRegDelegCert = _VoteRegDelegCert
+/** @ignore */
+export type VoteRegDelegCert = _VoteRegDelegCert
+
+/**
+ * Register as a DRep (CDDL: reg_drep_cert = 16).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const RegDrepCert = _RegDrepCert
+/** @ignore */
+export type RegDrepCert = _RegDrepCert
+
+/**
+ * Unregister as a DRep (CDDL: unreg_drep_cert = 17).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const UnregDrepCert = _UnregDrepCert
+/** @ignore */
+export type UnregDrepCert = _UnregDrepCert
+
+/**
+ * Update DRep metadata anchor (CDDL: update_drep_cert = 18).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const UpdateDrepCert = _UpdateDrepCert
+/** @ignore */
+export type UpdateDrepCert = _UpdateDrepCert
+
+/**
+ * Register a stake pool (CDDL: pool_registration = 3).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const PoolRegistration = _PoolRegistration
+/** @ignore */
+export type PoolRegistration = _PoolRegistration
+
+/**
+ * Retire a stake pool at a given epoch (CDDL: pool_retirement = 4).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const PoolRetirement = _PoolRetirement
+/** @ignore */
+export type PoolRetirement = _PoolRetirement
+
+/**
+ * Conway-era stake registration with deposit (CDDL: reg_cert = 7).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const RegCert = _RegCert
+/** @ignore */
+export type RegCert = _RegCert
+
+/**
+ * Delegate stake to a pool (CDDL: stake_delegation = 2).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const StakeDelegation = _StakeDelegation
+/** @ignore */
+export type StakeDelegation = _StakeDelegation
+
+/**
+ * Deregister a stake credential (CDDL: stake_deregistration = 1).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const StakeDeregistration = _StakeDeregistration
+/** @ignore */
+export type StakeDeregistration = _StakeDeregistration
+
+/**
+ * Register a stake credential (CDDL: stake_registration = 0).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const StakeRegistration = _StakeRegistration
+/** @ignore */
+export type StakeRegistration = _StakeRegistration
+
+/**
+ * Conway-era stake deregistration with deposit refund (CDDL: unreg_cert = 8).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
+export const UnregCert = _UnregCert
+/** @ignore */
+export type UnregCert = _UnregCert
 
 /**
  * Certificate union schema based on Conway CDDL specification

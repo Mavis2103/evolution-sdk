@@ -1,3 +1,9 @@
+/**
+ * Delegation certificate types.
+ *
+ * @since 2.0.0
+ * @module certificate/DelegationCertificates
+ */
 import { Equal, Hash, Inspectable, Schema } from "effect"
 
 import * as Credential from "../credential/Credential.js"
@@ -5,6 +11,12 @@ import * as DRep from "../governance/DRep.js"
 import * as PoolKeyHash from "../staking/PoolKeyHash.js"
 import * as Coin from "../value/Coin.js"
 
+/**
+ * Delegate voting rights to a DRep (CDDL: vote_deleg_cert = 9).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class VoteDelegCert extends Schema.TaggedClass<VoteDelegCert>("VoteDelegCert")("VoteDelegCert", {
   stakeCredential: Credential.Credential,
   drep: DRep.DRep
@@ -41,6 +53,12 @@ export class VoteDelegCert extends Schema.TaggedClass<VoteDelegCert>("VoteDelegC
   }
 }
 
+/**
+ * Delegate stake to a pool and voting rights to a DRep (CDDL: stake_vote_deleg_cert = 10).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class StakeVoteDelegCert extends Schema.TaggedClass<StakeVoteDelegCert>("StakeVoteDelegCert")(
   "StakeVoteDelegCert",
   {
@@ -85,6 +103,12 @@ export class StakeVoteDelegCert extends Schema.TaggedClass<StakeVoteDelegCert>("
   }
 }
 
+/**
+ * Register stake and delegate to a pool in one certificate (CDDL: stake_reg_deleg_cert = 11).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class StakeRegDelegCert extends Schema.TaggedClass<StakeRegDelegCert>("StakeRegDelegCert")("StakeRegDelegCert", {
   stakeCredential: Credential.Credential,
   poolKeyHash: PoolKeyHash.PoolKeyHash,
@@ -126,6 +150,12 @@ export class StakeRegDelegCert extends Schema.TaggedClass<StakeRegDelegCert>("St
   }
 }
 
+/**
+ * Register stake and delegate voting rights to a DRep (CDDL: vote_reg_deleg_cert = 12).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class VoteRegDelegCert extends Schema.TaggedClass<VoteRegDelegCert>("VoteRegDelegCert")("VoteRegDelegCert", {
   stakeCredential: Credential.Credential,
   drep: DRep.DRep,
@@ -167,6 +197,12 @@ export class VoteRegDelegCert extends Schema.TaggedClass<VoteRegDelegCert>("Vote
   }
 }
 
+/**
+ * Register stake, delegate to a pool, and delegate voting rights to a DRep (CDDL: stake_vote_reg_deleg_cert = 13).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class StakeVoteRegDelegCert extends Schema.TaggedClass<StakeVoteRegDelegCert>("StakeVoteRegDelegCert")(
   "StakeVoteRegDelegCert",
   {

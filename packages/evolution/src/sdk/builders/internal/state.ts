@@ -1,5 +1,5 @@
 import * as CoreAssets from "../../../assets/index.js"
-import type * as Ctx from "./ctx.js"
+import type { BuildOptions, PhaseContext, TxBuilderState } from "../TransactionBuilder.js"
 
 /**
  * Default build options used for transaction construction when callers do not
@@ -12,7 +12,7 @@ export const DEFAULT_BUILD_OPTIONS = {
   coinSelection: "largest-first",
   onInsufficientChange: "error",
   setCollateral: 5_000_000n
-} satisfies Ctx.BuildOptions
+} satisfies BuildOptions
 
 /**
  * Create a fresh transaction-builder state for a build invocation.
@@ -20,7 +20,7 @@ export const DEFAULT_BUILD_OPTIONS = {
  * @since 2.0.0
  * @category builders
  */
-export const makeInitialTxBuilderState = (): Ctx.TxBuilderState => ({
+export const makeInitialTxBuilderState = (): TxBuilderState => ({
   selectedUtxos: [],
   outputs: [],
   scripts: new Map(),
@@ -42,7 +42,7 @@ export const makeInitialTxBuilderState = (): Ctx.TxBuilderState => ({
  * @since 2.0.0
  * @category builders
  */
-export const makeInitialPhaseContext = (options: Ctx.BuildOptions): Ctx.PhaseContext => ({
+export const makeInitialPhaseContext = (options: BuildOptions): PhaseContext => ({
   phase: "selection",
   attempt: 0,
   calculatedFee: 0n,

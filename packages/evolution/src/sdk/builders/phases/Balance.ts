@@ -14,8 +14,9 @@ import * as CoreAssets from "../../../assets/index.js"
 import type * as Certificate from "../../../certificate/Certificate.js"
 import * as PoolKeyHash from "../../../staking/PoolKeyHash.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
-import * as Ctx from "../internal/ctx.js"
 import { mintToAssets } from "../operations/Mint.js"
+import type { PhaseResult } from "../TransactionBuilder.js"
+import { BuildOptionsTag, PhaseContextTag, TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
 
 /**
  * Calculate certificate deposits and refunds from a list of certificates.
@@ -169,14 +170,14 @@ const formatAssetsForLog = (assets: CoreAssets.Assets): string => {
  * - This is the final verification gate before transaction completion
  */
 export const executeBalance = (): Effect.Effect<
-  Ctx.PhaseResult,
-  Ctx.TransactionBuilderError,
-  Ctx.PhaseContextTag | Ctx.TxContext | Ctx.BuildOptionsTag
+  PhaseResult,
+  TransactionBuilderError,
+  PhaseContextTag | TxContext | BuildOptionsTag
 > =>
   Effect.gen(function* () {
     // Step 1: Get contexts and log start
-    const ctx = yield* Ctx.TxContext
-    const buildCtxRef = yield* Ctx.PhaseContextTag
+    const ctx = yield* TxContext
+    const buildCtxRef = yield* PhaseContextTag
     const buildCtx = yield* Ref.get(buildCtxRef)
 
     yield* Effect.logDebug(`[Balance] Starting balance verification (attempt ${buildCtx.attempt})`)
@@ -255,7 +256,7 @@ export const executeBalance = (): Effect.Effect<
     const hasNativeAssets = CoreAssets.getUnits(delta).length > 1
     if (hasNativeAssets) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: `Balance verification failed: Delta contains native assets. This indicates a bug in change creation logic.`,
           cause: { delta: formatAssetsForLog(delta) }
         })
@@ -266,7 +267,7 @@ export const executeBalance = (): Effect.Effect<
     // Excess: inputs > outputs + change + fee
     if (deltaLovelace > 0n) {
       // Check if this is expected from burn strategy
-      const buildOptions = yield* Ctx.BuildOptionsTag
+      const buildOptions = yield* BuildOptionsTag
       const isBurnMode = buildOptions.onInsufficientChange === "burn" && buildCtx.changeOutputs.length === 0
 
       // Check if this is expected from drainTo strategy
@@ -281,7 +282,7 @@ export const executeBalance = (): Effect.Effect<
         // Validate drainTo index (should already be validated in Fallback, but double-check)
         if (drainToIndex < 0 || drainToIndex >= outputs.length) {
           return yield* Effect.fail(
-            new Ctx.TransactionBuilderError({
+            new TransactionBuilderError({
               message: `Invalid drainTo index: ${drainToIndex}. Must be between 0 and ${outputs.length - 1}`,
               cause: { drainToIndex, outputCount: outputs.length }
             })

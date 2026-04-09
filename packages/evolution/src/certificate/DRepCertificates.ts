@@ -1,9 +1,21 @@
+/**
+ * DRep certificate types.
+ *
+ * @since 2.0.0
+ * @module certificate/DRepCertificates
+ */
 import { Equal, Hash, Inspectable, Schema } from "effect"
 
 import * as Credential from "../credential/Credential.js"
 import * as Anchor from "../governance/Anchor.js"
 import * as Coin from "../value/Coin.js"
 
+/**
+ * Register as a DRep (CDDL: reg_drep_cert = 16).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class RegDrepCert extends Schema.TaggedClass<RegDrepCert>("RegDrepCert")("RegDrepCert", {
   drepCredential: Credential.Credential,
   coin: Coin.Coin,
@@ -45,6 +57,12 @@ export class RegDrepCert extends Schema.TaggedClass<RegDrepCert>("RegDrepCert")(
   }
 }
 
+/**
+ * Unregister as a DRep (CDDL: unreg_drep_cert = 17).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class UnregDrepCert extends Schema.TaggedClass<UnregDrepCert>("UnregDrepCert")("UnregDrepCert", {
   drepCredential: Credential.Credential,
   coin: Coin.Coin
@@ -81,6 +99,12 @@ export class UnregDrepCert extends Schema.TaggedClass<UnregDrepCert>("UnregDrepC
   }
 }
 
+/**
+ * Update DRep metadata anchor (CDDL: update_drep_cert = 18).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class UpdateDrepCert extends Schema.TaggedClass<UpdateDrepCert>("UpdateDrepCert")("UpdateDrepCert", {
   drepCredential: Credential.Credential,
   anchor: Schema.NullishOr(Anchor.Anchor)

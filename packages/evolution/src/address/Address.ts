@@ -276,7 +276,7 @@ export interface AddressDetails {
  * @category Utils
  * @example
  * ```typescript
- * import * as Address from "@evolution-sdk/evolution/Address"
+ * import * as Address from "@evolution-sdk/evolution/address/Address"
  *
  * const details = Address.getAddressDetails("addr_test1qp...")
  * if (details) {

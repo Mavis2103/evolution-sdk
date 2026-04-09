@@ -1,9 +1,21 @@
+/**
+ * Pool certificate types.
+ *
+ * @since 2.0.0
+ * @module certificate/PoolCertificates
+ */
 import { Equal, Hash, Inspectable, Schema } from "effect"
 
 import * as EpochNo from "../network/EpochNo.js"
 import * as PoolKeyHash from "../staking/PoolKeyHash.js"
 import * as PoolParams from "../staking/PoolParams.js"
 
+/**
+ * Register a stake pool (CDDL: pool_registration = 3).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class PoolRegistration extends Schema.TaggedClass<PoolRegistration>("PoolRegistration")("PoolRegistration", {
   poolParams: PoolParams.PoolParams
 }) {
@@ -31,6 +43,12 @@ export class PoolRegistration extends Schema.TaggedClass<PoolRegistration>("Pool
   }
 }
 
+/**
+ * Retire a stake pool at a given epoch (CDDL: pool_retirement = 4).
+ *
+ * @since 2.0.0
+ * @category certificate
+ */
 export class PoolRetirement extends Schema.TaggedClass<PoolRetirement>("PoolRetirement")("PoolRetirement", {
   poolKeyHash: PoolKeyHash.PoolKeyHash,
   epoch: EpochNo.EpochNoSchema

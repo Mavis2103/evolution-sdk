@@ -12,8 +12,9 @@ import { Effect, Ref } from "effect"
 
 import * as CoreAssets from "../../../assets/index.js"
 import * as CoreUTxO from "../../../transaction/UTxO.js"
-import * as Ctx from "../internal/ctx.js"
 import { calculateFeeIteratively, calculateReferenceScriptFee } from "../internal/txBuilder.js"
+import type { BuildOptionsTag, PhaseResult , TransactionBuilderError} from "../TransactionBuilder.js"
+import { PhaseContextTag, ProtocolParametersTag, TxContext } from "../TransactionBuilder.js"
 
 /**
  * Fee Calculation Phase
@@ -51,14 +52,14 @@ import { calculateFeeIteratively, calculateReferenceScriptFee } from "../interna
  * - No phase retries here; Balance phase decides next step based on leftover
  */
 export const executeFeeCalculation = (): Effect.Effect<
-  Ctx.PhaseResult,
-  Ctx.TransactionBuilderError,
-  Ctx.PhaseContextTag | Ctx.TxContext | Ctx.ProtocolParametersTag | Ctx.BuildOptionsTag
+  PhaseResult,
+  TransactionBuilderError,
+  PhaseContextTag | TxContext | ProtocolParametersTag | BuildOptionsTag
 > =>
   Effect.gen(function* () {
     // Step 1: Get contexts and current state
-    const ctx = yield* Ctx.TxContext
-    const buildCtxRef = yield* Ctx.PhaseContextTag
+    const ctx = yield* TxContext
+    const buildCtxRef = yield* PhaseContextTag
     const buildCtx = yield* Ref.get(buildCtxRef)
 
     const state = yield* Ref.get(ctx)
@@ -76,7 +77,7 @@ export const executeFeeCalculation = (): Effect.Effect<
     const allOutputs = [...baseOutputs, ...buildCtx.changeOutputs]
 
     // Step 4: Calculate base fee WITH change outputs
-    const protocolParams = yield* Ctx.ProtocolParametersTag
+    const protocolParams = yield* ProtocolParametersTag
     const baseFee = yield* calculateFeeIteratively(selectedUtxos, inputs, allOutputs, state.redeemers, {
       minFeeCoefficient: protocolParams.minFeeCoefficient,
       minFeeConstant: protocolParams.minFeeConstant,

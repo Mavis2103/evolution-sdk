@@ -1,6 +1,6 @@
 ---
-title: Time/SlotConfig.ts
-nav_order: 172
+title: time/SlotConfig.ts
+nav_order: 175
 parent: Modules
 ---
 

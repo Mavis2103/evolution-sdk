@@ -9,7 +9,7 @@ import { Effect, Ref } from "effect"
 
 import * as ProposalProcedure from "../../../governance/ProposalProcedure.js"
 import * as ProposalProcedures from "../../../governance/ProposalProcedures.js"
-import * as Ctx from "../internal/ctx.js"
+import { TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type { ProposeParams } from "./Operations.js"
 
 /**
@@ -29,15 +29,15 @@ import type { ProposeParams } from "./Operations.js"
  */
 export const createProposeProgram = (
   params: ProposeParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
-    const config = yield* Ctx.TxBuilderConfigTag
+    const ctx = yield* TxContext
+    const config = yield* TxBuilderConfigTag
 
     // 1. Get govActionDeposit from protocol parameters via provider
     if (!config.provider) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Provider required to fetch govActionDeposit for governance proposal"
         })
       )
@@ -46,7 +46,7 @@ export const createProposeProgram = (
     const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
       Effect.mapError(
         (err) =>
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message: `Failed to fetch protocol parameters: ${err.message}`
           })
       )

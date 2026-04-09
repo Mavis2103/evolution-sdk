@@ -14,10 +14,11 @@ import { Effect, Ref } from "effect"
 import * as CoreAssets from "../../../assets/index.js"
 import * as TxOut from "../../../transaction/TxOut.js"
 import * as UTxO from "../../../transaction/UTxO.js"
-import * as Ctx from "../internal/ctx.js"
 import {
   calculateMinimumUtxoLovelace
 } from "../internal/txBuilder.js"
+import type { PhaseResult } from "../TransactionBuilder.js"
+import { AvailableUtxosTag, BuildOptionsTag, ChangeAddressTag, ProtocolParametersTag, TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
 
 // ============================================================================
 // Constants
@@ -113,18 +114,18 @@ const sortCollateralCandidates = (utxos: ReadonlyArray<UTxO.UTxO>): Array<UTxO.U
  * @category phases
  */
 export const executeCollateral = (): Effect.Effect<
-  Ctx.PhaseResult,
-  Ctx.TransactionBuilderError,
-  Ctx.TxContext | Ctx.AvailableUtxosTag | Ctx.ChangeAddressTag | Ctx.ProtocolParametersTag | Ctx.BuildOptionsTag
+  PhaseResult,
+  TransactionBuilderError,
+  TxContext | AvailableUtxosTag | ChangeAddressTag | ProtocolParametersTag | BuildOptionsTag
 > =>
   Effect.gen(function* () {
     // Get contexts
-    const stateRef = yield* Ctx.TxContext
+    const stateRef = yield* TxContext
     const state = yield* Ref.get(stateRef)
-    const availableUtxos = yield* Ctx.AvailableUtxosTag
-    const changeAddress = yield* Ctx.ChangeAddressTag
-    const protocolParams = yield* Ctx.ProtocolParametersTag
-    const buildOptions = yield* Ctx.BuildOptionsTag
+    const availableUtxos = yield* AvailableUtxosTag
+    const changeAddress = yield* ChangeAddressTag
+    const protocolParams = yield* ProtocolParametersTag
+    const buildOptions = yield* BuildOptionsTag
 
     // Get target collateral from options (default: 5 ADA)
     const targetCollateral = buildOptions.setCollateral ?? 5_000_000n
@@ -155,7 +156,7 @@ export const executeCollateral = (): Effect.Effect<
 
     if (candidates.length === 0) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message:
             "No suitable UTxOs available for collateral. " +
             "All available UTxOs are either already selected or have reference scripts."
@@ -201,7 +202,7 @@ export const executeCollateral = (): Effect.Effect<
     // Validate: Did we get enough?
     if (totalLovelace < targetCollateral) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: `Insufficient collateral available. Need ${targetCollateral} lovelace, but only found ${totalLovelace} lovelace.`
         })
       )
@@ -271,7 +272,7 @@ export const executeCollateral = (): Effect.Effect<
 
     if (returnLovelace < minUtxo) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message:
             `Collateral return (${returnLovelace} lovelace) is below minimum UTxO requirement (${minUtxo} lovelace). ` +
             `This can happen when collateral inputs have many tokens. ` +

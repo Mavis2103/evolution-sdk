@@ -2,7 +2,7 @@ import { Effect, Ref } from "effect"
 
 import type * as ScriptCore from "../../../script/Script.js"
 import * as ScriptHashCore from "../../../script/ScriptHash.js"
-import * as Ctx from "../internal/ctx.js"
+import { TxContext } from "../TransactionBuilder.js"
 /**
  * Attaches a script to the transaction by storing it in the builder state.
  * The script is indexed by its hash for efficient lookup during transaction assembly.
@@ -15,7 +15,7 @@ import * as Ctx from "../internal/ctx.js"
  */
 export const attachScriptToState = (script: ScriptCore.Script) =>
   Effect.gen(function* () {
-    const stateRef = yield* Ctx.TxContext
+    const stateRef = yield* TxContext
     const state = yield* Ref.get(stateRef)
 
     // Compute script hash

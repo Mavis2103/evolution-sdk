@@ -25,20 +25,34 @@
  */
 
 // Effect-TS imports
+import { Context, Data } from "effect"
 import type * as Effect from "effect/Effect"
 import type { Either } from "effect/Either"
+import type * as Ref from "effect/Ref"
 
+import type * as CoreAddress from "../../address/Address.js"
+import type * as RewardAccount from "../../address/RewardAccount.js"
+import type * as CoreAssets from "../../assets/index.js"
+import * as Bytes from "../../bytes/Bytes.js"
+import type * as Certificate from "../../certificate/Certificate.js"
+import type * as KeyHash from "../../credential/KeyHash.js"
+import type * as PlutusData from "../../data/Data.js"
+import type * as ProposalProcedures from "../../governance/ProposalProcedures.js"
+import type * as VotingProcedures from "../../governance/VotingProcedures.js"
+import type * as AuxiliaryData from "../../metadata/AuxiliaryData.js"
+import type * as CostModel from "../../script/CostModel.js"
 import type * as CoreScript from "../../script/Script.js"
+import type * as Time from "../../time/index.js"
+import type * as Transaction from "../../transaction/Transaction.js"
+import type * as TxOut from "../../transaction/TxOut.js"
 import type * as CoreUTxO from "../../transaction/UTxO.js"
+import type * as Coin from "../../value/Coin.js"
+import type * as Mint from "../../value/Mint.js"
+import type { Chain } from "../client/Chain.js"
+import type { EvalRedeemer } from "../EvalRedeemer.js"
 import type * as Provider from "../provider/Provider.js"
 import type * as Wallet from "../wallet/Wallet.js"
-import type {
-  BuildOptions,
-  EvaluationError,
-  ProgramStep,
-  TransactionBuilderError,
-  TxBuilderConfig
-} from "./internal/ctx.js"
+import type { CoinSelectionAlgorithm, CoinSelectionFunction } from "./CoinSelection.js"
 import * as BuilderFactory from "./internal/factory.js"
 import type {
   AddSignerParams,
@@ -67,36 +81,622 @@ import type {
   VoteParams,
   WithdrawParams
 } from "./operations/Operations.js"
+import type { DeferredRedeemer } from "./RedeemerBuilder.js"
 import type { SignBuilder } from "./SignBuilder.js"
 import type { TransactionResultBase } from "./TransactionResult.js"
 
-export type {
-  BuildOptions,
-  DeferredRedeemerData,
-  EvaluationContext,
-  Evaluator,
-  PhaseContext,
-  ProgramStep,
-  ProtocolParameters,
-  RedeemerData,
-  ScriptFailure,
-  TxBuilderConfig,
-  TxBuilderState,
-  UnfrackAdaOptions,
-  UnfrackOptions,
-  UnfrackTokenOptions
-} from "./internal/ctx.js"
-export {
-  AvailableUtxosTag,
-  BuildOptionsTag,
-  ChangeAddressTag,
-  EvaluationError,
-  PhaseContextTag,
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+/**
+ * Build phases.
+ *
+ * @since 2.0.0
+ * @category state
+ */
+export type Phase =
+  | "selection"
+  | "changeCreation"
+  | "feeCalculation"
+  | "balance"
+  | "evaluation"
+  | "collateral"
+  | "fallback"
+  | "complete"
+
+/**
+ * Result returned by a phase indicating the next phase to execute.
+ *
+ * @since 2.0.0
+ * @category state
+ */
+export interface PhaseResult {
+  readonly next: Phase
+}
+
+/**
+ * Build-phase state machine context tracking fee calculation and change creation progress.
+ *
+ * @since 2.0.0
+ * @category state
+ */
+export interface PhaseContext {
+  readonly phase: Phase
+  readonly attempt: number
+  readonly calculatedFee: bigint
+  readonly shortfall: bigint
+  readonly changeOutputs: ReadonlyArray<TxOut.TransactionOutput>
+  readonly leftoverAfterFee: CoreAssets.Assets
+  readonly canUnfrack: boolean
+}
+
+/**
+ * Data required by script evaluators: cost models, execution limits, and slot configuration.
+ *
+ * Used by custom evaluators for local UPLC script evaluation.
+ *
+ * @since 2.0.0
+ * @category model
+ */
+export interface EvaluationContext {
+  /** Cost models for script evaluation */
+  readonly costModels: CostModel.CostModels
+  /** Maximum execution steps allowed */
+  readonly maxTxExSteps: bigint
+  /** Maximum execution memory allowed */
+  readonly maxTxExMem: bigint
+  /** Slot configuration for time-based operations */
+  readonly slotConfig: {
+    readonly zeroTime: bigint
+    readonly zeroSlot: bigint
+    readonly slotLength: number
+  }
+}
+
+/**
+ * Describes a single script failure from evaluation.
+ *
+ * Contains all available information about which script failed and why,
+ * including optional labels from the user's operation definitions.
+ *
+ * @since 2.0.0
+ * @category errors
+ */
+export interface ScriptFailure {
+  /** Redeemer purpose: "spend", "mint", "withdraw", "publish" */
+  readonly purpose: string
+  /** Index within the purpose category */
+  readonly index: number
+  /** User-provided label for debugging (from operation params) */
+  readonly label?: string
+  /** Key used internally to track this redeemer (e.g., "txHash#index" for spend) */
+  readonly redeemerKey?: string
+  /** Script hash if available */
+  readonly scriptHash?: string
+  /** UTxO reference for spend redeemers */
+  readonly utxoRef?: string
+  /** Credential hash for withdraw/cert redeemers */
+  readonly credential?: string
+  /** Policy ID for mint redeemers */
+  readonly policyId?: string
+  /** Validation error message from the script */
+  readonly validationError: string
+  /** Execution traces emitted by the script */
+  readonly traces: ReadonlyArray<string>
+}
+
+/**
+ * Interface for evaluating transaction scripts and computing execution units.
+ *
+ * Implement this interface to provide custom script evaluation strategies,
+ * such as local UPLC execution.
+ *
+ * @since 2.0.0
+ * @category model
+ */
+export interface Evaluator {
+  /**
+   * Evaluate transaction scripts and return execution units.
+   *
+   * @since 2.0.0
+   * @category methods
+   */
+  evaluate: (
+    tx: Transaction.Transaction,
+    additionalUtxos: ReadonlyArray<CoreUTxO.UTxO> | undefined,
+    context: EvaluationContext
+  ) => Effect.Effect<ReadonlyArray<EvalRedeemer>, EvaluationError>
+}
+
+/**
+ * Token-specific UTxO optimization options based on Unfrack.It principles.
+ *
+ * @see https://unfrack.it
+ * @since 2.0.0
+ * @category config
+ */
+export interface UnfrackTokenOptions {
+  /**
+   * Bundle Size: Number of tokens to collect per UTxO
+   * - Same policy: up to bundleSize tokens together
+   * - Multiple policies: up to bundleSize/2 tokens from different policies
+   * - Policy exceeds bundle: split into multiple UTxOs
+   * @default 10
+   */
+  readonly bundleSize?: number
+
+  /**
+   * Isolate Fungible Behavior: Place each fungible token policy on its own UTxO
+   * Decreases fees and makes DEX interactions easier
+   * @default false
+   */
+  readonly isolateFungibles?: boolean
+
+  /**
+   * Group NFTs by Policy: Separate NFTs onto policy-specific UTxOs
+   * Decreases fees for marketplaces, staking, sending
+   * @default false
+   */
+  readonly groupNftsByPolicy?: boolean
+}
+
+/**
+ * ADA-specific UTxO optimization options.
+ *
+ * @since 2.0.0
+ * @category config
+ */
+export interface UnfrackAdaOptions {
+  /**
+   * Roll Up ADA-Only: Intentionally collect and consolidate ADA-only UTxOs
+   * @default false (only collect when needed for change)
+   */
+  readonly rollUpAdaOnly?: boolean
+
+  /**
+   * Subdivide Leftover ADA: If leftover ADA > threshold, split into multiple UTxOs
+   * Creates multiple ADA options for future transactions (parallelism)
+   * @default 100_000000 (100 ADA)
+   */
+  readonly subdivideThreshold?: Coin.Coin
+
+  /**
+   * Subdivision percentages for leftover ADA
+   * Must sum to 100
+   * @default [50, 15, 10, 10, 5, 5, 5]
+   */
+  readonly subdividePercentages?: ReadonlyArray<number>
+
+  /**
+   * Maximum ADA-only UTxOs to consolidate in one transaction.
+   * NOTE: Not yet implemented. Will hook into coin selection to merge dust UTxOs.
+   * @default 20
+   */
+  readonly maxUtxosToConsolidate?: number
+}
+
+/**
+ * Top-level UTxO optimization options (tokens + ADA).
+ *
+ * Named in respect to the Unfrack.It open source community.
+ *
+ * @since 2.0.0
+ * @category config
+ */
+export interface UnfrackOptions {
+  readonly tokens?: UnfrackTokenOptions
+  readonly ada?: UnfrackAdaOptions
+}
+
+/**
+ * Protocol parameters required for transaction building.
+ * Subset of full protocol parameters, only what's needed for minimal build.
+ *
+ * @since 2.0.0
+ * @category config
+ */
+export interface ProtocolParameters {
+  /** Coefficient for linear fee calculation (minFeeA) */
+  minFeeCoefficient: bigint
+
+  /** Constant for linear fee calculation (minFeeB) */
+  minFeeConstant: bigint
+
+  /** Minimum ADA per UTxO byte (for future change output validation) */
+  coinsPerUtxoByte: bigint
+
+  /** Maximum transaction size in bytes */
+  maxTxSize: number
+
+  /** Price per memory unit for script execution (optional, for ExUnits cost calculation) */
+  priceMem?: number
+
+  /** Price per CPU step for script execution (optional, for ExUnits cost calculation) */
+  priceStep?: number
+
+  /** Cost per byte for reference scripts (Conway-era, default 44) */
+  minFeeRefScriptCostPerByte?: number
+}
+
+/**
+ * Redeemer data stored during input collection.
+ * Index is determined later during witness assembly based on input ordering.
+ *
+ * @since 2.0.0
+ * @category state
+ */
+export interface RedeemerData {
+  readonly tag: "spend" | "mint" | "cert" | "reward" | "vote"
+  readonly data: PlutusData.Data
+  readonly exUnits?: {
+    readonly mem: bigint
+    readonly steps: bigint
+  }
+  /** Optional label for debugging - identifies this redeemer in error messages */
+  readonly label?: string
+}
+
+/**
+ * Deferred redeemer data for RedeemerBuilder patterns.
+ * Contains callback that will be resolved after coin selection completes.
+ *
+ * @since 2.0.0
+ * @category state
+ */
+export interface DeferredRedeemerData {
+  readonly tag: "spend" | "mint" | "cert" | "reward" | "vote"
+  readonly deferred: DeferredRedeemer
+  readonly exUnits?: {
+    readonly mem: bigint
+    readonly steps: bigint
+  }
+  /** Optional label for debugging - identifies this redeemer in error messages */
+  readonly label?: string
+}
+
+/**
+ * Configuration for TransactionBuilder.
+ * Immutable configuration passed to builder at creation time.
+ *
+ * Wallet-centric design (when wallet provided):
+ * - Wallet provides change address (via wallet.effect.address())
+ * - Provider + Wallet provide available UTxOs (via provider.effect.getUtxos(wallet.address))
+ * - Override per-build via BuildOptions if needed
+ *
+ * Manual mode (no wallet):
+ * - Must provide changeAddress and availableUtxos in BuildOptions for each build
+ * - Used for read-only scenarios or advanced use cases
+ *
+ * @since 2.0.0
+ * @category config
+ */
+export interface TxBuilderConfig {
+  /**
+   * Optional wallet provides:
+   * - Change address via wallet.effect.address()
+   * - Available UTxOs via wallet.effect.address() + provider.effect.getUtxos()
+   * - Signing capability via wallet.effect.signTx() (SigningWallet and ApiWallet only)
+   *
+   * When provided: Automatic change address and UTxO resolution.
+   * When omitted: Must provide changeAddress and availableUtxos in BuildOptions.
+   *
+   * ReadOnlyWallet: For read-only clients that can build but not sign transactions.
+   * SigningWallet/ApiWallet: For signing clients with full transaction signing capability.
+   *
+   * Override per-build via BuildOptions.changeAddress and BuildOptions.availableUtxos.
+   */
+  readonly wallet?: Wallet.SigningWallet | Wallet.ApiWallet | Wallet.ReadOnlyWallet
+
+  /**
+   * Optional provider for:
+   * - Fetching UTxOs for the wallet's address (provider.effect.getUtxos)
+   * - Transaction submission (provider.effect.submitTx)
+   * - Protocol parameters
+   *
+   * Works together with wallet to provide everything needed for transaction building.
+   * When wallet is omitted, provider is only used if you call provider methods directly.
+   */
+  readonly provider?: Provider.Provider
+
+  /**
+   * Chain descriptor — network identity and slot timing parameters.
+   *
+   * Provides:
+   * - `id`: Network id (1 = mainnet, 0 = testnet) for address and reward account encoding
+   * - `slotConfig`: Slot timing required for validity interval conversion and script evaluation
+   * - `networkMagic`, `epochLength`, `name`: Additional network metadata
+   *
+   * Use the presets `mainnet`, `preprod`, `preview` from the client module, or define a
+   * custom Chain for private networks and devnets.
+   *
+   * The per-build `BuildOptions.slotConfig` override takes priority over `chain.slotConfig`.
+   *
+   * @since 2.0.0
+   */
+  readonly chain: Chain
+}
+
+/**
+ * Mutable state created FRESH on each build() call.
+ * Contains all state needed during transaction construction.
+ *
+ * State lifecycle:
+ * 1. Created fresh when build() is called
+ * 2. Modified by ProgramSteps during execution
+ * 3. Used to construct final transaction
+ * 4. Discarded after build completes
+ *
+ * @since 2.0.0
+ * @category state
+ */
+export interface TxBuilderState {
+  readonly selectedUtxos: ReadonlyArray<CoreUTxO.UTxO>
+  readonly outputs: ReadonlyArray<TxOut.TransactionOutput>
+  readonly scripts: Map<string, CoreScript.Script>
+  readonly totalOutputAssets: CoreAssets.Assets
+  readonly totalInputAssets: CoreAssets.Assets
+  readonly redeemers: Map<string, RedeemerData>
+  readonly deferredRedeemers: Map<string, DeferredRedeemerData>
+  readonly referenceInputs: ReadonlyArray<CoreUTxO.UTxO>
+  readonly certificates: ReadonlyArray<Certificate.Certificate>
+  readonly withdrawals: Map<RewardAccount.RewardAccount, bigint>
+  readonly poolDeposits: Map<string, bigint>
+  readonly mint?: Mint.Mint
+  readonly votingProcedures?: VotingProcedures.VotingProcedures
+  readonly proposalProcedures?: ProposalProcedures.ProposalProcedures
+  readonly collateral?: {
+    readonly inputs: ReadonlyArray<CoreUTxO.UTxO>
+    readonly totalAmount: bigint
+    readonly returnOutput?: TxOut.TransactionOutput
+  }
+  readonly validity?: {
+    readonly from?: Time.UnixTime
+    readonly to?: Time.UnixTime
+  }
+  readonly requiredSigners: ReadonlyArray<KeyHash.KeyHash>
+  readonly auxiliaryData?: AuxiliaryData.AuxiliaryData
+  readonly sendAllTo?: CoreAddress.Address
+}
+
+/**
+ * Options passed to `build()` to customize a single transaction build.
+ *
+ * @since 2.0.0
+ * @category config
+ */
+export interface BuildOptions {
+  /**
+   * Override protocol parameters for this specific transaction build.
+   *
+   * @since 2.0.0
+   */
+  readonly protocolParameters?: ProtocolParameters
+
+  /**
+   * Coin selection strategy for automatic input selection.
+   *
+   * @default "largest-first"
+   */
+  readonly coinSelection?: CoinSelectionAlgorithm | CoinSelectionFunction
+
+  /**
+   * Override the change address for this specific transaction build.
+   *
+   * @since 2.0.0
+   */
+  readonly changeAddress?: CoreAddress.Address
+
+  /**
+   * Override the available UTxOs for this specific transaction build.
+   *
+   * @since 2.0.0
+   */
+  readonly availableUtxos?: ReadonlyArray<CoreUTxO.UTxO>
+
+  /**
+   * Output index to merge leftover assets into as a fallback when change output cannot be created.
+   *
+   * @since 2.0.0
+   */
+  readonly drainTo?: number
+
+  /**
+   * Strategy for handling insufficient leftover assets when change output cannot be created.
+   *
+   * @default 'error'
+   * @since 2.0.0
+   */
+  readonly onInsufficientChange?: "error" | "burn"
+
+  /**
+   * Script evaluator for Plutus script execution costs.
+   *
+   * If provided, replaces the default provider-based evaluation.
+   *
+   * @since 2.0.0
+   */
+  readonly evaluator?: Evaluator
+
+  /**
+   * Pass additional UTxOs to provider-based evaluators.
+   *
+   * @default false
+   * @since 2.0.0
+   */
+  readonly passAdditionalUtxos?: boolean
+
+  /**
+   * Format for encoding redeemers in the script data hash.
+   *
+   * @deprecated Redeemer format is now determined by the concrete `Redeemers` type.
+   * @since 2.0.0
+   */
+  readonly scriptDataFormat?: "array" | "map"
+
+  /**
+   * Custom slot configuration for script evaluation.
+   *
+   * @since 2.0.0
+   */
+  readonly slotConfig?: Time.SlotConfig
+
+  /**
+   * Amount to set as collateral return output (in lovelace).
+   *
+   * @default 5_000_000n
+   * @since 2.0.0
+   */
+  readonly setCollateral?: bigint
+
+  /**
+   * Optimize wallet UTxO structure using Unfrack.It principles.
+   *
+   * @since 2.0.0
+   */
+  readonly unfrack?: UnfrackOptions
+
+  /**
+   * Enable debug logging during transaction build.
+   *
+   * @default false
+   * @since 2.0.0
+   */
+  readonly debug?: boolean
+}
+
+// ============================================================================
+// Errors
+// ============================================================================
+
+/**
+ * Error thrown when transaction building fails.
+ *
+ * @since 2.0.0
+ * @category errors
+ */
+export class TransactionBuilderError extends Data.TaggedError("TransactionBuilderError")<{
+  message?: string
+  cause?: unknown
+}> {}
+
+/**
+ * Error thrown when script evaluation fails.
+ *
+ * @since 2.0.0
+ * @category errors
+ */
+export class EvaluationError extends Data.TaggedError("EvaluationError")<{
+  readonly cause?: unknown
+  readonly message?: string
+  readonly failures?: ReadonlyArray<ScriptFailure>
+}> {}
+
+// ============================================================================
+// Context Tags
+// ============================================================================
+
+/**
+ * Context tag providing build-phase state.
+ *
+ * @since 2.0.0
+ * @category context
+ */
+export class PhaseContextTag extends Context.Tag("PhaseContextTag")<PhaseContextTag, Ref.Ref<PhaseContext>>() {}
+
+/**
+ * Context tag providing the mutable transaction state.
+ *
+ * @since 2.0.0
+ * @category context
+ */
+export class TxContext extends Context.Tag("TxContext")<TxContext, Ref.Ref<TxBuilderState>>() {}
+
+/**
+ * Context tag providing the change address.
+ *
+ * @since 2.0.0
+ * @category context
+ */
+export class ChangeAddressTag extends Context.Tag("ChangeAddress")<ChangeAddressTag, CoreAddress.Address>() {}
+
+/**
+ * Context tag providing protocol parameters.
+ *
+ * @since 2.0.0
+ * @category context
+ */
+export class ProtocolParametersTag extends Context.Tag("ProtocolParameters")<
   ProtocolParametersTag,
-  TransactionBuilderError,
-  TxBuilderConfigTag,
-  TxContext
-} from "./internal/ctx.js"
+  ProtocolParameters
+>() {}
+
+/**
+ * Context tag providing the builder configuration.
+ *
+ * @since 2.0.0
+ * @category context
+ */
+export class TxBuilderConfigTag extends Context.Tag("TxBuilderConfig")<TxBuilderConfigTag, TxBuilderConfig>() {}
+
+/**
+ * Context tag providing available UTxOs for coin selection.
+ *
+ * @since 2.0.0
+ * @category context
+ */
+export class AvailableUtxosTag extends Context.Tag("AvailableUtxos")<
+  AvailableUtxosTag,
+  ReadonlyArray<CoreUTxO.UTxO>
+>() {}
+
+/**
+ * Context tag providing build options for the current build.
+ *
+ * @since 2.0.0
+ * @category context
+ */
+export class BuildOptionsTag extends Context.Tag("BuildOptions")<BuildOptionsTag, BuildOptions>() {}
+
+// ============================================================================
+// Program Step
+// ============================================================================
+
+/**
+ * A single deferred builder step executed during `build()`.
+ *
+ * @since 2.0.0
+ * @category model
+ */
+export type ProgramStep = Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag>
+
+// ============================================================================
+// Voter Key
+// ============================================================================
+
+/**
+ * Convert a Voter to a unique string key for redeemer tracking.
+ *
+ * @since 2.0.0
+ * @category utilities
+ */
+export const voterToKey = (voter: VotingProcedures.Voter): string => {
+  switch (voter._tag) {
+    case "ConstitutionalCommitteeVoter":
+      return `cc:${Bytes.toHex(voter.credential.hash)}`
+    case "DRepVoter":
+      switch (voter.drep._tag) {
+        case "KeyHashDRep":
+          return `drep:${Bytes.toHex(voter.drep.keyHash.hash)}`
+        case "ScriptHashDRep":
+          return `drep:${Bytes.toHex(voter.drep.scriptHash.hash)}`
+        default:
+          return `drep:${voter.drep._tag}`
+      }
+    case "StakePoolVoter":
+      return `pool:${Bytes.toHex(voter.poolKeyHash.hash)}`
+  }
+}
 
 /**
  * Result type for transaction chaining operations.
