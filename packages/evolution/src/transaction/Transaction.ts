@@ -129,13 +129,23 @@ export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTION
  */
 const formatCache = new WeakMap<Transaction, CBOR.CBORFormat>()
 
-export const fromCBORBytes = (bytes: Uint8Array, _options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Transaction => {
+export const fromCBORBytes = (bytes: Uint8Array, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Transaction => {
+  // When caller passes non-default codec options, honor them via the legacy
+  // decode path and skip format caching — custom options typically imply the
+  // caller wants re-canonicalization, which is incompatible with preserving
+  // the original encoding.
+  if (options !== CBOR.CML_DEFAULT_OPTIONS) {
+    return Schema.decodeSync(FromCBORBytes(options))(bytes)
+  }
   const { format, value } = fromCBORBytesWithFormat(bytes)
   formatCache.set(value, format)
   return value
 }
 
-export const fromCBORHex = (hex: string, _options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Transaction => {
+export const fromCBORHex = (hex: string, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Transaction => {
+  if (options !== CBOR.CML_DEFAULT_OPTIONS) {
+    return Schema.decodeSync(FromCBORHex(options))(hex)
+  }
   const { format, value } = fromCBORHexWithFormat(hex)
   formatCache.set(value, format)
   return value
@@ -174,12 +184,20 @@ export const fromCBORHexWithFormat = (
 }
 
 export const toCBORBytes = (data: Transaction, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Uint8Array => {
+  // Non-default options signal an explicit re-encode request — bypass the
+  // cached format so the caller's options actually take effect.
+  if (options !== CBOR.CML_DEFAULT_OPTIONS) {
+    return Schema.encodeSync(FromCBORBytes(options))(data)
+  }
   const cached = formatCache.get(data)
   if (cached) return toCBORBytesWithFormat(data, cached)
   return Schema.encodeSync(FromCBORBytes(options))(data)
 }
 
 export const toCBORHex = (data: Transaction, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): string => {
+  if (options !== CBOR.CML_DEFAULT_OPTIONS) {
+    return Schema.encodeSync(FromCBORHex(options))(data)
+  }
   const cached = formatCache.get(data)
   if (cached) return toCBORHexWithFormat(data, cached)
   return Schema.encodeSync(FromCBORHex(options))(data)
