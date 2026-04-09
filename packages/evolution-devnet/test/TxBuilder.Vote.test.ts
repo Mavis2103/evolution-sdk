@@ -254,12 +254,13 @@ describe("TxBuilder Vote Operations (script-free)", () => {
     if (!voterUtxo) throw new Error("Voter genesis UTxO not found for InfoAction vote")
 
     try {
-      await voterClient
+      const drepRegHash = await voterClient
         .newTx()
         .registerDRep({ drepCredential: voterAddress.paymentCredential, anchor: createAnchor("info-voter-drep.json") })
         .build({ availableUtxos: [voterUtxo] })
         .then((b) => b.sign())
         .then((b) => b.submit())
+      await voterClient.awaitTx(drepRegHash, 1000)
     } catch (err: any) {
       if (err.message?.includes("already known delegate representative") || err.message?.includes("re-register")) {
         // DRep already registered, continue
@@ -332,7 +333,7 @@ describe("TxBuilder Vote Operations (script-free)", () => {
     if (!voterUtxo) throw new Error("Voter genesis UTxO not found for NoConfidenceAction vote")
 
     try {
-      await voterClient
+      const drepRegHash = await voterClient
         .newTx()
         .registerDRep({
           drepCredential: voterAddress.paymentCredential,
@@ -341,6 +342,7 @@ describe("TxBuilder Vote Operations (script-free)", () => {
         .build({ availableUtxos: [voterUtxo] })
         .then((b) => b.sign())
         .then((b) => b.submit())
+      await voterClient.awaitTx(drepRegHash, 1000)
     } catch (err: any) {
       if (err.message?.includes("already known delegate representative") || err.message?.includes("re-register")) {
         // DRep already registered, continue
@@ -414,7 +416,7 @@ describe("TxBuilder Vote Operations (script-free)", () => {
     if (!voterUtxo) throw new Error("Voter genesis UTxO not found for HardForkInitiationAction vote")
 
     try {
-      await voterClient
+      const drepRegHash = await voterClient
         .newTx()
         .registerDRep({
           drepCredential: voterAddress.paymentCredential,
@@ -423,6 +425,7 @@ describe("TxBuilder Vote Operations (script-free)", () => {
         .build({ availableUtxos: [voterUtxo] })
         .then((b) => b.sign())
         .then((b) => b.submit())
+      await voterClient.awaitTx(drepRegHash, 1000)
     } catch (err: any) {
       if (err.message?.includes("already known delegate representative") || err.message?.includes("re-register")) {
         // DRep already registered, continue
@@ -499,7 +502,7 @@ describe("TxBuilder Vote Operations (script-free)", () => {
     if (!voterUtxo) throw new Error("Voter genesis UTxO not found for TreasuryWithdrawalsAction vote")
 
     try {
-      await voterClient
+      const drepRegHash = await voterClient
         .newTx()
         .registerDRep({
           drepCredential: voterAddress.paymentCredential,
@@ -508,6 +511,7 @@ describe("TxBuilder Vote Operations (script-free)", () => {
         .build({ availableUtxos: [voterUtxo] })
         .then((b) => b.sign())
         .then((b) => b.submit())
+      await voterClient.awaitTx(drepRegHash, 1000)
     } catch (err: any) {
       if (err.message?.includes("already known delegate representative") || err.message?.includes("re-register")) {
         // DRep already registered, continue
@@ -583,7 +587,7 @@ describe("TxBuilder Vote Operations (script-free)", () => {
     if (!voterUtxo) throw new Error("Voter genesis UTxO not found for UpdateCommitteeAction vote")
 
     try {
-      await voterClient
+      const drepRegHash = await voterClient
         .newTx()
         .registerDRep({
           drepCredential: voterAddress.paymentCredential,
@@ -592,6 +596,7 @@ describe("TxBuilder Vote Operations (script-free)", () => {
         .build({ availableUtxos: [voterUtxo] })
         .then((b) => b.sign())
         .then((b) => b.submit())
+      await voterClient.awaitTx(drepRegHash, 1000)
     } catch (err: any) {
       if (err.message?.includes("already known delegate representative") || err.message?.includes("re-register")) {
         // DRep already registered, continue
@@ -674,7 +679,7 @@ describe("TxBuilder Vote Operations (script-free)", () => {
     if (!voterUtxo) throw new Error("Voter genesis UTxO not found for NewConstitutionAction vote")
 
     try {
-      await voterClient
+      const drepRegHash = await voterClient
         .newTx()
         .registerDRep({
           drepCredential: voterAddress.paymentCredential,
@@ -683,6 +688,7 @@ describe("TxBuilder Vote Operations (script-free)", () => {
         .build({ availableUtxos: [voterUtxo] })
         .then((b) => b.sign())
         .then((b) => b.submit())
+      await voterClient.awaitTx(drepRegHash, 1000)
     } catch (err: any) {
       if (err.message?.includes("already known delegate representative") || err.message?.includes("re-register")) {
         // DRep already registered, continue
@@ -761,12 +767,13 @@ describe("TxBuilder Vote Operations (script-free)", () => {
     if (!voterUtxo) throw new Error("Voter genesis UTxO not found")
 
     try {
-      await voterClient
+      const drepRegHash = await voterClient
         .newTx()
         .registerDRep({ drepCredential: voterAddress.paymentCredential, anchor: createAnchor("voter-drep.json") })
         .build({ availableUtxos: [voterUtxo] })
         .then((b) => b.sign())
         .then((b) => b.submit())
+      await voterClient.awaitTx(drepRegHash, 1000)
     } catch (err: any) {
       if (err.message?.includes("already known delegate representative") || err.message?.includes("re-register")) {
         // DRep already registered, continue
