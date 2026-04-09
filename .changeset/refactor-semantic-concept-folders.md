@@ -1,5 +1,5 @@
 ---
-"@evolution-sdk/evolution": patch
+"@evolution-sdk/evolution": minor
 ---
 
 Reorganize flat module structure into semantic concept folders.

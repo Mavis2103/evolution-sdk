@@ -25,7 +25,7 @@ export class VoteDelegCert extends Schema.TaggedClass<VoteDelegCert>("VoteDelegC
     return {
       _tag: "VoteDelegCert" as const,
       stakeCredential: this.stakeCredential.toJSON(),
-      drep: this.drep
+      drep: this.drep.toJSON()
     }
   }
 
@@ -72,7 +72,7 @@ export class StakeVoteDelegCert extends Schema.TaggedClass<StakeVoteDelegCert>("
       _tag: "StakeVoteDelegCert" as const,
       stakeCredential: this.stakeCredential.toJSON(),
       poolKeyHash: this.poolKeyHash.toJSON(),
-      drep: this.drep
+      drep: this.drep.toJSON()
     }
   }
 
@@ -165,7 +165,7 @@ export class VoteRegDelegCert extends Schema.TaggedClass<VoteRegDelegCert>("Vote
     return {
       _tag: "VoteRegDelegCert" as const,
       stakeCredential: this.stakeCredential.toJSON(),
-      drep: this.drep,
+      drep: this.drep.toJSON(),
       coin: this.coin.toString()
     }
   }
@@ -217,7 +217,7 @@ export class StakeVoteRegDelegCert extends Schema.TaggedClass<StakeVoteRegDelegC
       _tag: "StakeVoteRegDelegCert" as const,
       stakeCredential: this.stakeCredential.toJSON(),
       poolKeyHash: this.poolKeyHash.toJSON(),
-      drep: this.drep,
+      drep: this.drep.toJSON(),
       coin: this.coin.toString()
     }
   }
