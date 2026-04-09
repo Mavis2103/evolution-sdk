@@ -13,10 +13,10 @@ const packageManagers = [
   { id: "bun", name: "bun", icon: SiBun, color: "#FBF0DF", command: "bun add @evolution-sdk/evolution" }
 ]
 
-const quickStartCode = `import { Address, Assets, client, preprod } from "@evolution-sdk/evolution"
+const quickStartCode = `import { Address, Assets, Client, preprod } from "@evolution-sdk/evolution"
 
 // 1. Create a client
-const sdk = client(preprod)
+const sdk = Client.make(preprod)
   .withBlockfrost({ baseUrl: "...", projectId: "..." })
   .withSeed({ mnemonic: "your 24 words here" })
 

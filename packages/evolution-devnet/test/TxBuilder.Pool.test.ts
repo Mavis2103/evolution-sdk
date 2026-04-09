@@ -8,7 +8,7 @@ import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import type { Cardano } from "@evolution-sdk/evolution"
-import { client, preprod } from "@evolution-sdk/evolution"
+import { Client, preprod } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/address/Address"
 import * as RewardAccount from "@evolution-sdk/evolution/address/RewardAccount"
 import * as VrfKeyHash from "@evolution-sdk/evolution/block/VrfKeyHash"
@@ -33,7 +33,7 @@ describe("TxBuilder Pool Operations", () => {
 
   const createTestClient = (accountIndex: number = 0) => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return client(Cluster.getChain(devnetCluster))
+    return Client.make(Cluster.getChain(devnetCluster))
       .withKupmios({ kupoUrl: "http://localhost:1453", ogmiosUrl: "http://localhost:1343" })
       .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
   }
@@ -41,7 +41,7 @@ describe("TxBuilder Pool Operations", () => {
   beforeAll(async () => {
     // Create clients for pool tests
     const accounts = [0, 1].map((accountIndex) =>
-      client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
+      Client.make(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     )
 
     const addresses = await Promise.all(accounts.map((client) => client.address()))

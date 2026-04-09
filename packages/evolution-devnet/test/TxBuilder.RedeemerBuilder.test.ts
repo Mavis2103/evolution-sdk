@@ -9,7 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano, client, preprod } from "@evolution-sdk/evolution"
+import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
 import * as CoreAddress from "@evolution-sdk/evolution/address/Address"
 import * as Bytes from "@evolution-sdk/evolution/bytes/Bytes"
 import * as Data from "@evolution-sdk/evolution/data/Data"
@@ -84,7 +84,7 @@ describe("TxBuilder RedeemerBuilder", () => {
 
   const createTestClient = () => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return client(Cluster.getChain(devnetCluster))
+    return Client.make(Cluster.getChain(devnetCluster))
       .withKupmios({ kupoUrl: "http://localhost:1445", ogmiosUrl: "http://localhost:1340" })
       .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
   }
@@ -93,7 +93,7 @@ describe("TxBuilder RedeemerBuilder", () => {
     // Verify our script hash calculation matches the blueprint
     expect(calculatedPolicyId).toBe(MINT_MULTI_POLICY_ID_HEX)
 
-    const testClient = client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
+    const testClient = Client.make(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
 
     const testAddress = await testClient.address()
     const testAddressHex = CoreAddress.toHex(testAddress)
