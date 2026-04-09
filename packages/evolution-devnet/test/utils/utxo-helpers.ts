@@ -1,9 +1,9 @@
 import { Cardano } from "@evolution-sdk/evolution"
-import * as CoreAddress from "@evolution-sdk/evolution/Address"
-import type * as CoreDatumOption from "@evolution-sdk/evolution/DatumOption"
-import type * as CoreScript from "@evolution-sdk/evolution/Script"
-import * as CoreTransactionHash from "@evolution-sdk/evolution/TransactionHash"
-import * as CoreUTxO from "@evolution-sdk/evolution/UTxO"
+import * as CoreAddress from "@evolution-sdk/evolution/address/Address"
+import type * as CoreDatumOption from "@evolution-sdk/evolution/data/DatumOption"
+import type * as CoreScript from "@evolution-sdk/evolution/script/Script"
+import * as CoreTransactionHash from "@evolution-sdk/evolution/transaction/TransactionHash"
+import * as CoreUTxO from "@evolution-sdk/evolution/transaction/UTxO"
 
 // Alias for Cardano.Assets
 const CoreAssets = Cardano.Assets

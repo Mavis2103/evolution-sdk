@@ -10,21 +10,21 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano, client, preprod } from "@evolution-sdk/evolution"
-import * as Address from "@evolution-sdk/evolution/Address"
-import * as Anchor from "@evolution-sdk/evolution/Anchor"
-import * as Bytes from "@evolution-sdk/evolution/Bytes"
-import * as Bytes32 from "@evolution-sdk/evolution/Bytes32"
-import * as Data from "@evolution-sdk/evolution/Data"
-import * as DRep from "@evolution-sdk/evolution/DRep"
-import * as GovernanceAction from "@evolution-sdk/evolution/GovernanceAction"
-import * as InlineDatum from "@evolution-sdk/evolution/InlineDatum"
-import * as PlutusV3 from "@evolution-sdk/evolution/PlutusV3"
-import * as RewardAccount from "@evolution-sdk/evolution/RewardAccount"
-import * as ScriptHash from "@evolution-sdk/evolution/ScriptHash"
-import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
-import * as Url from "@evolution-sdk/evolution/Url"
-import * as VotingProcedures from "@evolution-sdk/evolution/VotingProcedures"
+import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
+import * as Address from "@evolution-sdk/evolution/address/Address"
+import * as RewardAccount from "@evolution-sdk/evolution/address/RewardAccount"
+import * as Bytes from "@evolution-sdk/evolution/bytes/Bytes"
+import * as Bytes32 from "@evolution-sdk/evolution/bytes/Bytes32"
+import * as Data from "@evolution-sdk/evolution/data/Data"
+import * as InlineDatum from "@evolution-sdk/evolution/data/InlineDatum"
+import * as Anchor from "@evolution-sdk/evolution/governance/Anchor"
+import * as DRep from "@evolution-sdk/evolution/governance/DRep"
+import * as GovernanceAction from "@evolution-sdk/evolution/governance/GovernanceAction"
+import * as VotingProcedures from "@evolution-sdk/evolution/governance/VotingProcedures"
+import * as Url from "@evolution-sdk/evolution/relay/Url"
+import * as PlutusV3 from "@evolution-sdk/evolution/script/PlutusV3"
+import * as ScriptHash from "@evolution-sdk/evolution/script/ScriptHash"
+import * as TransactionHash from "@evolution-sdk/evolution/transaction/TransactionHash"
 
 import plutusJson from "../../evolution/test/spec/plutus.json"
 
@@ -51,7 +51,7 @@ describe("TxBuilder Vote Validator (script DRep)", () => {
 
   const createTestClient = (accountIndex: number = 0) => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return client(Cluster.getChain(devnetCluster))
+    return Client.make(Cluster.getChain(devnetCluster))
       .withKupmios({ kupoUrl: "http://localhost:1455", ogmiosUrl: "http://localhost:1347" })
       .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
   }
@@ -59,7 +59,7 @@ describe("TxBuilder Vote Validator (script DRep)", () => {
 
   beforeAll(async () => {
     const accounts = [0, 1].map((accountIndex) =>
-      client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
+      Client.make(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     )
     const addresses = await Promise.all(accounts.map((client) => client.address()))
 

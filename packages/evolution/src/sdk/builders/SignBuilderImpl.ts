@@ -16,13 +16,13 @@
 
 import { Effect } from "effect"
 
-import * as Script from "../../Script.js"
-import * as Transaction from "../../Transaction.js"
-import * as TransactionHash from "../../TransactionHash.js"
-import * as TransactionWitnessSet from "../../TransactionWitnessSet.js"
-import type * as TxOut from "../../TxOut.js"
-import { hashTransaction } from "../../utils/Hash.js"
-import * as CoreUTxO from "../../UTxO.js"
+import * as Script from "../../script/Script.js"
+import * as Transaction from "../../transaction/Transaction.js"
+import * as TransactionBody from "../../transaction/TransactionBody.js"
+import * as TransactionHash from "../../transaction/TransactionHash.js"
+import * as TransactionWitnessSet from "../../transaction/TransactionWitnessSet.js"
+import type * as TxOut from "../../transaction/TxOut.js"
+import * as CoreUTxO from "../../transaction/UTxO.js"
 import type * as Provider from "../provider/Provider.js"
 import type * as Wallet from "../wallet/Wallet.js"
 import type { SignBuilder, SignBuilderEffect } from "./SignBuilder.js"
@@ -74,7 +74,7 @@ export const makeSignBuilder = (params: {
     if (_chainResult) return _chainResult
 
     const consumed = utxos
-    const txHash = hashTransaction(transaction.body)
+    const txHash = TransactionBody.toHash(transaction.body)
 
     const created: Array<CoreUTxO.UTxO> = outputs.map(
       (output, index) =>

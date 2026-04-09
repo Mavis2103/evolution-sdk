@@ -2,10 +2,10 @@ import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
 import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as Anchor from "../src/Anchor.js"
-import { InfoAction } from "../src/GovernanceAction.js"
-import * as ProposalProcedure from "../src/ProposalProcedure.js"
-import * as RewardAccount from "../src/RewardAccount.js"
+import * as RewardAccount from "../src/address/RewardAccount.js"
+import * as Anchor from "../src/governance/Anchor.js"
+import { InfoAction } from "../src/governance/GovernanceAction.js"
+import * as ProposalProcedure from "../src/governance/ProposalProcedure.js"
 
 /**
  * CML compatibility test for ProposalProcedures CBOR serialization.

@@ -3,39 +3,40 @@ import { Effect, Ref } from "effect"
 import type * as Array from "effect/Array"
 
 // Core imports
-import * as CoreAddress from "../../../Address.js"
-import * as CoreAssets from "../../../Assets/index.js"
-import * as Bytes from "../../../Bytes.js"
-import type * as Certificate from "../../../Certificate.js"
-import * as CostModel from "../../../CostModel.js"
-import type * as PlutusData from "../../../Data.js"
-import type * as DatumOption from "../../../DatumOption.js"
-import * as Ed25519Signature from "../../../Ed25519Signature.js"
-import type * as KeyHash from "../../../KeyHash.js"
-import * as NativeScripts from "../../../NativeScripts.js"
-import type * as PlutusV1 from "../../../PlutusV1.js"
-import type * as PlutusV2 from "../../../PlutusV2.js"
-import type * as PlutusV3 from "../../../PlutusV3.js"
-import * as PolicyId from "../../../PolicyId.js"
-import * as Redeemer from "../../../Redeemer.js"
-import * as Redeemers from "../../../Redeemers.js"
-import type * as RewardAccount from "../../../RewardAccount.js"
-import * as CoreScript from "../../../Script.js"
-import * as ScriptDataHash from "../../../ScriptDataHash.js"
-import * as ScriptRef from "../../../ScriptRef.js"
-import * as Time from "../../../Time/index.js"
-import * as Transaction from "../../../Transaction.js"
-import * as TransactionBody from "../../../TransactionBody.js"
-import * as TransactionHash from "../../../TransactionHash.js"
-import type * as TransactionInput from "../../../TransactionInput.js"
-import * as TransactionWitnessSet from "../../../TransactionWitnessSet.js"
-import * as TxOut from "../../../TxOut.js"
-import { hashAuxiliaryData, hashScriptData } from "../../../utils/Hash.js"
-import * as CoreUTxO from "../../../UTxO.js"
-import * as VKey from "../../../VKey.js"
-import * as Withdrawals from "../../../Withdrawals.js"
+import * as CoreAddress from "../../../address/Address.js"
+import type * as RewardAccount from "../../../address/RewardAccount.js"
+import * as CoreAssets from "../../../assets/index.js"
+import * as Bytes from "../../../bytes/Bytes.js"
+import type * as Certificate from "../../../certificate/Certificate.js"
+import * as Ed25519Signature from "../../../credential/Ed25519Signature.js"
+import type * as KeyHash from "../../../credential/KeyHash.js"
+import * as VKey from "../../../credential/VKey.js"
+import type * as PlutusData from "../../../data/Data.js"
+import type * as DatumOption from "../../../data/DatumOption.js"
+import * as AuxiliaryData from "../../../metadata/AuxiliaryData.js"
+import * as CostModel from "../../../script/CostModel.js"
+import * as NativeScripts from "../../../script/NativeScripts.js"
+import type * as PlutusV1 from "../../../script/PlutusV1.js"
+import type * as PlutusV2 from "../../../script/PlutusV2.js"
+import type * as PlutusV3 from "../../../script/PlutusV3.js"
+import * as Redeemer from "../../../script/Redeemer.js"
+import * as Redeemers from "../../../script/Redeemers.js"
+import * as CoreScript from "../../../script/Script.js"
+import * as ScriptDataHash from "../../../script/ScriptDataHash.js"
+import * as ScriptRef from "../../../script/ScriptRef.js"
+import * as Withdrawals from "../../../staking/Withdrawals.js"
+import * as Time from "../../../time/index.js"
+import * as Transaction from "../../../transaction/Transaction.js"
+import * as TransactionBody from "../../../transaction/TransactionBody.js"
+import * as TransactionHash from "../../../transaction/TransactionHash.js"
+import type * as TransactionInput from "../../../transaction/TransactionInput.js"
+import * as TransactionWitnessSet from "../../../transaction/TransactionWitnessSet.js"
+import * as TxOut from "../../../transaction/TxOut.js"
+import * as CoreUTxO from "../../../transaction/UTxO.js"
+import * as PolicyId from "../../../value/PolicyId.js"
+import type { UnfrackOptions } from "../TransactionBuilder.js"
+import { BuildOptionsTag, TransactionBuilderError, TxBuilderConfigTag, TxContext, voterToKey } from "../TransactionBuilder.js"
 import * as Unfrack from "../Unfrack.js"
-import * as Ctx from "./ctx.js"
 
 // ============================================================================
 // TransactionBuilder Effect Programs Implementation
@@ -47,7 +48,7 @@ import * as Ctx from "./ctx.js"
  *
  * Architecture:
  * - Program creators return deferred Effects (ProgramSteps)
- * - Programs access Ctx.TxContext (single unified Context) containing config, state, and options
+ * - Programs access TxContext (single unified Context) containing config, state, and options
  * - Programs are executed with fresh state on each build() call
  * - No state mutation between builds - complete isolation
  * - No prop drilling - everything accessible via single Context
@@ -74,13 +75,13 @@ export const isScriptAddressCore = CoreAddress.isScript
  * @since 2.0.0
  * @category helpers
  */
-export const isScriptAddress = (address: string): Effect.Effect<boolean, Ctx.TransactionBuilderError> =>
+export const isScriptAddress = (address: string): Effect.Effect<boolean, TransactionBuilderError> =>
   Effect.gen(function* () {
     // Parse address to structure
     const addressStructure = yield* Effect.try({
       try: () => CoreAddress.fromBech32(address),
       catch: (error) =>
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: `Failed to parse address: ${address}`,
           cause: error
         })
@@ -98,7 +99,7 @@ export const isScriptAddress = (address: string): Effect.Effect<boolean, Ctx.Tra
  */
 export const filterScriptUtxos = (
   utxos: ReadonlyArray<CoreUTxO.UTxO>
-): Effect.Effect<ReadonlyArray<CoreUTxO.UTxO>, Ctx.TransactionBuilderError> =>
+): Effect.Effect<ReadonlyArray<CoreUTxO.UTxO>, TransactionBuilderError> =>
   Effect.gen(function* () {
     const scriptUtxos: Array<CoreUTxO.UTxO> = []
 
@@ -177,7 +178,7 @@ export const tierRefScriptFee = (
 export const calculateReferenceScriptFee = (
   utxos: ReadonlyArray<CoreUTxO.UTxO>,
   costPerByte: number
-): Effect.Effect<bigint, Ctx.TransactionBuilderError> =>
+): Effect.Effect<bigint, TransactionBuilderError> =>
   Effect.gen(function* () {
     let totalScriptSize = 0
 
@@ -199,7 +200,7 @@ export const calculateReferenceScriptFee = (
     if (totalScriptSize > 200_000) {
       // maxRefScriptSizePerTx from Conway ledger rules (CIP-0069 / CIP-0112)
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: `Total reference script size (${totalScriptSize} bytes) exceeds maximum limit of 200,000 bytes`
         })
       )
@@ -275,10 +276,10 @@ export const assembleTransaction = (
   inputs: ReadonlyArray<TransactionInput.TransactionInput>,
   outputs: ReadonlyArray<TxOut.TransactionOutput>,
   fee: bigint
-): Effect.Effect<Transaction.Transaction, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.TxBuilderConfigTag | Ctx.BuildOptionsTag> =>
+): Effect.Effect<Transaction.Transaction, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
   Effect.gen(function* () {
     // Get state ref to access scripts and redeemers
-    const stateRef = yield* Ctx.TxContext
+    const stateRef = yield* TxContext
     const state = yield* Ref.get(stateRef)
 
     yield* Effect.logDebug(`[Assembly] Building transaction with ${inputs.length} inputs, ${outputs.length} outputs`)
@@ -460,7 +461,7 @@ export const assembleTransaction = (
         // Build sorted voter keys from votingProcedures using shared utility
         const sortedVoterKeys: Array<string> = []
         for (const voter of state.votingProcedures.procedures.keys()) {
-          sortedVoterKeys.push(Ctx.voterToKey(voter))
+          sortedVoterKeys.push(voterToKey(voter))
         }
 
         // Sort keys lexicographically (as per Cardano ledger rules)
@@ -522,15 +523,15 @@ export const assembleTransaction = (
     }
 
     // Compute scriptDataHash if there are Plutus scripts (redeemers present)
-    let scriptDataHash: ReturnType<typeof hashScriptData> | undefined
+    let scriptDataHash: ReturnType<typeof Redeemers.toScriptDataHash> | undefined
     let redeemersConcrete: Redeemers.RedeemerMap | undefined
     if (redeemers.length > 0) {
       // Get config to access provider for full protocol parameters
-      const config = yield* Ctx.TxBuilderConfigTag
+      const config = yield* TxBuilderConfigTag
 
       if (!config.provider) {
         return yield* Effect.fail(
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message:
               "Script transactions require a provider to fetch full protocol parameters for scriptDataHash calculation",
             cause: { redeemerCount: redeemers.length }
@@ -542,7 +543,7 @@ export const assembleTransaction = (
       const fullProtocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
         Effect.mapError(
           (providerError) =>
-            new Ctx.TransactionBuilderError({
+            new TransactionBuilderError({
               message: `Failed to fetch full protocol parameters for scriptDataHash calculation: ${providerError.message}`,
               cause: providerError
             })
@@ -614,7 +615,7 @@ export const assembleTransaction = (
       // Compute the hash of script data (redeemers + optional datums + cost models)
       // Use the same concrete Redeemers type that goes into the witness set
       redeemersConcrete = Redeemers.makeRedeemerMap(redeemers)
-      scriptDataHash = hashScriptData(
+      scriptDataHash = Redeemers.toScriptDataHash(
         redeemersConcrete,
         costModels,
         plutusDataArray.length > 0 ? plutusDataArray : undefined
@@ -643,8 +644,8 @@ export const assembleTransaction = (
         : undefined
 
     // Convert validity interval from Unix time to slots
-    // Use resolved slot config from Ctx.BuildOptionsTag (respects BuildOptions > Ctx.TxBuilderConfig > network default priority)
-    const buildOptions = yield* Ctx.BuildOptionsTag
+    // Use resolved slot config from BuildOptionsTag (respects BuildOptions > TxBuilderConfig > network default priority)
+    const buildOptions = yield* BuildOptionsTag
     const slotConfig = buildOptions.slotConfig!
 
     let ttl: bigint | undefined
@@ -670,9 +671,9 @@ export const assembleTransaction = (
     }
 
     // Compute auxiliary data hash if auxiliary data is present
-    let auxiliaryDataHash: ReturnType<typeof hashAuxiliaryData> | undefined
+    let auxiliaryDataHash: ReturnType<typeof AuxiliaryData.toHash> | undefined
     if (state.auxiliaryData) {
-      auxiliaryDataHash = hashAuxiliaryData(state.auxiliaryData)
+      auxiliaryDataHash = AuxiliaryData.toHash(state.auxiliaryData)
       yield* Effect.logDebug(`[Assembly] Computed auxiliaryDataHash: ${auxiliaryDataHash.toString()}`)
     }
 
@@ -720,7 +721,7 @@ export const assembleTransaction = (
   }).pipe(
     Effect.mapError(
       (error) =>
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: `Failed to assemble transaction: ${error.message}`,
           cause: error
         })
@@ -789,7 +790,7 @@ const extractPaymentKeyHashFromCore = (address: CoreAddress.Address): Uint8Array
  */
 const buildFakeVKeyWitness = (
   keyHash: Uint8Array
-): Effect.Effect<TransactionWitnessSet.VKeyWitness, Ctx.TransactionBuilderError> =>
+): Effect.Effect<TransactionWitnessSet.VKeyWitness, TransactionBuilderError> =>
   Effect.gen(function* () {
     // Pad key hash to 32 bytes for vkey (Ed25519 public key size)
     const vkeyBytes = new Uint8Array(32)
@@ -801,7 +802,7 @@ const buildFakeVKeyWitness = (
     const vkey = yield* Effect.try({
       try: () => new VKey.VKey({ bytes: vkeyBytes }),
       catch: (error) =>
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Failed to create fake VKey",
           cause: error
         })
@@ -810,7 +811,7 @@ const buildFakeVKeyWitness = (
     const signature = yield* Effect.try({
       try: () => new Ed25519Signature.Ed25519Signature({ bytes: signatureBytes }),
       catch: (error) =>
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Failed to create fake signature",
           cause: error
         })
@@ -833,9 +834,9 @@ const buildFakeVKeyWitness = (
  */
 export const buildFakeWitnessSet = (
   inputUtxos: ReadonlyArray<CoreUTxO.UTxO>
-): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, Ctx.TransactionBuilderError, Ctx.TxContext> =>
+): Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, TransactionBuilderError, TxContext> =>
   Effect.gen(function* () {
-    const stateRef = yield* Ctx.TxContext
+    const stateRef = yield* TxContext
     const state = yield* Ref.get(stateRef)
 
     // Extract unique key hashes from input addresses (Core Address)
@@ -1022,10 +1023,10 @@ export const calculateFeeIteratively = (
     priceMem?: number
     priceStep?: number
   }
-): Effect.Effect<bigint, Ctx.TransactionBuilderError, Ctx.TxContext | Ctx.BuildOptionsTag> =>
+): Effect.Effect<bigint, TransactionBuilderError, TxContext | BuildOptionsTag> =>
   Effect.gen(function* () {
     // Get state to access mint field and collateral
-    const stateRef = yield* Ctx.TxContext
+    const stateRef = yield* TxContext
     const state = yield* Ref.get(stateRef)
 
     // Include collateral UTxOs in witness estimation - they require VKey witnesses too!
@@ -1072,7 +1073,7 @@ export const calculateFeeIteratively = (
 
     // Create placeholder auxiliaryDataHash if auxiliary data is present
     // This is needed for accurate size estimation (32 bytes + CBOR overhead)
-    const placeholderAuxiliaryDataHash = state.auxiliaryData ? hashAuxiliaryData(state.auxiliaryData) : undefined
+    const placeholderAuxiliaryDataHash = state.auxiliaryData ? AuxiliaryData.toHash(state.auxiliaryData) : undefined
 
     let currentFee = 0n
     let previousSize = 0
@@ -1111,7 +1112,7 @@ export const calculateFeeIteratively = (
 
     // Convert validity interval to slots for fee calculation
     // Validity fields affect transaction size and must be included
-    const buildOptions = yield* Ctx.BuildOptionsTag
+    const buildOptions = yield* BuildOptionsTag
     const slotConfig = buildOptions.slotConfig!
     let ttl: bigint | undefined
     let validityIntervalStart: bigint | undefined
@@ -1198,7 +1199,7 @@ export const calculateFeeIteratively = (
   }).pipe(
     Effect.mapError(
       (error) =>
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: `Fee calculation failed to converge: ${error.message}`,
           cause: error
         })
@@ -1283,7 +1284,7 @@ export const validateTransactionBalance = (params: {
   totalInputAssets: CoreAssets.Assets
   totalOutputAssets: CoreAssets.Assets
   fee: bigint
-}): Effect.Effect<void, Ctx.TransactionBuilderError> =>
+}): Effect.Effect<void, TransactionBuilderError> =>
   Effect.gen(function* () {
     const { fee, totalInputAssets, totalOutputAssets } = params
 
@@ -1299,7 +1300,7 @@ export const validateTransactionBalance = (params: {
         const shortfall = requiredAmount - availableAmount
 
         return yield* Effect.fail(
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message: `Insufficient ${unit}: need ${requiredAmount}, have ${availableAmount} (short by ${shortfall})`,
             cause: {
               unit,
@@ -1378,7 +1379,7 @@ export const calculateMinimumUtxoLovelace = (params: {
   datum?: DatumOption.DatumOption
   scriptRef?: CoreScript.Script
   coinsPerUtxoByte: bigint
-}): Effect.Effect<bigint, Ctx.TransactionBuilderError> =>
+}): Effect.Effect<bigint, TransactionBuilderError> =>
   Effect.gen(function* () {
     const calculateRequiredLovelace = (lovelace: bigint): bigint => {
       const assetsForSizing = CoreAssets.withLovelace(params.assets, lovelace)
@@ -1409,7 +1410,7 @@ export const calculateMinimumUtxoLovelace = (params: {
     }
 
     return yield* Effect.fail(
-      new Ctx.TransactionBuilderError({
+      new TransactionBuilderError({
         message: `Minimum UTxO calculation did not converge within ${MAX_MIN_UTXO_ITERATIONS} iterations`
       })
     )
@@ -1439,8 +1440,8 @@ export const createChangeOutput = (params: {
   leftoverAssets: CoreAssets.Assets
   changeAddress: CoreAddress.Address
   coinsPerUtxoByte: bigint
-  unfrackOptions?: Ctx.UnfrackOptions
-}): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, Ctx.TransactionBuilderError> =>
+  unfrackOptions?: UnfrackOptions
+}): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, TransactionBuilderError> =>
   Effect.gen(function* () {
     const { changeAddress, coinsPerUtxoByte, leftoverAssets, unfrackOptions } = params
 
@@ -1460,7 +1461,7 @@ export const createChangeOutput = (params: {
       ).pipe(
         Effect.mapError(
           (error) =>
-            new Ctx.TransactionBuilderError({
+            new TransactionBuilderError({
               message: `Failed to create unfracked change outputs: ${error.message}`,
               cause: error
             })

@@ -9,10 +9,10 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano, client, preprod } from "@evolution-sdk/evolution"
-import * as Address from "@evolution-sdk/evolution/Address"
-import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
-import { fromEntries } from "@evolution-sdk/evolution/TransactionMetadatum"
+import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
+import * as Address from "@evolution-sdk/evolution/address/Address"
+import { fromEntries } from "@evolution-sdk/evolution/metadata/TransactionMetadatum"
+import * as TransactionHash from "@evolution-sdk/evolution/transaction/TransactionHash"
 
 describe("TxBuilder attachMetadata (Devnet Submit)", () => {
   let devnetCluster: Cluster.Cluster | undefined
@@ -24,13 +24,13 @@ describe("TxBuilder attachMetadata (Devnet Submit)", () => {
 
   const createTestClient = (accountIndex: number = 0) => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return client(Cluster.getChain(devnetCluster))
+    return Client.make(Cluster.getChain(devnetCluster))
       .withKupmios({ kupoUrl: "http://localhost:1450", ogmiosUrl: "http://localhost:1345" })
       .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
   }
 
   beforeAll(async () => {
-    const tempClient = client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0, addressType: "Base" })
+    const tempClient = Client.make(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0, addressType: "Base" })
 
     const testAddress = await tempClient.address()
     const testAddressHex = Address.toHex(testAddress)

@@ -2,11 +2,11 @@ import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
 import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as PlutusV1 from "../src/PlutusV1.js"
-import * as PlutusV2 from "../src/PlutusV2.js"
-import * as PlutusV3 from "../src/PlutusV3.js"
-import * as Script from "../src/Script.js"
-import * as ScriptHash from "../src/ScriptHash.js"
+import * as PlutusV1 from "../src/script/PlutusV1.js"
+import * as PlutusV2 from "../src/script/PlutusV2.js"
+import * as PlutusV3 from "../src/script/PlutusV3.js"
+import * as Script from "../src/script/Script.js"
+import * as ScriptHash from "../src/script/ScriptHash.js"
 
 /**
  * CML compatibility test for Script CBOR serialization.

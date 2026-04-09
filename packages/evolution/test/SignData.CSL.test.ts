@@ -2,10 +2,10 @@ import * as CSL from "@emurgo/cardano-message-signing-nodejs"
 import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as Ed25519Signature from "../src/Ed25519Signature.js"
-import { COSEKey, COSESign1, Header, Label, Utils } from "../src/message-signing/index.js"
-import * as PrivateKey from "../src/PrivateKey.js"
-import * as VKey from "../src/VKey.js"
+import * as Ed25519Signature from "../src/credential/Ed25519Signature.js"
+import * as PrivateKey from "../src/credential/PrivateKey.js"
+import * as VKey from "../src/credential/VKey.js"
+import { COSEKey, COSESign1, Header, Label, Utils } from "../src/messageSigning/index.js"
 
 describe("SignData CSL Primitive Compatibility", () => {
   describe("Enum values", () => {

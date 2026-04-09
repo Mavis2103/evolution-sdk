@@ -2,11 +2,11 @@ import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
 import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as CBOR from "../src/CBOR.js"
-import * as Ed25519Signature from "../src/Ed25519Signature.js"
-import * as Transaction from "../src/Transaction.js"
-import * as TransactionWitnessSet from "../src/TransactionWitnessSet.js"
-import * as VKey from "../src/VKey.js"
+import * as Ed25519Signature from "../src/credential/Ed25519Signature.js"
+import * as VKey from "../src/credential/VKey.js"
+import * as CBOR from "../src/encoding/CBOR.js"
+import * as Transaction from "../src/transaction/Transaction.js"
+import * as TransactionWitnessSet from "../src/transaction/TransactionWitnessSet.js"
 
 // fee=0 encoded as 0x1800 (non-canonical uint8) instead of canonical 0x00
 // full tx = 84 <body> a0 f5 f6

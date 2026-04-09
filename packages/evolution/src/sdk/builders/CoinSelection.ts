@@ -1,7 +1,7 @@
 import { Data } from "effect"
 
-import * as CoreAssets from "../../Assets/index.js"
-import type * as UTxO from "../../UTxO.js"
+import * as CoreAssets from "../../assets/index.js"
+import type * as UTxO from "../../transaction/UTxO.js"
 
 // ============================================================================
 // Error Types

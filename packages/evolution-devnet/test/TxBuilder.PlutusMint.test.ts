@@ -10,16 +10,16 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano, client, preprod } from "@evolution-sdk/evolution"
-import * as CoreAddress from "@evolution-sdk/evolution/Address"
-import * as AssetName from "@evolution-sdk/evolution/AssetName"
-import * as Bytes from "@evolution-sdk/evolution/Bytes"
-import * as Data from "@evolution-sdk/evolution/Data"
-import * as PlutusV3 from "@evolution-sdk/evolution/PlutusV3"
-import * as PolicyId from "@evolution-sdk/evolution/PolicyId"
-import * as ScriptHash from "@evolution-sdk/evolution/ScriptHash"
-import * as Text from "@evolution-sdk/evolution/Text"
-import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
+import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
+import * as CoreAddress from "@evolution-sdk/evolution/address/Address"
+import * as Bytes from "@evolution-sdk/evolution/bytes/Bytes"
+import * as Data from "@evolution-sdk/evolution/data/Data"
+import * as Text from "@evolution-sdk/evolution/primitives/Text"
+import * as PlutusV3 from "@evolution-sdk/evolution/script/PlutusV3"
+import * as ScriptHash from "@evolution-sdk/evolution/script/ScriptHash"
+import * as TransactionHash from "@evolution-sdk/evolution/transaction/TransactionHash"
+import * as AssetName from "@evolution-sdk/evolution/value/AssetName"
+import * as PolicyId from "@evolution-sdk/evolution/value/PolicyId"
 
 const CoreAssets = Cardano.Assets
 
@@ -65,7 +65,7 @@ describe("TxBuilder Plutus Minting (Devnet Submit)", () => {
 
   const createTestClient = () => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return client(Cluster.getChain(devnetCluster))
+    return Client.make(Cluster.getChain(devnetCluster))
       .withKupmios({ kupoUrl: "http://localhost:1444", ogmiosUrl: "http://localhost:1339" })
       .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
   }
@@ -74,7 +74,7 @@ describe("TxBuilder Plutus Minting (Devnet Submit)", () => {
     // Verify our script hash calculation matches the blueprint
     expect(calculatedPolicyId).toBe(SIMPLE_MINT_POLICY_ID_HEX)
 
-    const testClient = client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
+    const testClient = Client.make(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
 
     const testAddress = await testClient.address()
     const testAddressHex = CoreAddress.toHex(testAddress)

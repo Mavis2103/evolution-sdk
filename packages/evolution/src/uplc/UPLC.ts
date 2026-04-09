@@ -9,9 +9,9 @@
  */
 import { Data as EffectData, Equal, FastCheck, Hash, Inspectable, Schema } from "effect"
 
-import * as Bytes from "../Bytes.js"
-import * as CBOR from "../CBOR.js"
-import * as Data from "../Data.js"
+import * as Bytes from "../bytes/Bytes.js"
+import * as Data from "../data/Data.js"
+import * as CBOR from "../encoding/CBOR.js"
 
 /**
  * Error class for UPLC related operations.

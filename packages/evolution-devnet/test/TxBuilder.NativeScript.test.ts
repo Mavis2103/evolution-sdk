@@ -11,13 +11,13 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano, client, preprod } from "@evolution-sdk/evolution"
-import * as Address from "@evolution-sdk/evolution/Address"
-import * as NativeScripts from "@evolution-sdk/evolution/NativeScripts"
-import * as ScriptHash from "@evolution-sdk/evolution/ScriptHash"
-import * as Text from "@evolution-sdk/evolution/Text"
-import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
-import * as UTxO from "@evolution-sdk/evolution/UTxO"
+import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
+import * as Address from "@evolution-sdk/evolution/address/Address"
+import * as Text from "@evolution-sdk/evolution/primitives/Text"
+import * as NativeScripts from "@evolution-sdk/evolution/script/NativeScripts"
+import * as ScriptHash from "@evolution-sdk/evolution/script/ScriptHash"
+import * as TransactionHash from "@evolution-sdk/evolution/transaction/TransactionHash"
+import * as UTxO from "@evolution-sdk/evolution/transaction/UTxO"
 
 // Time utility functions (duplicated from core since Time module is not externally accessible)
 const now = (): bigint => BigInt(Date.now())
@@ -41,13 +41,13 @@ describe("TxBuilder NativeScript (Devnet Submit)", () => {
 
   const createTestClient = (accountIndex: number = 0) => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return client(Cluster.getChain(devnetCluster))
+    return Client.make(Cluster.getChain(devnetCluster))
       .withKupmios({ kupoUrl: "http://localhost:1449", ogmiosUrl: "http://localhost:1344" })
       .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
   }
 
   beforeAll(async () => {
-    const tempClient = client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0, addressType: "Base" })
+    const tempClient = Client.make(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0, addressType: "Base" })
 
     const testAddress = await tempClient.address()
     const testAddressHex = Address.toHex(testAddress)

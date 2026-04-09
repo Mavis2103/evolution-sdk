@@ -5,9 +5,9 @@
 
 import { Effect, Schema } from "effect"
 
-import * as CoreAssets from "../../../Assets/index.js"
-import * as PoolKeyHash from "../../../PoolKeyHash.js"
-import * as Redeemer from "../../../Redeemer.js"
+import * as CoreAssets from "../../../assets/index.js"
+import * as Redeemer from "../../../script/Redeemer.js"
+import * as PoolKeyHash from "../../../staking/PoolKeyHash.js"
 import type { EvalRedeemer } from "../../EvalRedeemer.js"
 import type * as Provider from "../Provider.js"
 import { ProviderError } from "../Provider.js"

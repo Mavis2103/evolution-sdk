@@ -1,6 +1,6 @@
 ---
 title: blueprint/codegen-config.ts
-nav_order: 18
+nav_order: 25
 parent: Modules
 ---
 

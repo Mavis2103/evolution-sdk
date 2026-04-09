@@ -12,11 +12,11 @@
 
 import * as Effect from "effect/Effect"
 
-import type * as CoreAddress from "../../Address.js"
-import * as CoreAssets from "../../Assets/index.js"
-import type * as TxOut from "../../TxOut.js"
-import type * as Ctx from "./internal/ctx.js"
+import type * as CoreAddress from "../../address/Address.js"
+import * as CoreAssets from "../../assets/index.js"
+import type * as TxOut from "../../transaction/TxOut.js"
 import { calculateMinimumUtxoLovelace, makeTxOutput } from "./internal/txBuilder.js"
+import type { UnfrackOptions } from "./TransactionBuilder.js"
 
 // ============================================================================
 // Default Unfrack Options
@@ -24,7 +24,7 @@ import { calculateMinimumUtxoLovelace, makeTxOutput } from "./internal/txBuilder
 
 /**
  * Default unfrack configuration values.
- * Applied when Ctx.UnfrackOptions properties are not provided.
+ * Applied when UnfrackOptions properties are not provided.
  */
 const DEFAULT_UNFRACK_OPTIONS = {
   ada: {
@@ -145,7 +145,7 @@ const calculateBundleMinUTxO = (
  */
 export const calculateTokenBundles = (
   tokens: ReadonlyArray<TokenInfo>,
-  options: Ctx.UnfrackOptions,
+  options: UnfrackOptions,
   changeAddress: CoreAddress.Address,
   coinsPerUtxoByte: bigint
 ): Effect.Effect<ReadonlyArray<TokenBundle>, Error, never> =>
@@ -252,7 +252,7 @@ const bundleTokensWithRules = (
  */
 export const calculateAdaSubdivision = (
   leftoverAda: bigint,
-  options: Ctx.UnfrackOptions
+  options: UnfrackOptions
 ): Effect.Effect<ReadonlyArray<bigint>, never, never> => {
   return Effect.gen(function* () {
     const threshold = options.ada?.subdivideThreshold ?? 100_000000n
@@ -352,7 +352,7 @@ export type UnfrackResult = {
 export const createUnfrackedChangeOutputs = (
   changeAddress: CoreAddress.Address,
   changeAssets: CoreAssets.Assets,
-  options: Ctx.UnfrackOptions = {},
+  options: UnfrackOptions = {},
   coinsPerUtxoByte: bigint
 ): Effect.Effect<ReadonlyArray<TxOut.TransactionOutput>, Error, never> => {
   return Effect.gen(function* () {

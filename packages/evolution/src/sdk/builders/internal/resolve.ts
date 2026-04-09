@@ -1,11 +1,12 @@
 import { Effect } from "effect"
 
-import type * as CoreAddress from "../../../Address.js"
-import type * as Transaction from "../../../Transaction.js"
-import type * as CoreUTxO from "../../../UTxO.js"
+import type * as CoreAddress from "../../../address/Address.js"
+import type * as Transaction from "../../../transaction/Transaction.js"
+import type * as CoreUTxO from "../../../transaction/UTxO.js"
 import type * as Provider from "../../provider/Provider.js"
 import type * as Wallet from "../../wallet/Wallet.js"
-import * as Ctx from "./ctx.js"
+import type { BuildOptions, EvaluationContext, Evaluator, ProtocolParameters, TxBuilderConfig } from "../TransactionBuilder.js"
+import { EvaluationError, TransactionBuilderError } from "../TransactionBuilder.js"
 import { parseProviderError } from "./providerErrorParser.js"
 
 /**
@@ -15,9 +16,9 @@ import { parseProviderError } from "./providerErrorParser.js"
  * @category builders
  */
 export const resolveProtocolParameters = (
-  config: Ctx.TxBuilderConfig,
-  options?: Ctx.BuildOptions
-): Effect.Effect<Ctx.ProtocolParameters, Ctx.TransactionBuilderError | Provider.ProviderError> => {
+  config: TxBuilderConfig,
+  options?: BuildOptions
+): Effect.Effect<ProtocolParameters, TransactionBuilderError | Provider.ProviderError> => {
   if (options?.protocolParameters !== undefined) {
     return Effect.succeed(options.protocolParameters)
   }
@@ -26,7 +27,7 @@ export const resolveProtocolParameters = (
   if (provider !== undefined) {
     return Effect.map(
       provider.effect.getProtocolParameters(),
-      (params): Ctx.ProtocolParameters => ({
+      (params): ProtocolParameters => ({
         minFeeCoefficient: BigInt(params.minFeeA),
         minFeeConstant: BigInt(params.minFeeB),
         coinsPerUtxoByte: params.coinsPerUtxoByte,
@@ -39,7 +40,7 @@ export const resolveProtocolParameters = (
   }
 
   return Effect.fail(
-    new Ctx.TransactionBuilderError({
+    new TransactionBuilderError({
       message:
         "No protocol parameters provided. Either provide protocolParameters in BuildOptions or provider in config."
     })
@@ -53,9 +54,9 @@ export const resolveProtocolParameters = (
  * @category builders
  */
 export const resolveChangeAddress = (
-  config: Ctx.TxBuilderConfig,
-  options?: Ctx.BuildOptions
-): Effect.Effect<CoreAddress.Address, Ctx.TransactionBuilderError | Wallet.WalletError> => {
+  config: TxBuilderConfig,
+  options?: BuildOptions
+): Effect.Effect<CoreAddress.Address, TransactionBuilderError | Wallet.WalletError> => {
   if (options?.changeAddress !== undefined) {
     return Effect.succeed(options.changeAddress)
   }
@@ -66,7 +67,7 @@ export const resolveChangeAddress = (
   }
 
   return Effect.fail(
-    new Ctx.TransactionBuilderError({
+    new TransactionBuilderError({
       message: "No change address provided. Either provide wallet in config or changeAddress in build options."
     })
   )
@@ -79,11 +80,11 @@ export const resolveChangeAddress = (
  * @category builders
  */
 export const resolveAvailableUtxos = (
-  config: Ctx.TxBuilderConfig,
-  options?: Ctx.BuildOptions
+  config: TxBuilderConfig,
+  options?: BuildOptions
 ): Effect.Effect<
   ReadonlyArray<CoreUTxO.UTxO>,
-  Ctx.TransactionBuilderError | Wallet.WalletError | Provider.ProviderError
+  TransactionBuilderError | Wallet.WalletError | Provider.ProviderError
 > => {
   if (options?.availableUtxos !== undefined) {
     return Effect.succeed(options.availableUtxos)
@@ -96,7 +97,7 @@ export const resolveAvailableUtxos = (
   }
 
   return Effect.fail(
-    new Ctx.TransactionBuilderError({
+    new TransactionBuilderError({
       message:
         "No available UTxOs provided. Either provide wallet+provider in config or availableUtxos in build options."
     })
@@ -110,9 +111,9 @@ export const resolveAvailableUtxos = (
  * @category builders
  */
 export const resolveEvaluator = (
-  config: Ctx.TxBuilderConfig,
-  options?: Ctx.BuildOptions
-): Ctx.Evaluator | undefined => {
+  config: TxBuilderConfig,
+  options?: BuildOptions
+): Evaluator | undefined => {
   if (options?.evaluator !== undefined) {
     return options.evaluator
   }
@@ -123,7 +124,7 @@ export const resolveEvaluator = (
       evaluate: (
         tx: Transaction.Transaction,
         additionalUtxos: ReadonlyArray<CoreUTxO.UTxO> | undefined,
-        _context: Ctx.EvaluationContext
+        _context: EvaluationContext
       ) => {
         const utxosToPass = options?.passAdditionalUtxos === true
           ? (additionalUtxos === undefined ? undefined : [...additionalUtxos])
@@ -131,7 +132,7 @@ export const resolveEvaluator = (
 
         return provider.effect.evaluateTx(tx, utxosToPass).pipe(
           Effect.mapError((providerError) =>
-            new Ctx.EvaluationError({
+            new EvaluationError({
               message: `Provider evaluation failed: ${providerError.message}`,
               cause: providerError,
               failures: parseProviderError(providerError)
@@ -151,5 +152,5 @@ export const resolveEvaluator = (
  * @since 2.0.0
  * @category builders
  */
-export const resolveSlotConfig = (config: Ctx.TxBuilderConfig, options?: Ctx.BuildOptions) =>
+export const resolveSlotConfig = (config: TxBuilderConfig, options?: BuildOptions) =>
   options?.slotConfig ?? config.chain.slotConfig

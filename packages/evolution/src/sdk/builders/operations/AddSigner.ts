@@ -11,7 +11,7 @@
 
 import { Effect, Equal, Ref } from "effect"
 
-import * as Ctx from "../internal/ctx.js"
+import { TxContext } from "../TransactionBuilder.js"
 import type { AddSignerParams } from "./Operations.js"
 
 /**
@@ -27,7 +27,7 @@ import type { AddSignerParams } from "./Operations.js"
  */
 export const createAddSignerProgram = (params: AddSignerParams) =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
+    const ctx = yield* TxContext
 
     yield* Ref.update(ctx, (state) => {
       // Check if this key hash is already in requiredSigners (deduplicate)

@@ -519,12 +519,12 @@ export interface SlotConfig {
  * @example
  * ```typescript
  * import * as Cluster from "@evolution-sdk/devnet/Cluster"
- * import { client } from "@evolution-sdk/evolution"
+ * import { Client } from "@evolution-sdk/evolution"
  *
  * const cluster = await Cluster.make({ ... })
  * const slotConfig = Cluster.getSlotConfig(cluster)
  *
- * const sdk = client({
+ * const sdk = Client.make({
  *   id: 0,
  *   name: "Devnet",
  *   networkMagic: 42,
@@ -560,10 +560,10 @@ export const getSlotConfig = (cluster: Cluster): SlotConfig => {
  * @example
  * ```typescript
  * import * as Cluster from "@evolution-sdk/devnet/Cluster"
- * import { client } from "@evolution-sdk/evolution"
+ * import { Client } from "@evolution-sdk/evolution"
  *
  * const cluster = await Cluster.make({ ... })
- * const sdk = client(Cluster.getChain(cluster))
+ * const sdk = Client.make(Cluster.getChain(cluster))
  *   .withKupmios({ kupoUrl: "...", ogmiosUrl: "..." })
  *   .withSeed({ mnemonic: "..." })
  * ```

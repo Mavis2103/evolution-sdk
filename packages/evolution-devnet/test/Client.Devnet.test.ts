@@ -2,8 +2,8 @@ import { describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano, client, preprod } from "@evolution-sdk/evolution"
-import * as CoreAddress from "@evolution-sdk/evolution/Address"
+import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
+import * as CoreAddress from "@evolution-sdk/evolution/address/Address"
 import { afterAll, beforeAll } from "vitest"
 
 // Alias for Cardano.Assets
@@ -21,12 +21,12 @@ describe("Client with Devnet", () => {
     "test test test test test test test test test test test test test test test test test test test test test test test sauce"
 
   const createTestClient = () =>
-    client(Cluster.getChain(devnetCluster!))
+    Client.make(Cluster.getChain(devnetCluster!))
       .withKupmios({ kupoUrl: "http://localhost:1443", ogmiosUrl: "http://localhost:1338" })
       .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
 
   beforeAll(async () => {
-    const testClient = client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
+    const testClient = Client.make(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
 
     const testAddress = await testClient.address()
     const testAddressHex = CoreAddress.toHex(testAddress)

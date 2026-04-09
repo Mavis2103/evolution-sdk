@@ -2,14 +2,14 @@ import { afterAll, beforeAll, describe, expect, it } from "@effect/vitest"
 import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
-import { Cardano, client, preprod } from "@evolution-sdk/evolution"
-import * as CoreAddress from "@evolution-sdk/evolution/Address"
-import * as AssetName from "@evolution-sdk/evolution/AssetName"
-import * as NativeScripts from "@evolution-sdk/evolution/NativeScripts"
-import * as PolicyId from "@evolution-sdk/evolution/PolicyId"
-import * as ScriptHash from "@evolution-sdk/evolution/ScriptHash"
-import * as Text from "@evolution-sdk/evolution/Text"
-import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
+import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
+import * as CoreAddress from "@evolution-sdk/evolution/address/Address"
+import * as Text from "@evolution-sdk/evolution/primitives/Text"
+import * as NativeScripts from "@evolution-sdk/evolution/script/NativeScripts"
+import * as ScriptHash from "@evolution-sdk/evolution/script/ScriptHash"
+import * as TransactionHash from "@evolution-sdk/evolution/transaction/TransactionHash"
+import * as AssetName from "@evolution-sdk/evolution/value/AssetName"
+import * as PolicyId from "@evolution-sdk/evolution/value/PolicyId"
 
 const CoreAssets = Cardano.Assets
 
@@ -30,13 +30,13 @@ describe("TxBuilder Minting (Devnet Submit)", () => {
 
   const createTestClient = () => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return client(Cluster.getChain(devnetCluster))
+    return Client.make(Cluster.getChain(devnetCluster))
       .withKupmios({ kupoUrl: "http://localhost:1443", ogmiosUrl: "http://localhost:1338" })
       .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
   }
 
   beforeAll(async () => {
-    const testClient = client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
+    const testClient = Client.make(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex: 0 })
 
     const testAddress = await testClient.address()
     const testAddressHex = CoreAddress.toHex(testAddress)

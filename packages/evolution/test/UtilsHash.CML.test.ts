@@ -2,17 +2,16 @@ import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
 import { FastCheck, Schema } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as AuxiliaryData from "../src/AuxiliaryData.js"
-import * as AuxiliaryDataHash from "../src/AuxiliaryDataHash.js"
-import * as CBOR from "../src/CBOR.js"
-import * as CostModel from "../src/CostModel.js"
-import * as Data from "../src/Data.js"
-import * as Redeemer from "../src/Redeemer.js"
-import * as Redeemers from "../src/Redeemers.js"
-import * as ScriptDataHash from "../src/ScriptDataHash.js"
-import * as TransactionBody from "../src/TransactionBody.js"
-import * as TransactionHash from "../src/TransactionHash.js"
-import * as UtilsHash from "../src/utils/Hash.js"
+import * as Data from "../src/data/Data.js"
+import * as CBOR from "../src/encoding/CBOR.js"
+import * as AuxiliaryData from "../src/metadata/AuxiliaryData.js"
+import * as AuxiliaryDataHash from "../src/metadata/AuxiliaryDataHash.js"
+import * as CostModel from "../src/script/CostModel.js"
+import * as Redeemer from "../src/script/Redeemer.js"
+import * as Redeemers from "../src/script/Redeemers.js"
+import * as ScriptDataHash from "../src/script/ScriptDataHash.js"
+import * as TransactionBody from "../src/transaction/TransactionBody.js"
+import * as TransactionHash from "../src/transaction/TransactionHash.js"
 
 // Local helper to hex-encode bytes for assertions
 const toHex = (bytes: Uint8Array): string =>
@@ -35,7 +34,7 @@ describe("UtilsHash helpers CML parity", () => {
   it("property: hashTransaction matches CML.hash_transaction", () => {
     FastCheck.assert(
       FastCheck.property(TransactionBody.arbitrary, (body) => {
-        const evolutionHash = UtilsHash.hashTransaction(body)
+        const evolutionHash = TransactionBody.toHash(body)
         const evolutionHex = TransactionHash.toHex(evolutionHash)
 
         const hex = TransactionBody.toCBORHex(body)
@@ -51,7 +50,7 @@ describe("UtilsHash helpers CML parity", () => {
   it("property: hashAuxiliaryData matches CML.hash_auxiliary_data", () => {
     FastCheck.assert(
       FastCheck.property(AuxiliaryData.arbitrary, (aux) => {
-        const evolutionHash = UtilsHash.hashAuxiliaryData(aux)
+        const evolutionHash = AuxiliaryData.toHash(aux)
         const evolutionHex = AuxiliaryDataHash.toHex(evolutionHash)
 
         const hex = AuxiliaryData.toCBORHex(aux)
@@ -67,7 +66,7 @@ describe("UtilsHash helpers CML parity", () => {
   it("property: Data.hashData matches CML.hash_plutus_data", () => {
     FastCheck.assert(
       FastCheck.property(Data.arbitrary, (datum) => {
-        const evolutionHash = Data.hashData(datum)
+        const evolutionHash = Data.toDatumHash(datum)
         const evolutionBytes = evolutionHash.hash
 
         const hex = Data.toCBORHex(datum)
@@ -84,7 +83,7 @@ describe("UtilsHash helpers CML parity", () => {
     FastCheck.assert(
       FastCheck.property(redeemersArb, (redeemers) => {
         const expected = sumExUnits(redeemers)
-        const actualExUnits = UtilsHash.computeTotalExUnits(redeemers)
+        const actualExUnits = Redeemer.totalExUnits(redeemers)
         expect(actualExUnits.mem).toBe(expected.mem)
         expect(actualExUnits.steps).toBe(expected.steps)
       })
@@ -108,7 +107,7 @@ describe("UtilsHash helpers CML parity", () => {
       FastCheck.property(redeemersArb, datumsOptArb, smallCostModels, (redeemers, datums, costModels) => {
         // Evolution — use RedeemerArray (CML uses array format)
         const redeemerArray = new Redeemers.RedeemerArray({ value: [...redeemers] })
-        const evolution = UtilsHash.hashScriptData(redeemerArray, costModels, datums)
+        const evolution = Redeemers.toScriptDataHash(redeemerArray, costModels, datums)
         const evolutionHex = ScriptDataHash.toHex(evolution)
 
         // Build CML inputs from Evolution CBOR encodings
@@ -189,7 +188,7 @@ describe("UtilsHash helpers CML parity", () => {
     })
 
     const redeemers = new Redeemers.RedeemerArray({ value: [] })
-    const evolution = UtilsHash.hashScriptData(redeemers, cms)
+    const evolution = Redeemers.toScriptDataHash(redeemers, cms)
     const evolutionHex = ScriptDataHash.toHex(evolution)
 
     // Build CML inputs
@@ -209,7 +208,7 @@ describe("UtilsHash helpers CML parity", () => {
       PlutusV3: new CostModel.CostModel({ costs: [] })
     })
 
-    const evolutionHex = ScriptDataHash.toHex(UtilsHash.hashScriptData(redeemers, costModels, datums))
+    const evolutionHex = ScriptDataHash.toHex(Redeemers.toScriptDataHash(redeemers, costModels, datums))
 
     const list = CML.PlutusDataList.new()
     list.add(CML.PlutusData.from_cbor_hex("d87980"))

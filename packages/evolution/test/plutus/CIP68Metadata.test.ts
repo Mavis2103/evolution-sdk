@@ -1,8 +1,8 @@
 import { describe, expect, it } from "@effect/vitest"
 
-import * as Data from "../../src/Data.js"
+import * as Data from "../../src/data/Data.js"
 import * as CIP68Metadata from "../../src/plutus/CIP68Metadata.js"
-import * as Text from "../../src/Text.js"
+import * as Text from "../../src/primitives/Text.js"
 
 describe("CIP68 Metadata", () => {
   describe("CIP68Datum", () => {

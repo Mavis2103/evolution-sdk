@@ -35,14 +35,14 @@ import { Address,
   Assets,
   TransactionHash,
   preprod,
-  client as makeClient,
+  Client,
 } from "@evolution-sdk/evolution"
 
 const MNEMONIC = "your twenty-four word mnemonic phrase here"
 
 async function completeWorkflow() {
   // Step 1: Generate sender address
-  const wallet = makeClient(preprod)
+  const wallet = Client.make(preprod)
   .withSeed({ mnemonic: MNEMONIC, accountIndex: 0 })
 
   const senderAddress = await wallet.address()
@@ -77,7 +77,7 @@ async function completeWorkflow() {
   console.log("Devnet started with Kupo and Ogmios")
 
   // Step 4: Create client connected to devnet
-  const client = makeClient(preprod)
+  const client = Client.make(preprod)
   .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
   .withSeed({ mnemonic: MNEMONIC, accountIndex: 0 })
 
@@ -173,7 +173,7 @@ import { Address,
   Assets,
   TransactionHash,
   preprod,
-  client as makeClient,
+  Client,
 } from "@evolution-sdk/evolution"
 
 // Start devnet with funded address
@@ -194,7 +194,7 @@ await Cluster.start(cluster)
 await new Promise((resolve) => setTimeout(resolve, 6000))
 
 // Provider-only client (no wallet configured)
-const providerClient = makeClient(preprod)
+const providerClient = Client.make(preprod)
   .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
 
 // Query any address on the devnet
@@ -233,20 +233,19 @@ import {
   Assets,
   TransactionHash,
   preprod,
-  type SigningClient,
-  client as makeClient,
+  Client,
 } from "@evolution-sdk/evolution"
 
 describe("Transaction Tests", () => {
   let cluster: Cluster.Cluster
-  let client: SigningClient
+  let client: Client.SigningClient
 
   beforeAll(async () => {
     // Setup devnet for test suite
     const mnemonic =
       "test test test test test test test test test test test test test test test test test test test test test test test sauce"
 
-    const wallet = makeClient(preprod)
+    const wallet = Client.make(preprod)
   .withSeed({ mnemonic, accountIndex: 0 })
 
     const addressHex = Address.toHex(await wallet.address())
@@ -269,7 +268,7 @@ describe("Transaction Tests", () => {
     await Cluster.start(cluster)
     await new Promise((resolve) => setTimeout(resolve, 8000))
 
-    client = makeClient(preprod)
+    client = Client.make(preprod)
   .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
   .withSeed({ mnemonic, accountIndex: 0 })
   }, 180_000) // Extended timeout for cluster startup
@@ -337,15 +336,15 @@ import { Address,
   Assets,
   TransactionHash,
   preprod,
-  client as makeClient,
+  Client,
 } from "@evolution-sdk/evolution"
 
 async function multiWalletExample() {
   // Create two wallets
-  const wallet1 = makeClient(preprod)
+  const wallet1 = Client.make(preprod)
   .withSeed({ mnemonic: "wallet one mnemonic here", accountIndex: 0 })
 
-  const wallet2 = makeClient(preprod)
+  const wallet2 = Client.make(preprod)
   .withSeed({ mnemonic: "wallet two mnemonic here", accountIndex: 0 })
 
   // Get addresses as hex for genesis config
@@ -374,11 +373,11 @@ async function multiWalletExample() {
   await new Promise((resolve) => setTimeout(resolve, 8000))
 
   // Create connected clients for both wallets
-  const client1 = makeClient(preprod)
+  const client1 = Client.make(preprod)
   .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
   .withSeed({ mnemonic: "wallet one mnemonic here", accountIndex: 0 })
 
-  const client2 = makeClient(preprod)
+  const client2 = Client.make(preprod)
   .withKupmios({ kupoUrl: "http://localhost:1442", ogmiosUrl: "http://localhost:1337" })
   .withSeed({ mnemonic: "wallet two mnemonic here", accountIndex: 0 })
 

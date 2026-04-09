@@ -9,8 +9,8 @@
  * @module
  */
 
-import type { SlotConfig } from "../../Time/SlotConfig.js"
-import { SLOT_CONFIG_NETWORK } from "../../Time/SlotConfig.js"
+import type { SlotConfig } from "../../time/SlotConfig.js"
+import { SLOT_CONFIG_NETWORK } from "../../time/SlotConfig.js"
 
 /**
  * Describes a Cardano network — its identity, consensus parameters, and slot timing.

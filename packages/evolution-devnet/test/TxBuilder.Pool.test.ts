@@ -8,20 +8,20 @@ import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import type { Cardano } from "@evolution-sdk/evolution"
-import { client, preprod } from "@evolution-sdk/evolution"
-import * as Address from "@evolution-sdk/evolution/Address"
-import * as Bytes32 from "@evolution-sdk/evolution/Bytes32"
-import type * as EpochNo from "@evolution-sdk/evolution/EpochNo"
-import * as IPv4 from "@evolution-sdk/evolution/IPv4"
-import * as KeyHash from "@evolution-sdk/evolution/KeyHash"
-import * as PoolKeyHash from "@evolution-sdk/evolution/PoolKeyHash"
-import * as PoolMetadata from "@evolution-sdk/evolution/PoolMetadata"
-import * as PoolParams from "@evolution-sdk/evolution/PoolParams"
-import * as RewardAccount from "@evolution-sdk/evolution/RewardAccount"
-import * as SingleHostAddr from "@evolution-sdk/evolution/SingleHostAddr"
-import * as UnitInterval from "@evolution-sdk/evolution/UnitInterval"
-import * as Url from "@evolution-sdk/evolution/Url"
-import * as VrfKeyHash from "@evolution-sdk/evolution/VrfKeyHash"
+import { Client, preprod } from "@evolution-sdk/evolution"
+import * as Address from "@evolution-sdk/evolution/address/Address"
+import * as RewardAccount from "@evolution-sdk/evolution/address/RewardAccount"
+import * as VrfKeyHash from "@evolution-sdk/evolution/block/VrfKeyHash"
+import * as Bytes32 from "@evolution-sdk/evolution/bytes/Bytes32"
+import * as KeyHash from "@evolution-sdk/evolution/credential/KeyHash"
+import type * as EpochNo from "@evolution-sdk/evolution/network/EpochNo"
+import * as UnitInterval from "@evolution-sdk/evolution/numeric/UnitInterval"
+import * as IPv4 from "@evolution-sdk/evolution/relay/IPv4"
+import * as SingleHostAddr from "@evolution-sdk/evolution/relay/SingleHostAddr"
+import * as Url from "@evolution-sdk/evolution/relay/Url"
+import * as PoolKeyHash from "@evolution-sdk/evolution/staking/PoolKeyHash"
+import * as PoolMetadata from "@evolution-sdk/evolution/staking/PoolMetadata"
+import * as PoolParams from "@evolution-sdk/evolution/staking/PoolParams"
 
 describe("TxBuilder Pool Operations", () => {
   let devnetCluster: Cluster.Cluster | undefined
@@ -33,7 +33,7 @@ describe("TxBuilder Pool Operations", () => {
 
   const createTestClient = (accountIndex: number = 0) => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return client(Cluster.getChain(devnetCluster))
+    return Client.make(Cluster.getChain(devnetCluster))
       .withKupmios({ kupoUrl: "http://localhost:1453", ogmiosUrl: "http://localhost:1343" })
       .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
   }
@@ -41,7 +41,7 @@ describe("TxBuilder Pool Operations", () => {
   beforeAll(async () => {
     // Create clients for pool tests
     const accounts = [0, 1].map((accountIndex) =>
-      client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
+      Client.make(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     )
 
     const addresses = await Promise.all(accounts.map((client) => client.address()))

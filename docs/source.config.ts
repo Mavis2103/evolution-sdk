@@ -1,6 +1,5 @@
 import { defineConfig, defineDocs, frontmatterSchema, metaSchema } from "fumadocs-mdx/config"
 import { transformerTwoslash } from "fumadocs-twoslash"
-import { createFileSystemTypesCache } from "fumadocs-twoslash/cache-fs"
 import { rehypeCodeDefaultOptions } from "fumadocs-core/mdx-plugins"
 
 // You can customise Zod schemas for frontmatter and `meta.json` here
@@ -26,9 +25,7 @@ export default defineConfig({
       langs: ["ts", "tsx", "js", "jsx", "bash", "sh"],
       transformers: [
         ...(rehypeCodeDefaultOptions.transformers ?? []),
-        transformerTwoslash({
-          typesCache: createFileSystemTypesCache()
-        })
+        transformerTwoslash()
       ]
     }
   }

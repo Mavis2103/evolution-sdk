@@ -1,7 +1,7 @@
 import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet"
 import { NetworkType } from "@cardano-foundation/cardano-connect-with-wallet-core"
 import { useState } from "react"
-import { Address, Assets, client, mainnet, preprod, preview, TransactionHash } from "@evolution-sdk/evolution"
+import { Address, Assets, Client, mainnet, preprod, preview, TransactionHash } from "@evolution-sdk/evolution"
 
 export default function TransactionBuilder() {
   const [txHash, setTxHash] = useState<string | null>(null)
@@ -56,7 +56,7 @@ export default function TransactionBuilder() {
       const chainPresets = { preprod, preview, mainnet }
       const chain = chainPresets[networkEnv as keyof typeof chainPresets] ?? preprod
 
-      const txClient = client(chain)
+      const txClient = Client.make(chain)
         .withBlockfrost({
           baseUrl: blockfrostUrls[networkEnv as keyof typeof blockfrostUrls] ?? blockfrostUrls.preprod,
           projectId: import.meta.env.VITE_BLOCKFROST_PROJECT_ID || ""

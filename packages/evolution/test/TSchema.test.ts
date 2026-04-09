@@ -1,10 +1,10 @@
 import { Schema } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as Bytes from "../src/Bytes.js"
-import { fromHex } from "../src/Bytes.js"
-import * as Data from "../src/Data.js"
-import * as TSchema from "../src/TSchema.js"
+import * as Bytes from "../src/bytes/Bytes.js"
+import { fromHex } from "../src/bytes/Bytes.js"
+import * as Data from "../src/data/Data.js"
+import * as TSchema from "../src/data/TSchema.js"
 
 /**
  * Tests for TypeTaggedSchema module functionality -

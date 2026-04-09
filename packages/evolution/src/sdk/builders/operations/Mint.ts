@@ -7,13 +7,13 @@
 
 import { Effect, Ref } from "effect"
 
-import * as AssetName from "../../../AssetName.js"
-import * as Assets from "../../../Assets/index.js"
-import * as Mint from "../../../Mint.js"
-import * as NonZeroInt64 from "../../../NonZeroInt64.js"
-import * as PolicyId from "../../../PolicyId.js"
-import * as Ctx from "../internal/ctx.js"
+import * as Assets from "../../../assets/index.js"
+import * as NonZeroInt64 from "../../../numeric/NonZeroInt64.js"
+import * as AssetName from "../../../value/AssetName.js"
+import * as Mint from "../../../value/Mint.js"
+import * as PolicyId from "../../../value/PolicyId.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
+import { TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
 import type { MintTokensParams } from "./Operations.js"
 
 /**
@@ -36,14 +36,14 @@ import type { MintTokensParams } from "./Operations.js"
  */
 export const createMintAssetsProgram = (
   params: MintTokensParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
+    const ctx = yield* TxContext
 
     // 1. Validate no lovelace in mint assets
     if (params.assets.lovelace !== 0n) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "Cannot mint lovelace. Only native tokens can be minted.",
           cause: params.assets
         })
@@ -53,7 +53,7 @@ export const createMintAssetsProgram = (
     // 2. Validate multiAsset exists
     if (!params.assets.multiAsset || params.assets.multiAsset.map.size === 0) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "No valid assets provided for minting",
           cause: params.assets
         })
@@ -74,7 +74,7 @@ export const createMintAssetsProgram = (
         // Validate amount is within NonZeroInt64 range
         if (amount < NonZeroInt64.NEG_INT64_MIN || amount > NonZeroInt64.POS_INT64_MAX) {
           return yield* Effect.fail(
-            new Ctx.TransactionBuilderError({
+            new TransactionBuilderError({
               message: `Amount out of range for NonZeroInt64: ${amount}`,
               cause: amount
             })

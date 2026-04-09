@@ -13,8 +13,8 @@
 
 import { Effect, Ref } from "effect"
 
-import * as CoreUTxO from "../../../UTxO.js"
-import * as Ctx from "../internal/ctx.js"
+import * as CoreUTxO from "../../../transaction/UTxO.js"
+import { TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
 import type { ReadFromParams } from "./Operations.js"
 
 /**
@@ -32,16 +32,16 @@ import type { ReadFromParams } from "./Operations.js"
  */
 export const createReadFromProgram = (
   params: ReadFromParams
-): Effect.Effect<void, Ctx.TransactionBuilderError, Ctx.TxContext> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext> =>
   Effect.gen(function* () {
-    const ctx = yield* Ctx.TxContext
+    const ctx = yield* TxContext
 
     yield* Effect.logDebug(`[ReadFrom] Adding ${params.referenceInputs.length} reference input(s)`)
 
     // 1. Validate reference inputs exist
     if (params.referenceInputs.length === 0) {
       return yield* Effect.fail(
-        new Ctx.TransactionBuilderError({
+        new TransactionBuilderError({
           message: "No reference inputs provided to readFrom"
         })
       )
@@ -56,7 +56,7 @@ export const createReadFromProgram = (
     for (const refKey of refInputKeysArray) {
       if (selectedInputKeys.has(refKey)) {
         return yield* Effect.fail(
-          new Ctx.TransactionBuilderError({
+          new TransactionBuilderError({
             message: `UTxO ${refKey} cannot be both a regular input and a reference input`
           })
         )

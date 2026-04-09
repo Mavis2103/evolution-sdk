@@ -8,11 +8,11 @@
  * a parsing error only surfaces when a skipped test is actually enabled.
  */
 
-import * as Address from "../../../src/Address.js"
-import * as DatumHash from "../../../src/DatumHash.js"
-import * as RewardAddress from "../../../src/RewardAddress.js"
-import * as TransactionHash from "../../../src/TransactionHash.js"
-import * as TransactionInput from "../../../src/TransactionInput.js"
+import * as Address from "../../../src/address/Address.js"
+import * as RewardAddress from "../../../src/address/RewardAddress.js"
+import * as DatumHash from "../../../src/data/DatumHash.js"
+import * as TransactionHash from "../../../src/transaction/TransactionHash.js"
+import * as TransactionInput from "../../../src/transaction/TransactionInput.js"
 
 // ── Raw strings ──────────────────────────────────────────────
 

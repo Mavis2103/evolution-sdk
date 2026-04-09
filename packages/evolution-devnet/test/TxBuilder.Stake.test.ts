@@ -16,10 +16,10 @@ import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import type { Cardano } from "@evolution-sdk/evolution"
-import { client, preprod } from "@evolution-sdk/evolution"
-import * as Address from "@evolution-sdk/evolution/Address"
-import * as DRep from "@evolution-sdk/evolution/DRep"
-import * as PoolKeyHash from "@evolution-sdk/evolution/PoolKeyHash"
+import { Client, preprod } from "@evolution-sdk/evolution"
+import * as Address from "@evolution-sdk/evolution/address/Address"
+import * as DRep from "@evolution-sdk/evolution/governance/DRep"
+import * as PoolKeyHash from "@evolution-sdk/evolution/staking/PoolKeyHash"
 
 // Default devnet stake pool ID from Config.ts
 const DEVNET_POOL_ID = "8a219b698d3b6e034391ae84cee62f1d76b6fbc45ddfe4e31e0d4b60"
@@ -36,7 +36,7 @@ describe("TxBuilder Stake Operations", () => {
   // Create client for a specific account index (each test uses different account)
   const createTestClient = (accountIndex: number = 0) => {
     if (!devnetCluster) throw new Error("Cluster not initialized")
-    return client(Cluster.getChain(devnetCluster))
+    return Client.make(Cluster.getChain(devnetCluster))
       .withKupmios({ kupoUrl: "http://localhost:1446", ogmiosUrl: "http://localhost:1341" })
       .withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
   }
@@ -44,7 +44,7 @@ describe("TxBuilder Stake Operations", () => {
   beforeAll(async () => {
     // Create clients for each account we'll use in tests
     const accounts = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((accountIndex) =>
-      client(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
+      Client.make(preprod).withSeed({ mnemonic: TEST_MNEMONIC, accountIndex, addressType: "Base" })
     )
 
     const addresses = await Promise.all(accounts.map((client) => client.address()))

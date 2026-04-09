@@ -2,13 +2,13 @@ import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
 import { Equal, FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as Anchor from "../src/Anchor.js"
-import * as DRep from "../src/DRep.js"
-import * as GovernanceAction from "../src/GovernanceAction.js"
-import * as KeyHash from "../src/KeyHash.js"
-import * as ScriptHash from "../src/ScriptHash.js"
-import * as TransactionHash from "../src/TransactionHash.js"
-import * as VotingProcedures from "../src/VotingProcedures.js"
+import * as KeyHash from "../src/credential/KeyHash.js"
+import * as Anchor from "../src/governance/Anchor.js"
+import * as DRep from "../src/governance/DRep.js"
+import * as GovernanceAction from "../src/governance/GovernanceAction.js"
+import * as VotingProcedures from "../src/governance/VotingProcedures.js"
+import * as ScriptHash from "../src/script/ScriptHash.js"
+import * as TransactionHash from "../src/transaction/TransactionHash.js"
 
 /**
  * CML compatibility test for VotingProcedures CBOR serialization.

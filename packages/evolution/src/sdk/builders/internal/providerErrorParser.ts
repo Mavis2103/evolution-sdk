@@ -1,4 +1,4 @@
-import type * as Ctx from "./ctx.js"
+import type { ScriptFailure } from "../TransactionBuilder.js"
 
 interface OgmiosValidatorError {
   readonly validator: { readonly index: number; readonly purpose: string }
@@ -60,8 +60,8 @@ const getValidatorErrorData = (value: unknown): ReadonlyArray<OgmiosValidatorErr
   return value.every(isOgmiosValidatorError) ? value : undefined
 }
 
-export const parseProviderError = (error: unknown): Array<Ctx.ScriptFailure> => {
-  const failures: Array<Ctx.ScriptFailure> = []
+export const parseProviderError = (error: unknown): Array<ScriptFailure> => {
+  const failures: Array<ScriptFailure> = []
 
   const findErrorData = (value: unknown): ReadonlyArray<OgmiosValidatorError> | undefined => {
     const cause = getRecordProperty(value, "cause")

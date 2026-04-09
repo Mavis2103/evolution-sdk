@@ -1,5 +1,5 @@
-import * as Data from "../Data.js"
-import * as TSchema from "../TSchema.js"
+import * as Data from "../data/Data.js"
+import * as TSchema from "../data/TSchema.js"
 
 /**
  * Transaction ID (32 bytes hash)
