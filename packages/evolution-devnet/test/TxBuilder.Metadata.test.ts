@@ -11,8 +11,8 @@ import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import { Cardano, client, preprod } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/address/Address"
-import * as TransactionHash from "@evolution-sdk/evolution/transaction/TransactionHash"
 import { fromEntries } from "@evolution-sdk/evolution/metadata/TransactionMetadatum"
+import * as TransactionHash from "@evolution-sdk/evolution/transaction/TransactionHash"
 
 describe("TxBuilder attachMetadata (Devnet Submit)", () => {
   let devnetCluster: Cluster.Cluster | undefined
