@@ -243,7 +243,7 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
         for (let i = 0; i < len; i++) {
           arr[i] = yield* encodeCertificate(toA.certificates[i])
         }
-        record.set(4n, arr)
+        record.set(4n, CBOR.Tag.make({ tag: 258, value: arr }, { disableValidation: true }))
       }
 
       if (toA.withdrawals) {
@@ -342,7 +342,21 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
       // Optional fields - access as record properties
       const ttl = fromA.get(3n) as bigint | undefined
 
-      const certificatesArray = fromA.get(4n) as Array<typeof Certificate.CDDLSchema.Type>
+      // Accept both tag-258 (Conway) and plain array (Babbage) for certificates
+      const certificatesRaw = fromA.get(4n) as
+        | { _tag: "Tag"; tag: 258; value: ReadonlyArray<typeof Certificate.CDDLSchema.Type> }
+        | ReadonlyArray<typeof Certificate.CDDLSchema.Type>
+        | undefined
+      const certificatesArray =
+        certificatesRaw === undefined
+          ? undefined
+          : CBOR.isTag(certificatesRaw)
+            ? certificatesRaw.tag === 258 && Array.isArray(certificatesRaw.value)
+              ? (certificatesRaw.value as ReadonlyArray<typeof Certificate.CDDLSchema.Type>)
+              : undefined
+            : Array.isArray(certificatesRaw)
+              ? certificatesRaw
+              : undefined
       let certificates: NonEmptyArray<Certificate.Certificate> | undefined
       if (certificatesArray) {
         const len = certificatesArray.length
