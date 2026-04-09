@@ -177,6 +177,34 @@ describe("tag-258 certificates", () => {
     expect(tx.body.certificates![1]._tag).toBe("StakeRegistration")
   })
 
+  it("deserializes tx body with untagged (Babbage) certificates array", () => {
+    // Derive an untagged-cert body from the real Conway body by unwrapping tag 258 at key 4.
+    const tx = Transaction.fromCBORHex(blInitHex)
+    const txCBOR = CBOR.fromCBORBytes(Transaction.toCBORBytes(tx)) as Array<CBOR.CBOR>
+    const bodyMap = txCBOR[0] as Map<bigint, CBOR.CBOR>
+    const certsRaw = bodyMap.get(4n)
+    expect(CBOR.isTag(certsRaw as CBOR.CBOR)).toBe(true)
+    const certsArray = (certsRaw as { _tag: "Tag"; tag: number; value: Array<CBOR.CBOR> }).value
+    bodyMap.set(4n, certsArray)
+    const bodyBytes = CBOR.toCBORBytes(bodyMap)
+
+    const decoded = TransactionBody.fromCBORBytes(bodyBytes)
+    expect(decoded.certificates).toBeDefined()
+    expect(decoded.certificates!.length).toBe(2)
+    expect(decoded.certificates![0]._tag).toBe("StakeRegistration")
+  })
+
+  it("re-encodes certificates wrapped in tag 258", () => {
+    const tx = Transaction.fromCBORHex(blInitHex)
+    const reBodyBytes = TransactionBody.toCBORBytes(tx.body)
+    const reBody = CBOR.fromCBORBytes(reBodyBytes) as Map<bigint, CBOR.CBOR>
+    const certsField = reBody.get(4n)
+    expect(CBOR.isTag(certsField as CBOR.CBOR)).toBe(true)
+    const tagged = certsField as { _tag: "Tag"; tag: number; value: unknown }
+    expect(tagged.tag).toBe(258)
+    expect(Array.isArray(tagged.value)).toBe(true)
+    expect((tagged.value as Array<unknown>).length).toBe(2)
+  })
 })
 
 // ---------------------------------------------------------------------------

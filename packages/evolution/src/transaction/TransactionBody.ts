@@ -347,11 +347,16 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
         | { _tag: "Tag"; tag: 258; value: ReadonlyArray<typeof Certificate.CDDLSchema.Type> }
         | ReadonlyArray<typeof Certificate.CDDLSchema.Type>
         | undefined
-      const certificatesArray = certificatesRaw
-        ? (certificatesRaw as any)._tag === "Tag"
-          ? (certificatesRaw as any).value
-          : certificatesRaw
-        : undefined
+      const certificatesArray =
+        certificatesRaw === undefined
+          ? undefined
+          : CBOR.isTag(certificatesRaw)
+            ? certificatesRaw.tag === 258 && Array.isArray(certificatesRaw.value)
+              ? (certificatesRaw.value as ReadonlyArray<typeof Certificate.CDDLSchema.Type>)
+              : undefined
+            : Array.isArray(certificatesRaw)
+              ? certificatesRaw
+              : undefined
       let certificates: NonEmptyArray<Certificate.Certificate> | undefined
       if (certificatesArray) {
         const len = certificatesArray.length
