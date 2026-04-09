@@ -28,11 +28,11 @@ import {
 import { Address,
   TransactionHash,
   preprod,
-  client as makeClient,
+  Client,
 } from "@evolution-sdk/evolution"
 
 // Create a client to generate an address (preprod has id: 0, producing testnet-format addresses)
-const client = makeClient(preprod)
+const client = Client.make(preprod)
   .withSeed({
     mnemonic: "your twenty-four word mnemonic phrase here",
     accountIndex: 0
@@ -79,16 +79,16 @@ import {
 import { Address,
   TransactionHash,
   preprod,
-  client as makeClient,
+  Client,
 } from "@evolution-sdk/evolution"
 
-const client1 = makeClient(preprod)
+const client1 = Client.make(preprod)
   .withSeed({
     mnemonic: "your mnemonic here",
     accountIndex: 0
   })
 
-const client2 = makeClient(preprod)
+const client2 = Client.make(preprod)
   .withSeed({
     mnemonic: "your mnemonic here",
     accountIndex: 1 // Different account index = different address
@@ -315,17 +315,17 @@ import {
 import { Address,
   TransactionHash,
   preprod,
-  client as makeClient,
+  Client,
 } from "@evolution-sdk/evolution"
 
 // Generate funded addresses
-const wallet1 = makeClient(preprod)
+const wallet1 = Client.make(preprod)
   .withSeed({
     mnemonic: "test wallet one mnemonic here",
     accountIndex: 0
   })
 
-const wallet2 = makeClient(preprod)
+const wallet2 = Client.make(preprod)
   .withSeed({
     mnemonic: "test wallet two mnemonic here",
     accountIndex: 0

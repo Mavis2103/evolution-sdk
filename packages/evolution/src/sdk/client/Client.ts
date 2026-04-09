@@ -223,9 +223,15 @@ export type SigningClient = EffectToPromiseAPI<SigningClientEffect> & {
 }
 
 /**
+ * Chain-scoped client namespace.
+ *
+ * @since 2.1.0
+ * @category constructors
+ */
+/**
  * Construct a chain-scoped client assembly stage.
  *
  * @since 2.1.0
  * @category constructors
  */
-export const client: (chain?: Chain) => ClientAssembly = internal.client
+export const make: (chain?: Chain) => ClientAssembly = internal.client
