@@ -3,7 +3,7 @@ import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import { Cardano, client, preprod } from "@evolution-sdk/evolution"
-import * as CoreAddress from "@evolution-sdk/evolution/Address"
+import * as CoreAddress from "@evolution-sdk/evolution/address/Address"
 import { afterAll, beforeAll } from "vitest"
 
 // Alias for Cardano.Assets

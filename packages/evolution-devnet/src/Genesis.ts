@@ -1,8 +1,8 @@
-import * as Address from "@evolution-sdk/evolution/Address"
-import * as AddressEras from "@evolution-sdk/evolution/AddressEras"
-import * as Assets from "@evolution-sdk/evolution/Assets"
-import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
-import * as UTxO from "@evolution-sdk/evolution/UTxO"
+import * as Address from "@evolution-sdk/evolution/address/Address"
+import * as AddressEras from "@evolution-sdk/evolution/address/AddressEras"
+import * as Assets from "@evolution-sdk/evolution/assets"
+import * as TransactionHash from "@evolution-sdk/evolution/transaction/TransactionHash"
+import * as UTxO from "@evolution-sdk/evolution/transaction/UTxO"
 import { blake2b } from "@noble/hashes/blake2"
 import { Data, Effect } from "effect"
 
