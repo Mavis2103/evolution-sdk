@@ -890,7 +890,7 @@ export const withSchema = <A, I extends Data>(
  * @category hashing
  * @example
  * ```typescript
- * import * as Data from "@evolution-sdk/evolution/data/Data"
+ * import * as Data from "@evolution-sdk/evolution/Data"
  *
  * // Hash a simple integer
  * const intData = 42n

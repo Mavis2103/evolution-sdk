@@ -43,9 +43,10 @@ import type * as Mint from "../../Mint.js"
 import type * as ProposalProcedures from "../../ProposalProcedures.js"
 import type * as RewardAccount from "../../RewardAccount.js"
 import type * as CoreScript from "../../Script.js"
-import type * as Time from "../../Time.js"
+import type * as SlotConfig from "../../SlotConfig.js"
 import type * as Transaction from "../../Transaction.js"
 import type * as TxOut from "../../TxOut.js"
+import type * as UnixTime from "../../UnixTime.js"
 import type * as CoreUTxO from "../../UTxO.js"
 import type * as VotingProcedures from "../../VotingProcedures.js"
 import type { Chain } from "../client/Chain.js"
@@ -451,8 +452,8 @@ export interface TxBuilderState {
     readonly returnOutput?: TxOut.TransactionOutput
   }
   readonly validity?: {
-    readonly from?: Time.UnixTime
-    readonly to?: Time.UnixTime
+    readonly from?: UnixTime.UnixTime
+    readonly to?: UnixTime.UnixTime
   }
   readonly requiredSigners: ReadonlyArray<KeyHash.KeyHash>
   readonly auxiliaryData?: AuxiliaryData.AuxiliaryData
@@ -539,7 +540,7 @@ export interface BuildOptions {
    *
    * @since 2.0.0
    */
-  readonly slotConfig?: Time.SlotConfig
+  readonly slotConfig?: SlotConfig.SlotConfig
 
   /**
    * Amount to set as collateral return output (in lovelace).
@@ -1204,14 +1205,14 @@ export interface TransactionBuilderBase {
    * // Transaction valid for 10 minutes from now
    * const tx = await builder
    *   .setValidity({
-   *     from: Time.now(),
-   *     to: Time.now() + 600_000n  // 10 minutes
+   *     from: UnixTime.now(),
+   *     to: UnixTime.now() + 600_000n  // 10 minutes
    *   })
    *   .build()
    *
    * // Only set expiration (most common)
    * const tx = await builder
-   *   .setValidity({ to: Time.now() + 300_000n })  // 5 minute TTL
+   *   .setValidity({ to: UnixTime.now() + 300_000n })  // 5 minute TTL
    *   .build()
    * ```
    *

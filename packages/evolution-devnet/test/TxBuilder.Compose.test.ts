@@ -13,7 +13,7 @@ import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/Address"
 
 // Alias for readability
-const Time = Cardano.Time
+const Time = Cardano.UnixTime
 
 describe("TxBuilder compose (Devnet Submit)", () => {
   let devnetCluster: Cluster.Cluster | undefined

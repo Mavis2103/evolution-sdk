@@ -13,17 +13,6 @@ import { SLOT_CONFIG_NETWORK } from "./SlotConfig.js"
 import type { UnixTime } from "./UnixTime.js"
 import { now as nowFn } from "./UnixTime.js"
 
-// Re-export types
-export type { Slot } from "./Slot.js"
-export type { SlotConfig } from "./SlotConfig.js"
-export type { UnixTime } from "./UnixTime.js"
-
-// Re-export slot config
-export { getSlotConfig, SLOT_CONFIG_NETWORK } from "./SlotConfig.js"
-
-// Re-export UnixTime utilities
-export { fromDate, fromSeconds, now, toDate, toSeconds } from "./UnixTime.js"
-
 /**
  * Convert a slot number to Unix time (in milliseconds).
  *
@@ -36,12 +25,11 @@ export { fromDate, fromSeconds, now, toDate, toSeconds } from "./UnixTime.js"
  *
  * @example
  * ```typescript
- * import * as Time from "@evolution-sdk/core/Time"
+ * import * as Time from "@evolution-sdk/evolution/Time"
  *
  * const slot = 12345678n
- * const config = Time.SLOT_CONFIG_NETWORK.Mainnet
+ * const config = { zeroTime: 1596059091000n, zeroSlot: 4492800n, slotLength: 1000 }
  * const unixTime = Time.slotToUnixTime(slot, config)
- * console.log(unixTime) // Unix time in milliseconds
  * ```
  */
 export const slotToUnixTime = (slot: Slot, slotConfig: SlotConfig): UnixTime => {
@@ -62,12 +50,11 @@ export const slotToUnixTime = (slot: Slot, slotConfig: SlotConfig): UnixTime => 
  *
  * @example
  * ```typescript
- * import * as Time from "@evolution-sdk/core/Time"
+ * import * as Time from "@evolution-sdk/evolution/Time"
  *
- * const unixTime = 1596059091000n // Mainnet Shelley start
- * const config = Time.SLOT_CONFIG_NETWORK.Mainnet
+ * const unixTime = 1596059091000n
+ * const config = { zeroTime: 1596059091000n, zeroSlot: 4492800n, slotLength: 1000 }
  * const slot = Time.unixTimeToSlot(unixTime, config)
- * console.log(slot) // 4492800n
  * ```
  */
 export const unixTimeToSlot = (unixTime: UnixTime, slotConfig: SlotConfig): Slot => {
@@ -87,7 +74,7 @@ export const unixTimeToSlot = (unixTime: UnixTime, slotConfig: SlotConfig): Slot
  *
  * @example
  * ```typescript
- * import * as Time from "@evolution-sdk/core/Time"
+ * import * as Time from "@evolution-sdk/evolution/Time"
  *
  * const currentSlot = Time.getCurrentSlot("Mainnet")
  * console.log(currentSlot) // Current mainnet slot
@@ -143,7 +130,7 @@ export const isSlotInPast = (slot: Slot, slotConfig: SlotConfig): boolean => {
  *
  * @example
  * ```typescript
- * import * as Time from "@evolution-sdk/core/Time"
+ * import * as Time from "@evolution-sdk/evolution/Time"
  *
  * // Get slot 5 minutes from now
  * const futureSlot = Time.getSlotAt(5 * 60 * 1000, "Mainnet")

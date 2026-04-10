@@ -143,9 +143,10 @@ export const fromHexStrings = (
  *
  * @example
  * ```ts
- * const assets = fromRecord({
+ * import * as Assets from "@evolution-sdk/evolution/Assets"
+ *
+ * const assets = Assets.fromRecord({
  *   lovelace: 5_000_000n,
- *   "aabbcc...def456aabbccdd": 100n  // 56 char policyId hex + assetName hex
  * })
  * ```
  *

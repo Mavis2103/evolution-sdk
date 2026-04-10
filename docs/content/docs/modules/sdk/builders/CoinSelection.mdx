@@ -1,6 +1,6 @@
 ---
 title: sdk/builders/CoinSelection.ts
-nav_order: 126
+nav_order: 118
 parent: Modules
 ---
 

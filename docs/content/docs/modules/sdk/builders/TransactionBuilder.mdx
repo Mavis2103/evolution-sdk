@@ -1,6 +1,6 @@
 ---
 title: sdk/builders/TransactionBuilder.ts
-nav_order: 155
+nav_order: 147
 parent: Modules
 ---
 
@@ -291,8 +291,8 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as Script from "../../script/Script.js"
-   * import * as NativeScripts from "../../script/NativeScripts.js"
+   * import * as Script from "../../Script.js"
+   * import * as NativeScripts from "../../NativeScripts.js"
    *
    * const nativeScript = NativeScripts.makeScriptPubKey(keyHashBytes)
    * const script = Script.fromNativeScript(nativeScript)
@@ -369,7 +369,7 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as UTxO from "../../transaction/UTxO.js"
+   * import * as UTxO from "../../UTxO.js"
    *
    * // Use reference script stored on-chain instead of attaching to transaction
    * const refScriptUtxo = await provider.getUtxoByTxHash("abc123...")
@@ -647,14 +647,14 @@ export interface TransactionBuilderBase {
    * // Transaction valid for 10 minutes from now
    * const tx = await builder
    *   .setValidity({
-   *     from: Time.now(),
-   *     to: Time.now() + 600_000n  // 10 minutes
+   *     from: UnixTime.now(),
+   *     to: UnixTime.now() + 600_000n  // 10 minutes
    *   })
    *   .build()
    *
    * // Only set expiration (most common)
    * const tx = await builder
-   *   .setValidity({ to: Time.now() + 300_000n })  // 5 minute TTL
+   *   .setValidity({ to: UnixTime.now() + 300_000n })  // 5 minute TTL
    *   .build()
    * ```
    *
@@ -1023,7 +1023,7 @@ export interface BuildOptions {
    *
    * @since 2.0.0
    */
-  readonly slotConfig?: Time.SlotConfig
+  readonly slotConfig?: SlotConfig.SlotConfig
 
   /**
    * Amount to set as collateral return output (in lovelace).
@@ -1657,8 +1657,8 @@ export interface TxBuilderState {
     readonly returnOutput?: TxOut.TransactionOutput
   }
   readonly validity?: {
-    readonly from?: Time.UnixTime
-    readonly to?: Time.UnixTime
+    readonly from?: UnixTime.UnixTime
+    readonly to?: UnixTime.UnixTime
   }
   readonly requiredSigners: ReadonlyArray<KeyHash.KeyHash>
   readonly auxiliaryData?: AuxiliaryData.AuxiliaryData

@@ -12,8 +12,8 @@ import type * as PoolKeyHash from "../../../PoolKeyHash.js"
 import type * as PoolParams from "../../../PoolParams.js"
 import type * as RewardAccount from "../../../RewardAccount.js"
 import type * as CoreScript from "../../../Script.js"
-import type * as Time from "../../../Time.js"
 import type * as TransactionMetadatum from "../../../TransactionMetadatum.js"
+import type * as UnixTime from "../../../UnixTime.js"
 import type * as UTxO from "../../../UTxO.js"
 import type * as VotingProcedures from "../../../VotingProcedures.js"
 import type * as RedeemerBuilder from "../RedeemerBuilder.js"
@@ -36,9 +36,9 @@ import type * as RedeemerBuilder from "../RedeemerBuilder.js"
  */
 export interface ValidityParams {
   /** Transaction valid after this Unix time (milliseconds). Converted to slot. */
-  readonly from?: Time.UnixTime
+  readonly from?: UnixTime.UnixTime
   /** Transaction expires after this Unix time (milliseconds). Converted to slot. */
-  readonly to?: Time.UnixTime
+  readonly to?: UnixTime.UnixTime
 }
 
 export interface PayToAddressParams {
