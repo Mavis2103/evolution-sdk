@@ -1,9 +1,9 @@
 import { Schema } from "effect"
 import { describe, expect, it } from "vitest"
 
-import { generateTypeScript } from "../src/blueprint/codegen.js"
-import { createCodegenConfig } from "../src/blueprint/codegen-config.js"
-import { PlutusBlueprint } from "../src/blueprint/types.js"
+import { generateTypeScript } from "../src/blueprint/Codegen.js"
+import { createCodegenConfig } from "../src/blueprint/CodegenConfig.js"
+import { PlutusBlueprint } from "../src/blueprint/Types.js"
 import blueprintJson from "./spec/plutus.json"
 
 describe("Blueprint", () => {

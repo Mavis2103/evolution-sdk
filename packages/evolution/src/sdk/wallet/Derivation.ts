@@ -4,13 +4,13 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import * as Schema from "effect/Schema"
 
-import * as CoreAddress from "../../address/Address.js"
-import * as AddressEras from "../../address/AddressEras.js"
-import * as RewardAccount from "../../address/RewardAccount.js"
-import * as CoreRewardAddress from "../../address/RewardAddress.js"
-import * as Bip32PrivateKey from "../../credential/Bip32PrivateKey.js"
-import * as KeyHash from "../../credential/KeyHash.js"
-import * as PrivateKey from "../../credential/PrivateKey.js"
+import * as CoreAddress from "../../Address.js"
+import * as AddressEras from "../../AddressEras.js"
+import * as RewardAccount from "../../RewardAccount.js"
+import * as CoreRewardAddress from "../../RewardAddress.js"
+import * as Bip32PrivateKey from "../../Bip32PrivateKey.js"
+import * as KeyHash from "../../KeyHash.js"
+import * as PrivateKey from "../../PrivateKey.js"
 
 export class DerivationError extends Data.TaggedError("DerivationError")<{
   readonly message: string

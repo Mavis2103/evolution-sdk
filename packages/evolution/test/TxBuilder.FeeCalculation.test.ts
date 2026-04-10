@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@effect/vitest"
 import { Effect } from "effect"
 
-import * as CoreAssets from "../src/assets/index.js"
+import * as CoreAssets from "../src/Assets.js"
 import {
   calculateLeftoverAssets,
   calculateMinimumFee,

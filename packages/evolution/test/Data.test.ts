@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@effect/vitest"
 
-import * as Bytes from "../src/bytes/Bytes.js"
-import * as Data from "../src/data/Data.js"
+import * as Bytes from "../src/Bytes.js"
+import * as Data from "../src/Data.js"
 
 describe("Data Module Tests", () => {
   describe("Basic Types", () => {

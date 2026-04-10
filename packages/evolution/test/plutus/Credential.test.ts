@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@effect/vitest"
 
-import * as Bytes from "../../src/bytes/Bytes.js"
+import * as Bytes from "../../src/Bytes.js"
 import * as Credential from "../../src/plutus/Credential.js"
 
 describe("Plutus Credential", () => {

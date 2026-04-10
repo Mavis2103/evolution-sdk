@@ -17,7 +17,7 @@ import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import type { Cardano } from "@evolution-sdk/evolution"
 import { Client, preprod } from "@evolution-sdk/evolution"
-import * as Address from "@evolution-sdk/evolution/address/Address"
+import * as Address from "@evolution-sdk/evolution/Address"
 import * as DRep from "@evolution-sdk/evolution/governance/DRep"
 import * as PoolKeyHash from "@evolution-sdk/evolution/staking/PoolKeyHash"
 

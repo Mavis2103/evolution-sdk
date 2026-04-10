@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@effect/vitest"
 
-import * as Address from "../src/address/Address.js"
-import * as CoreAssets from "../src/assets/index.js"
+import * as Address from "../src/Address.js"
+import * as CoreAssets from "../src/Assets.js"
 import type { TxBuilderConfig } from "../src/sdk/builders/TransactionBuilder.js"
 import { makeTxBuilder } from "../src/sdk/builders/TransactionBuilder.js"
 import { mainnet } from "../src/sdk/client/index.js"

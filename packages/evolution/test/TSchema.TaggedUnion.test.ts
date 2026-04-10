@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import * as Data from "../src/data/Data.js"
-import * as TSchema from "../src/data/TSchema.js"
+import * as Data from "../src/Data.js"
+import * as TSchema from "../src/TSchema.js"
 
 describe("TSchema.TaggedUnion", () => {
   describe("Auto-detection with _tag field", () => {

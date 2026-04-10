@@ -2,12 +2,12 @@ import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
 import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as RewardAccount from "../src/address/RewardAccount.js"
-import * as Anchor from "../src/governance/Anchor.js"
-import * as GovernanceAction from "../src/governance/GovernanceAction.js"
-import * as ProposalProcedure from "../src/governance/ProposalProcedure.js"
-import * as ProtocolParams from "../src/network/ProtocolParamUpdate.js"
-import * as Coin from "../src/value/Coin.js"
+import * as RewardAccount from "../src/RewardAccount.js"
+import * as Anchor from "../src/Anchor.js"
+import * as GovernanceAction from "../src/GovernanceAction.js"
+import * as ProposalProcedure from "../src/ProposalProcedure.js"
+import * as ProtocolParams from "../src/ProtocolParamUpdate.js"
+import * as Coin from "../src/Coin.js"
 
 // Deterministic helper copied from other CML tests
 const generateTestRewardAccount = (seed: number = 42): RewardAccount.RewardAccount =>

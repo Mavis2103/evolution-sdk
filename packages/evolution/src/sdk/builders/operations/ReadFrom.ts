@@ -13,7 +13,7 @@
 
 import { Effect, Ref } from "effect"
 
-import * as CoreUTxO from "../../../transaction/UTxO.js"
+import * as CoreUTxO from "../../../UTxO.js"
 import { TransactionBuilderError, TxContext } from "../TransactionBuilder.js"
 import type { ReadFromParams } from "./Operations.js"
 

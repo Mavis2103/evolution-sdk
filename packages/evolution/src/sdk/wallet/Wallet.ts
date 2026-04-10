@@ -1,11 +1,11 @@
 import { Data, type Effect } from "effect"
 
-import type * as CoreAddress from "../../address/Address.js"
-import type * as RewardAddress from "../../address/RewardAddress.js"
-import type * as Transaction from "../../transaction/Transaction.js"
-import type * as TransactionHash from "../../transaction/TransactionHash.js"
-import type * as TransactionWitnessSet from "../../transaction/TransactionWitnessSet.js"
-import type * as CoreUTxO from "../../transaction/UTxO.js"
+import type * as CoreAddress from "../../Address.js"
+import type * as RewardAddress from "../../RewardAddress.js"
+import type * as Transaction from "../../Transaction.js"
+import type * as TransactionHash from "../../TransactionHash.js"
+import type * as TransactionWitnessSet from "../../TransactionWitnessSet.js"
+import type * as CoreUTxO from "../../UTxO.js"
 import type { EffectToPromiseAPI } from "../Type.js"
 
 /**

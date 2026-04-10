@@ -1,4 +1,4 @@
-import * as CoreAssets from "../../../assets/index.js"
+import * as CoreAssets from "../../../Assets.js"
 import type { BuildOptions, PhaseContext, TxBuilderState } from "../TransactionBuilder.js"
 
 /**

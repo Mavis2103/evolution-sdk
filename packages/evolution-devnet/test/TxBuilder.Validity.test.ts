@@ -16,7 +16,7 @@ import * as Cluster from "@evolution-sdk/devnet/Cluster"
 import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
-import * as Address from "@evolution-sdk/evolution/address/Address"
+import * as Address from "@evolution-sdk/evolution/Address"
 
 // Alias for readability
 const Time = Cardano.Time

@@ -2,8 +2,8 @@ import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
 import { Equal, FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as CBOR from "../src/encoding/CBOR.js"
-import * as Transaction from "../src/transaction/Transaction.js"
+import * as CBOR from "../src/CBOR.js"
+import * as Transaction from "../src/Transaction.js"
 
 /**
  * CML compatibility tests for Transaction CBOR serialization.

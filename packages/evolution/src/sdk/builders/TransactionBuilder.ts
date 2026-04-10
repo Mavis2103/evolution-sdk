@@ -30,24 +30,24 @@ import type * as Effect from "effect/Effect"
 import type { Either } from "effect/Either"
 import type * as Ref from "effect/Ref"
 
-import type * as CoreAddress from "../../address/Address.js"
-import type * as RewardAccount from "../../address/RewardAccount.js"
-import type * as CoreAssets from "../../assets/index.js"
-import * as Bytes from "../../bytes/Bytes.js"
-import type * as Certificate from "../../certificate/Certificate.js"
-import type * as KeyHash from "../../credential/KeyHash.js"
-import type * as PlutusData from "../../data/Data.js"
-import type * as ProposalProcedures from "../../governance/ProposalProcedures.js"
-import type * as VotingProcedures from "../../governance/VotingProcedures.js"
-import type * as AuxiliaryData from "../../metadata/AuxiliaryData.js"
-import type * as CostModel from "../../script/CostModel.js"
-import type * as CoreScript from "../../script/Script.js"
-import type * as Time from "../../time/index.js"
-import type * as Transaction from "../../transaction/Transaction.js"
-import type * as TxOut from "../../transaction/TxOut.js"
-import type * as CoreUTxO from "../../transaction/UTxO.js"
-import type * as Coin from "../../value/Coin.js"
-import type * as Mint from "../../value/Mint.js"
+import type * as CoreAddress from "../../Address.js"
+import type * as RewardAccount from "../../RewardAccount.js"
+import type * as CoreAssets from "../../Assets.js"
+import * as Bytes from "../../Bytes.js"
+import type * as Certificate from "../../Certificate.js"
+import type * as KeyHash from "../../KeyHash.js"
+import type * as PlutusData from "../../Data.js"
+import type * as ProposalProcedures from "../../ProposalProcedures.js"
+import type * as VotingProcedures from "../../VotingProcedures.js"
+import type * as AuxiliaryData from "../../AuxiliaryData.js"
+import type * as CostModel from "../../CostModel.js"
+import type * as CoreScript from "../../Script.js"
+import type * as Time from "../../Time.js"
+import type * as Transaction from "../../Transaction.js"
+import type * as TxOut from "../../TxOut.js"
+import type * as CoreUTxO from "../../UTxO.js"
+import type * as Coin from "../../Coin.js"
+import type * as Mint from "../../Mint.js"
 import type { Chain } from "../client/Chain.js"
 import type { EvalRedeemer } from "../EvalRedeemer.js"
 import type * as Provider from "../provider/Provider.js"
@@ -848,8 +848,8 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as Script from "../../script/Script.js"
-   * import * as NativeScripts from "../../script/NativeScripts.js"
+   * import * as Script from "../../Script.js"
+   * import * as NativeScripts from "../../NativeScripts.js"
    *
    * const nativeScript = NativeScripts.makeScriptPubKey(keyHashBytes)
    * const script = Script.fromNativeScript(nativeScript)
@@ -926,7 +926,7 @@ export interface TransactionBuilderBase {
    *
    * @example
    * ```typescript
-   * import * as UTxO from "../../transaction/UTxO.js"
+   * import * as UTxO from "../../UTxO.js"
    *
    * // Use reference script stored on-chain instead of attaching to transaction
    * const refScriptUtxo = await provider.getUtxoByTxHash("abc123...")

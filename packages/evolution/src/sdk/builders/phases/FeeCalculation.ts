@@ -10,8 +10,8 @@
 
 import { Effect, Ref } from "effect"
 
-import * as CoreAssets from "../../../assets/index.js"
-import * as CoreUTxO from "../../../transaction/UTxO.js"
+import * as CoreAssets from "../../../Assets.js"
+import * as CoreUTxO from "../../../UTxO.js"
 import { calculateFeeIteratively, calculateReferenceScriptFee } from "../internal/txBuilder.js"
 import type { BuildOptionsTag, PhaseResult , TransactionBuilderError} from "../TransactionBuilder.js"
 import { PhaseContextTag, ProtocolParametersTag, TxContext } from "../TransactionBuilder.js"

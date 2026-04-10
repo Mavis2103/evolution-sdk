@@ -1,11 +1,11 @@
 import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as Bytes from "../src/bytes/Bytes.js"
-import * as KeyHash from "../src/credential/KeyHash.js"
-import * as PrivateKey from "../src/credential/PrivateKey.js"
-import * as VKey from "../src/credential/VKey.js"
-import { COSESign1, Header, SignData, Utils } from "../src/messageSigning/index.js"
+import * as Bytes from "../src/Bytes.js"
+import * as KeyHash from "../src/KeyHash.js"
+import * as PrivateKey from "../src/PrivateKey.js"
+import * as VKey from "../src/VKey.js"
+import { COSESign1, Header, SignData, Utils } from "../src/cose/index.js"
 
 describe("SignData", () => {
   describe("Payload", () => {

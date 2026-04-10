@@ -1,7 +1,7 @@
 import { Effect, Ref } from "effect"
 
-import * as Transaction from "../../../transaction/Transaction.js"
-import * as CoreUTxO from "../../../transaction/UTxO.js"
+import * as Transaction from "../../../Transaction.js"
+import * as CoreUTxO from "../../../UTxO.js"
 import * as Balance from "../phases/Balance.js"
 import * as ChangeCreation from "../phases/ChangeCreation.js"
 import * as Collateral from "../phases/Collateral.js"
