@@ -196,6 +196,9 @@ const decodeKeyHash = ParseResult.decodeEither(KeyHash.FromBytes)
 const decodeTaggedInputs = ParseResult.decodeUnknownEither(CBOR.tag(258, Schema.Array(TransactionInput.FromCDDL)))
 const decodeUntaggedInputs = ParseResult.decodeUnknownEither(Schema.Array(TransactionInput.FromCDDL))
 
+const decodeTaggedCertificates = ParseResult.decodeUnknownEither(CBOR.tag(258, Schema.Array(Certificate.CDDLSchema)))
+const decodeUntaggedCertificates = ParseResult.decodeUnknownEither(Schema.Array(Certificate.CDDLSchema))
+
 /**
  * CDDL schema for TransactionBody struct structure.
  *
@@ -237,13 +240,13 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
       // Optional fields (assign directly when present)
       if (toA.ttl !== undefined) record.set(3n, toA.ttl)
 
-      if (toA.certificates) {
+      if (toA.certificates && toA.certificates.length > 0) {
         const len = toA.certificates.length
         const arr = new Array(len)
         for (let i = 0; i < len; i++) {
           arr[i] = yield* encodeCertificate(toA.certificates[i])
         }
-        record.set(4n, arr)
+        record.set(4n, CBOR.Tag.make({ tag: 258, value: arr }, { disableValidation: true }))
       }
 
       if (toA.withdrawals) {
@@ -342,7 +345,17 @@ export const FromCDDL = Schema.transformOrFail(CDDLSchema, Schema.typeSchema(Tra
       // Optional fields - access as record properties
       const ttl = fromA.get(3n) as bigint | undefined
 
-      const certificatesArray = fromA.get(4n) as Array<typeof Certificate.CDDLSchema.Type>
+      // Accept both tag-258 (Conway) and plain array (Babbage) for certificates.
+      // Mirrors the `inputs` pattern above: try tagged first, fall back to
+      // untagged, and fail decoding if neither matches.
+      const certificatesRaw = fromA.get(4n)
+      let certificatesArray: ReadonlyArray<typeof Certificate.CDDLSchema.Type> | undefined
+      if (certificatesRaw !== undefined) {
+        const taggedCertsResult = decodeTaggedCertificates(certificatesRaw)
+        certificatesArray = E.isRight(taggedCertsResult)
+          ? taggedCertsResult.right.value
+          : yield* decodeUntaggedCertificates(certificatesRaw)
+      }
       let certificates: NonEmptyArray<Certificate.Certificate> | undefined
       if (certificatesArray) {
         const len = certificatesArray.length

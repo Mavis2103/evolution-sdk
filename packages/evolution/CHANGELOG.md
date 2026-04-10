@@ -1,5 +1,38 @@
 # @evolution-sdk/evolution
 
+## 0.4.0
+
+### Minor Changes
+
+- [#231](https://github.com/IntersectMBO/evolution-sdk/pull/231) [`7b36dc1`](https://github.com/IntersectMBO/evolution-sdk/commit/7b36dc10b3ae2607a395e721376f1729b7983bb1) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Reorganize flat module structure into semantic concept folders.
+  - Move ~130 flat root-level files into 24 concept folders following Effect v4 conventions (camelCase folders, PascalCase files)
+  - New folders: `address/`, `assets/`, `block/`, `blueprint/`, `bytes/`, `certificate/`, `credential/`, `data/`, `encoding/`, `governance/`, `messageSigning/`, `metadata/`, `network/`, `numeric/`, `plutus/`, `primitives/`, `relay/`, `script/`, `staking/`, `time/`, `transaction/`, `uplc/`, `value/`
+  - Merge `datum/` into `data/` (DatumHash, DatumOption, InlineDatum alongside Data, TSchema, DataJson)
+  - Extract `certificate/` from `governance/` (StakeCertificates and PoolCertificates have zero governance dependencies)
+  - Move byte primitives (Bytes, Bytes4–448, BoundedBytes) from `primitives/` to `bytes/`
+  - Move numeric types (Numeric, Natural, NonZeroInt64, UnitInterval) from `primitives/` to `numeric/`
+  - Move CBOR and Codec from root to `encoding/`
+  - Dissolve `utils/` anti-pattern: move hash functions to input-type modules via `to` pattern (TransactionBody.toHash, Data.toDatumHash, etc.)
+  - Delete dead code: `Combinator.ts` (zero consumers, contained a bug), `FormatError.ts` (zero consumers), `NativeScriptsOLD.ts`, `Function.ts`
+  - Rename non-conforming folders: `Assets/` → `assets/`, `Time/` → `time/`, `message-signing/` → `messageSigning/`
+  - All public API exports preserved via barrel files and package.json exports map
+
+### Patch Changes
+
+- [#237](https://github.com/IntersectMBO/evolution-sdk/pull/237) [`c68507b`](https://github.com/IntersectMBO/evolution-sdk/commit/c68507b91ea7adfbfdae11ead52280f7cfd95305) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Conway-era transactions encode certificates as `#6.258([+ certificate])` (CBOR tag 258, a nonempty ordered set). TransactionBody deserialization now unwraps tag 258 when present on the certificates field (key 4), and serialization wraps the array in tag 258 so round-tripped bytes match the on-chain encoding.
+
+- [#236](https://github.com/IntersectMBO/evolution-sdk/pull/236) [`f0c7ea4`](https://github.com/IntersectMBO/evolution-sdk/commit/f0c7ea4254a2c9d96551df294ecf4535872e79e4) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - `Transaction.fromCBORHex` and `Transaction.fromCBORBytes` now preserve the original CBOR encoding format (e.g. indefinite-length arrays) through round-trips. Previously, decoding via the default path normalised indefinite-length markers (`0x9f`) to definite-length (`0x81`), which silently broke `scriptDataHash` validation when the transaction contained non-canonical PlutusData in redeemers.
+
+  The fix caches the CBOR format tree in a WeakMap on decode and re-applies it on encode, making the default `fromCBOR → toCBOR` path lossless with no API surface change. `addVKeyWitnesses` transfers the cached format to the resulting transaction.
+
+- [#228](https://github.com/IntersectMBO/evolution-sdk/pull/228) [`a2310b0`](https://github.com/IntersectMBO/evolution-sdk/commit/a2310b0399377c69b3342182b9745c72d9bcd5bf) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Restructure transaction builder internals for maintainability.
+  - Extract monolithic `TxBuilderImpl.ts` into focused internal modules (`build.ts`, `ctx.ts`, `factory.ts`, `layers.ts`, `resolve.ts`, `state.ts`, `txBuilder.ts`)
+  - Rename internal modules from PascalCase to camelCase per Effect conventions
+  - Add `Address.isScript` predicate and `UTxO.totalAssets`/`UTxO.toInputs` utilities to core modules
+  - Remove unnecessary Effect wrappers from pure functions (`makeTxOutput`, `calculateTransactionSize`)
+  - Fix `Unfrack.ts` ScriptRef encoding to use `fromHexStrings` instead of `fromUnit`
+  - Fix `Stake.ts` withdraw to use dependency injection for `TxBuilderConfig`
+
 ## 0.3.32
 
 ### Patch Changes

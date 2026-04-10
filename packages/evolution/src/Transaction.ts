@@ -118,11 +118,38 @@ export const FromCBORHex = (options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTION
 // Parsing / Encoding Functions
 // ============================================================================
 
-export const fromCBORBytes = (bytes: Uint8Array, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
-  Schema.decodeSync(FromCBORBytes(options))(bytes)
+/**
+ * Internal cache that associates a Transaction with the CBORFormat tree
+ * captured when it was decoded. This lets the default `toCBORHex` /
+ * `toCBORBytes` path automatically preserve the original CBOR encoding
+ * (indefinite-length arrays, map key ordering, etc.) without requiring
+ * callers to use the explicit WithFormat API.
+ *
+ * WeakMap ensures the format is garbage-collected with the Transaction.
+ */
+const formatCache = new WeakMap<Transaction, CBOR.CBORFormat>()
 
-export const fromCBORHex = (hex: string, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
-  Schema.decodeSync(FromCBORHex(options))(hex)
+export const fromCBORBytes = (bytes: Uint8Array, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Transaction => {
+  // When caller passes non-default codec options, honor them via the legacy
+  // decode path and skip format caching — custom options typically imply the
+  // caller wants re-canonicalization, which is incompatible with preserving
+  // the original encoding.
+  if (options !== CBOR.CML_DEFAULT_OPTIONS) {
+    return Schema.decodeSync(FromCBORBytes(options))(bytes)
+  }
+  const { format, value } = fromCBORBytesWithFormat(bytes)
+  formatCache.set(value, format)
+  return value
+}
+
+export const fromCBORHex = (hex: string, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Transaction => {
+  if (options !== CBOR.CML_DEFAULT_OPTIONS) {
+    return Schema.decodeSync(FromCBORHex(options))(hex)
+  }
+  const { format, value } = fromCBORHexWithFormat(hex)
+  formatCache.set(value, format)
+  return value
+}
 
 /**
  * Parse a Transaction from CBOR bytes and return the root format tree.
@@ -156,11 +183,25 @@ export const fromCBORHexWithFormat = (
   return { value, format: decoded.format }
 }
 
-export const toCBORBytes = (data: Transaction, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
-  Schema.encodeSync(FromCBORBytes(options))(data)
+export const toCBORBytes = (data: Transaction, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): Uint8Array => {
+  // Non-default options signal an explicit re-encode request — bypass the
+  // cached format so the caller's options actually take effect.
+  if (options !== CBOR.CML_DEFAULT_OPTIONS) {
+    return Schema.encodeSync(FromCBORBytes(options))(data)
+  }
+  const cached = formatCache.get(data)
+  if (cached) return toCBORBytesWithFormat(data, cached)
+  return Schema.encodeSync(FromCBORBytes(options))(data)
+}
 
-export const toCBORHex = (data: Transaction, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS) =>
-  Schema.encodeSync(FromCBORHex(options))(data)
+export const toCBORHex = (data: Transaction, options: CBOR.CodecOptions = CBOR.CML_DEFAULT_OPTIONS): string => {
+  if (options !== CBOR.CML_DEFAULT_OPTIONS) {
+    return Schema.encodeSync(FromCBORHex(options))(data)
+  }
+  const cached = formatCache.get(data)
+  if (cached) return toCBORHexWithFormat(data, cached)
+  return Schema.encodeSync(FromCBORHex(options))(data)
+}
 
 /**
  * Convert a Transaction to CBOR bytes using an explicit root format tree.
@@ -314,10 +355,14 @@ export const addVKeyWitnesses = (
     },
     { disableValidation: true }
   )
-  return new Transaction(
+  const result = new Transaction(
     { body: tx.body, witnessSet: newWs, isValid: tx.isValid, auxiliaryData: tx.auxiliaryData },
     { disableValidation: true }
   )
+  // Transfer cached format so toCBORHex/toCBORBytes preserves encoding
+  const fmt = formatCache.get(tx)
+  if (fmt) formatCache.set(result, fmt)
+  return result
 }
 
 // ============================================================================
