@@ -4,12 +4,12 @@ import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
 import * as CoreAddress from "@evolution-sdk/evolution/Address"
-import * as Text from "@evolution-sdk/evolution/Text"
-import * as NativeScripts from "@evolution-sdk/evolution/NativeScripts"
-import * as ScriptHash from "@evolution-sdk/evolution/ScriptHash"
-import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
 import * as AssetName from "@evolution-sdk/evolution/AssetName"
+import * as NativeScripts from "@evolution-sdk/evolution/NativeScripts"
 import * as PolicyId from "@evolution-sdk/evolution/PolicyId"
+import * as ScriptHash from "@evolution-sdk/evolution/ScriptHash"
+import * as Text from "@evolution-sdk/evolution/Text"
+import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
 
 const CoreAssets = Cardano.Assets
 
