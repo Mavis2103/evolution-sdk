@@ -141,14 +141,6 @@ export const fromHexStrings = (
  * - `"<policyIdHex><assetNameHex>"`: bigint for native asset quantity
  *   where policyId is exactly 56 hex chars and assetName is remaining hex chars
  *
- * @example
- * ```ts
- * const assets = fromRecord({
- *   lovelace: 5_000_000n,
- *   "aabbcc...def456aabbccdd": 100n  // 56 char policyId hex + assetName hex
- * })
- * ```
- *
  * @since 2.0.0
  * @category constructors
  */

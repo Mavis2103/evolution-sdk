@@ -1,6 +1,6 @@
 ---
 title: plutus/OutputReference.ts
-nav_order: 97
+nav_order: 91
 parent: Modules
 ---
 

@@ -100,18 +100,13 @@ export * as TSchema from "./TSchema.js"
 // Certificates & Governance
 export * as Anchor from "./Anchor.js"
 export * as Certificate from "./Certificate.js"
-export * as CommitteeCertificates from "./CommitteeCertificates.js"
 export * as CommitteeColdCredential from "./CommitteeColdCredential.js"
 export * as CommitteeHotCredential from "./CommitteeHotCredential.js"
 export * as Constitution from "./Constitution.js"
-export * as DelegationCertificates from "./DelegationCertificates.js"
 export * as DRep from "./DRep.js"
-export * as DRepCertificates from "./DRepCertificates.js"
 export * as GovernanceAction from "./GovernanceAction.js"
-export * as PoolCertificates from "./PoolCertificates.js"
 export * as ProposalProcedure from "./ProposalProcedure.js"
 export * as ProposalProcedures from "./ProposalProcedures.js"
-export * as StakeCertificates from "./StakeCertificates.js"
 export * as VotingProcedures from "./VotingProcedures.js"
 
 // Staking

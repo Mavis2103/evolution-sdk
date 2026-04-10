@@ -1,6 +1,6 @@
 ---
 title: plutus/Value.ts
-nav_order: 98
+nav_order: 92
 parent: Modules
 ---
 
