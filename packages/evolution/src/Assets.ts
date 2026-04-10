@@ -141,6 +141,15 @@ export const fromHexStrings = (
  * - `"<policyIdHex><assetNameHex>"`: bigint for native asset quantity
  *   where policyId is exactly 56 hex chars and assetName is remaining hex chars
  *
+ * @example
+ * ```ts
+ * import * as Assets from "@evolution-sdk/evolution/Assets"
+ *
+ * const assets = Assets.fromRecord({
+ *   lovelace: 5_000_000n,
+ * })
+ * ```
+ *
  * @since 2.0.0
  * @category constructors
  */

@@ -19,6 +19,8 @@ import { Address, Assets, Client, preprod } from "@evolution-sdk/evolution"
 const address = Address.fromBech32("addr1...")
 const amount = Assets.fromLovelace(2_000_000n)
 const client = Client.make(preprod)
+  .withBlockfrost({ baseUrl: "https://cardano-preprod.blockfrost.io/api/v0", projectId: "your-project-id" })
+const tx = client.newTx()
 ```
 
 The root barrel also exports `Cardano`, which gives you one namespace for discovery:

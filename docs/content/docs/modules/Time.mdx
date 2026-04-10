@@ -38,6 +38,16 @@ Convert a slot number to Unix time (in milliseconds).
 export declare const slotToUnixTime: (slot: Slot, slotConfig: SlotConfig) => UnixTime
 ```
 
+**Example**
+
+```typescript
+import * as Time from "@evolution-sdk/evolution/Time"
+
+const slot = 12345678n
+const config = { zeroTime: 1596059091000n, zeroSlot: 4492800n, slotLength: 1000 }
+const unixTime = Time.slotToUnixTime(slot, config)
+```
+
 Added in v2.0.0
 
 ## unixTimeToSlot
@@ -49,6 +59,16 @@ Uses floor division to find the slot that contains the given time.
 
 ```ts
 export declare const unixTimeToSlot: (unixTime: UnixTime, slotConfig: SlotConfig) => Slot
+```
+
+**Example**
+
+```typescript
+import * as Time from "@evolution-sdk/evolution/Time"
+
+const unixTime = 1596059091000n
+const config = { zeroTime: 1596059091000n, zeroSlot: 4492800n, slotLength: 1000 }
+const slot = Time.unixTimeToSlot(unixTime, config)
 ```
 
 Added in v2.0.0

@@ -23,6 +23,14 @@ import { now as nowFn } from "./UnixTime.js"
  * @category Conversion
  * @since 2.0.0
  *
+ * @example
+ * ```typescript
+ * import * as Time from "@evolution-sdk/evolution/Time"
+ *
+ * const slot = 12345678n
+ * const config = { zeroTime: 1596059091000n, zeroSlot: 4492800n, slotLength: 1000 }
+ * const unixTime = Time.slotToUnixTime(slot, config)
+ * ```
  */
 export const slotToUnixTime = (slot: Slot, slotConfig: SlotConfig): UnixTime => {
   const msAfterBegin = (slot - slotConfig.zeroSlot) * BigInt(slotConfig.slotLength)
@@ -40,6 +48,14 @@ export const slotToUnixTime = (slot: Slot, slotConfig: SlotConfig): UnixTime => 
  * @category Conversion
  * @since 2.0.0
  *
+ * @example
+ * ```typescript
+ * import * as Time from "@evolution-sdk/evolution/Time"
+ *
+ * const unixTime = 1596059091000n
+ * const config = { zeroTime: 1596059091000n, zeroSlot: 4492800n, slotLength: 1000 }
+ * const slot = Time.unixTimeToSlot(unixTime, config)
+ * ```
  */
 export const unixTimeToSlot = (unixTime: UnixTime, slotConfig: SlotConfig): Slot => {
   const timePassed = unixTime - slotConfig.zeroTime

@@ -289,6 +289,16 @@ Record format:
 export declare const fromRecord: (record: Record<string, bigint>) => Assets
 ```
 
+**Example**
+
+```ts
+import * as Assets from "@evolution-sdk/evolution/Assets"
+
+const assets = Assets.fromRecord({
+  lovelace: 5_000_000n
+})
+```
+
 Added in v2.0.0
 
 ## fromUnit

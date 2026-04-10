@@ -29,7 +29,7 @@ import * as VotingProcedures from "@evolution-sdk/evolution/VotingProcedures"
 import plutusJson from "../../evolution/test/spec/plutus.json"
 
 // Alias for readability
-const Time = Cardano.Time
+const Time = Cardano.UnixTime
 
 const TEST_MNEMONIC =
   "test test test test test test test test test test test test test test test test test test test test test test test sauce"
