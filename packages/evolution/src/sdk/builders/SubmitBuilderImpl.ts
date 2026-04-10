@@ -13,8 +13,8 @@
 
 import { Effect } from "effect"
 
-import type * as Transaction from "../../transaction/Transaction.js"
-import type * as TransactionWitnessSet from "../../transaction/TransactionWitnessSet.js"
+import type * as Transaction from "../../Transaction.js"
+import type * as TransactionWitnessSet from "../../TransactionWitnessSet.js"
 import type * as Provider from "../provider/Provider.js"
 import type { SubmitBuilder, SubmitBuilderEffect } from "./SubmitBuilder.js"
 import { TransactionBuilderError } from "./TransactionBuilder.js"

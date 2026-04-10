@@ -4,18 +4,18 @@
  * @packageDocumentation
  */
 
-import * as Bytes from "@evolution-sdk/evolution/bytes/Bytes"
-import * as CBOR from "@evolution-sdk/evolution/encoding/CBOR"
-import * as CostModel from "@evolution-sdk/evolution/script/CostModel"
-import * as Redeemer from "@evolution-sdk/evolution/script/Redeemer"
-import * as Script from "@evolution-sdk/evolution/script/Script"
-import * as ScriptRef from "@evolution-sdk/evolution/script/ScriptRef"
+import * as Bytes from "@evolution-sdk/evolution/Bytes"
+import * as CBOR from "@evolution-sdk/evolution/CBOR"
+import * as CostModel from "@evolution-sdk/evolution/CostModel"
+import * as Redeemer from "@evolution-sdk/evolution/Redeemer"
+import * as Script from "@evolution-sdk/evolution/Script"
+import * as ScriptRef from "@evolution-sdk/evolution/ScriptRef"
 import * as TransactionBuilder from "@evolution-sdk/evolution/sdk/builders/TransactionBuilder"
 import type * as EvalRedeemer from "@evolution-sdk/evolution/sdk/EvalRedeemer"
-import * as Transaction from "@evolution-sdk/evolution/transaction/Transaction"
-import * as TransactionInput from "@evolution-sdk/evolution/transaction/TransactionInput"
-import * as TxOut from "@evolution-sdk/evolution/transaction/TxOut"
-import type * as UTxO from "@evolution-sdk/evolution/transaction/UTxO"
+import * as Transaction from "@evolution-sdk/evolution/Transaction"
+import * as TransactionInput from "@evolution-sdk/evolution/TransactionInput"
+import * as TxOut from "@evolution-sdk/evolution/TxOut"
+import type * as UTxO from "@evolution-sdk/evolution/UTxO"
 import { Effect } from "effect"
 
 /**

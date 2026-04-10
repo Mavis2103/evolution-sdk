@@ -1,5 +1,5 @@
-import * as Data from "../data/Data.js"
-import * as TSchema from "../data/TSchema.js"
+import * as Data from "../Data.js"
+import * as TSchema from "../TSchema.js"
 
 /**
  * Policy ID (28 bytes script hash)

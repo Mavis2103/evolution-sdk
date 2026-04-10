@@ -7,8 +7,8 @@
 
 import { Effect, Ref } from "effect"
 
-import * as ProposalProcedure from "../../../governance/ProposalProcedure.js"
-import * as ProposalProcedures from "../../../governance/ProposalProcedures.js"
+import * as ProposalProcedure from "../../../ProposalProcedure.js"
+import * as ProposalProcedures from "../../../ProposalProcedures.js"
 import { TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type { ProposeParams } from "./Operations.js"
 

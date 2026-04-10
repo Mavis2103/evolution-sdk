@@ -2,12 +2,12 @@ import * as CML from "@dcspark/cardano-multiplatform-lib-nodejs"
 import { Equal, FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as NetworkId from "../src/network/NetworkId.js"
-import * as TransactionBody from "../src/transaction/TransactionBody.js"
-import * as TransactionHash from "../src/transaction/TransactionHash.js"
-import * as TransactionInput from "../src/transaction/TransactionInput.js"
 // diagnoseTransactionBody is optional during lint/type-check; load only on failure
-import * as Coin from "../src/value/Coin.js"
+import * as Coin from "../src/Coin.js"
+import * as NetworkId from "../src/NetworkId.js"
+import * as TransactionBody from "../src/TransactionBody.js"
+import * as TransactionHash from "../src/TransactionHash.js"
+import * as TransactionInput from "../src/TransactionInput.js"
 
 /**
  * CML compatibility test for TransactionBody CBOR serialization.

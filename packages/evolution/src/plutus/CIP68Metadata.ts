@@ -15,8 +15,8 @@
 
 import { Schema } from "effect"
 
-import * as Data from "../data/Data.js"
-import * as TSchema from "../data/TSchema.js"
+import * as Data from "../Data.js"
+import * as TSchema from "../TSchema.js"
 
 /**
  * CIP-68 Datum Structure

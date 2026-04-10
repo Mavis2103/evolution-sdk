@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@effect/vitest"
 
-import * as CBOR from "../src/encoding/CBOR.js"
+import * as CBOR from "../src/CBOR.js"
 
 // ---------------------------------------------------------------------------
 // Encoding vectors — every non-canonical encoding the CBOR layer can capture

@@ -1,7 +1,7 @@
 import { Effect, Ref } from "effect"
 
-import type * as ScriptCore from "../../../script/Script.js"
-import * as ScriptHashCore from "../../../script/ScriptHash.js"
+import type * as ScriptCore from "../../../Script.js"
+import * as ScriptHashCore from "../../../ScriptHash.js"
 import { TxContext } from "../TransactionBuilder.js"
 /**
  * Attaches a script to the transaction by storing it in the builder state.

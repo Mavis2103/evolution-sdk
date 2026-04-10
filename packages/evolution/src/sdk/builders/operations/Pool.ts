@@ -7,8 +7,8 @@
 
 import { Effect, Ref } from "effect"
 
-import * as Certificate from "../../../certificate/Certificate.js"
-import * as PoolKeyHash from "../../../staking/PoolKeyHash.js"
+import * as Certificate from "../../../Certificate.js"
+import * as PoolKeyHash from "../../../PoolKeyHash.js"
 import { TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type { RegisterPoolParams, RetirePoolParams } from "./Operations.js"
 

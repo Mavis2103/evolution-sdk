@@ -4,7 +4,9 @@ import { useState } from "react"
 import { Blueprint } from "@evolution-sdk/evolution"
 import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock"
 
-const { PlutusBlueprint, generateTypeScript, createCodegenConfig } = Blueprint
+const { PlutusBlueprint } = Blueprint.Types
+const { generateTypeScript } = Blueprint.Codegen
+const { createCodegenConfig } = Blueprint.CodegenConfig
 
 export function BlueprintCodegen() {
   const [blueprintJson, setBlueprintJson] = useState("")

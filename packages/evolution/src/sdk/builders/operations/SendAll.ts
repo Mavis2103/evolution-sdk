@@ -16,7 +16,7 @@
 
 import { Effect, Ref } from "effect"
 
-import type * as CoreAddress from "../../../address/Address.js"
+import type * as CoreAddress from "../../../Address.js"
 import { TxContext } from "../TransactionBuilder.js"
 import type { SendAllParams } from "./Operations.js"
 

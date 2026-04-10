@@ -1,7 +1,7 @@
 import { Effect, Layer, Logger, LogLevel } from "effect"
 
 import * as EffectRuntime from "../../../EffectRuntime.js"
-import type * as CoreScript from "../../../script/Script.js"
+import type * as CoreScript from "../../../Script.js"
 import * as AddSigner from "../operations/AddSigner.js"
 import * as Attach from "../operations/Attach.js"
 import * as AttachMetadata from "../operations/AttachMetadata.js"

@@ -40,8 +40,8 @@ const address = new Address.Address({
 ### Option 2: Direct Module Imports
 
 ```typescript twoslash
-import { Address } from "@evolution-sdk/evolution/address/Address";
-import { KeyHash } from "@evolution-sdk/evolution/credential/KeyHash";
+import { Address } from "@evolution-sdk/evolution/Address";
+import { KeyHash } from "@evolution-sdk/evolution/KeyHash";
 
 // Same functionality, imported directly from modules
 const paymentCred = new KeyHash({ hash: new Uint8Array(28) });

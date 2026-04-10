@@ -17,9 +17,9 @@ import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import type { Cardano } from "@evolution-sdk/evolution"
 import { Client, preprod } from "@evolution-sdk/evolution"
-import * as Address from "@evolution-sdk/evolution/address/Address"
-import * as DRep from "@evolution-sdk/evolution/governance/DRep"
-import * as PoolKeyHash from "@evolution-sdk/evolution/staking/PoolKeyHash"
+import * as Address from "@evolution-sdk/evolution/Address"
+import * as DRep from "@evolution-sdk/evolution/DRep"
+import * as PoolKeyHash from "@evolution-sdk/evolution/PoolKeyHash"
 
 // Default devnet stake pool ID from Config.ts
 const DEVNET_POOL_ID = "8a219b698d3b6e034391ae84cee62f1d76b6fbc45ddfe4e31e0d4b60"

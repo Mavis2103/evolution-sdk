@@ -11,9 +11,9 @@
 
 import { Effect, Ref } from "effect"
 
-import * as CoreAssets from "../../../assets/index.js"
-import * as TxOut from "../../../transaction/TxOut.js"
-import * as UTxO from "../../../transaction/UTxO.js"
+import * as CoreAssets from "../../../Assets.js"
+import * as TxOut from "../../../TxOut.js"
+import * as UTxO from "../../../UTxO.js"
 import {
   calculateMinimumUtxoLovelace
 } from "../internal/txBuilder.js"

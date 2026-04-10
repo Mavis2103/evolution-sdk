@@ -1,8 +1,8 @@
 import { Effect } from "effect"
 
-import type * as CoreAddress from "../../../address/Address.js"
-import type * as Transaction from "../../../transaction/Transaction.js"
-import type * as CoreUTxO from "../../../transaction/UTxO.js"
+import type * as CoreAddress from "../../../Address.js"
+import type * as Transaction from "../../../Transaction.js"
+import type * as CoreUTxO from "../../../UTxO.js"
 import type * as Provider from "../../provider/Provider.js"
 import type * as Wallet from "../../wallet/Wallet.js"
 import type { BuildOptions, EvaluationContext, Evaluator, ProtocolParameters, TxBuilderConfig } from "../TransactionBuilder.js"
