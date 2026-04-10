@@ -13,7 +13,7 @@ import * as ScriptHash from "./ScriptHash.js"
 import * as TransactionHash from "./TransactionHash.js"
 import * as TransactionIndex from "./TransactionIndex.js"
 import * as Coin from "./Coin.js"
-import * as Constituion from "./Constitution.js"
+import * as Constitution from "./Constitution.js"
 
 /**
  * Helper for array equality using element-by-element comparison.
@@ -736,7 +736,7 @@ export const UpdateCommitteeActionFromCDDL = Schema.transformOrFail(
  */
 export class NewConstitutionAction extends Schema.TaggedClass<NewConstitutionAction>()("NewConstitutionAction", {
   govActionId: Schema.NullOr(GovActionId), // gov_action_id / nil
-  constitution: Constituion.Constitution // constitution as CBOR
+  constitution: Constitution.Constitution // constitution as CBOR
 }) {
   toJSON() {
     return {
@@ -779,7 +779,7 @@ export class NewConstitutionAction extends Schema.TaggedClass<NewConstitutionAct
 export const NewConstitutionActionCDDL = Schema.Tuple(
   Schema.Literal(5n), // action type
   Schema.NullOr(GovActionIdCDDL), // gov_action_id / nil
-  Constituion.CDDLSchema // constitution as CBOR
+  Constitution.CDDLSchema // constitution as CBOR
 )
 
 /**
@@ -798,7 +798,7 @@ export const NewConstitutionActionFromCDDL = Schema.transformOrFail(
         const govActionId = action.govActionId
           ? yield* ParseResult.encode(GovActionIdFromCDDL)(action.govActionId)
           : null
-        const constitution = yield* ParseResult.encode(Constituion.FromCDDL)(action.constitution)
+        const constitution = yield* ParseResult.encode(Constitution.FromCDDL)(action.constitution)
 
         // Return as CBOR tuple
         return [5n, govActionId, constitution] as const
@@ -807,7 +807,7 @@ export const NewConstitutionActionFromCDDL = Schema.transformOrFail(
       Eff.gen(function* () {
         const [, govActionIdCDDL, constitutionCDDL] = cddl
         const govActionId = govActionIdCDDL ? yield* ParseResult.decode(GovActionIdFromCDDL)(govActionIdCDDL) : null
-        const constitution = yield* ParseResult.decode(Constituion.FromCDDL)(constitutionCDDL)
+        const constitution = yield* ParseResult.decode(Constitution.FromCDDL)(constitutionCDDL)
 
         return new NewConstitutionAction({
           govActionId,
@@ -1033,7 +1033,7 @@ export const updateCommitteeArbitrary: FastCheck.Arbitrary<UpdateCommitteeAction
 
 export const newConstitutionArbitrary: FastCheck.Arbitrary<NewConstitutionAction> = FastCheck.tuple(
   FastCheck.option(govActionIdArbitrary, { nil: null }),
-  Constituion.arbitrary
+  Constitution.arbitrary
 ).map(([govActionId, constitution]) => new NewConstitutionAction({ govActionId, constitution }))
 
 export const arbitrary: FastCheck.Arbitrary<GovernanceAction> = FastCheck.oneof(
@@ -1100,7 +1100,7 @@ export const match = <R>(
       membersToAdd: ReadonlyMap<typeof CommitteeColdCredential.CommitteeColdCredential.Credential.Type, EpochNo.EpochNo>,
       threshold: UnitInterval.UnitInterval
     ) => R
-    NewConstitutionAction: (govActionId: GovActionId | null, constitution: Constituion.Constitution) => R
+    NewConstitutionAction: (govActionId: GovActionId | null, constitution: Constitution.Constitution) => R
     InfoAction: () => R
   }
 ): R => {
