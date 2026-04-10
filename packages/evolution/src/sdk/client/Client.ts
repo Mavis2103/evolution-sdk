@@ -27,6 +27,16 @@ export interface OfflineSignerClientEffect extends AddressClientEffect {
     tx: Parameters<Wallet.SigningWalletEffect["signTx"]>[0],
     context?: Parameters<Wallet.SigningWalletEffect["signTx"]>[1]
   ) => ReturnType<Wallet.SigningWalletEffect["signTx"]>
+  /**
+   * Sign multiple transactions in batch (CIP-103).
+   * Falls back to sequential signTx if the wallet doesn't support batch signing.
+   *
+   * @since 2.2.0
+   */
+  readonly signTxs: (
+    txs: Parameters<Wallet.SigningWalletEffect["signTxs"]>[0],
+    context?: Parameters<Wallet.SigningWalletEffect["signTxs"]>[1]
+  ) => ReturnType<Wallet.SigningWalletEffect["signTxs"]>
   readonly signMessage: Wallet.SigningWalletEffect["signMessage"]
 }
 

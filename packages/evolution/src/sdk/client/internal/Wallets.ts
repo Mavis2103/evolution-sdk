@@ -219,6 +219,52 @@ export const cip30Wallet =
         })
         return { payload, signature: result.signature }
       }),
+    signTxs: (txs: ReadonlyArray<Transaction.Transaction | string>, _context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }) =>
+      Effect.gen(function* () {
+        const cborHexes = txs.map((txOrHex) => typeof txOrHex === "string" ? txOrHex : Transaction.toCBORHex(txOrHex))
+        const requests = cborHexes.map((cbor) => ({ cbor, partialSign: true }))
+
+        // Try CIP-103 standard namespace, then experimental, then direct, then fallback
+        const signTxsFn =
+          api.cip103?.signTxs?.bind(api.cip103) ??
+          api.experimental?.signTxs?.bind(api.experimental) ??
+          api.signTxs?.bind(api)
+
+        let witnessHexes: ReadonlyArray<string>
+        if (signTxsFn) {
+          witnessHexes = yield* Effect.tryPromise({
+            try: () => signTxsFn(requests),
+            catch: (cause) =>
+              new Wallet.WalletError({
+                message: `Failed to batch sign transactions: ${(cause as Error).message ?? cause}`,
+                cause
+              })
+          })
+        } else {
+          // Fallback: sequential signing
+          const results: Array<string> = []
+          for (const cbor of cborHexes) {
+            const witness = yield* Effect.tryPromise({
+              try: () => api.signTx(cbor, true),
+              catch: (cause) =>
+                new Wallet.WalletError({
+                  message: `Failed to sign transaction: ${(cause as Error).message ?? cause}`,
+                  cause
+                })
+            })
+            results.push(witness)
+          }
+          witnessHexes = results
+        }
+
+        return yield* Effect.all(
+          witnessHexes.map((hex) =>
+            ParseResult.decodeUnknownEither(TransactionWitnessSet.FromCBORHex())(hex).pipe(
+              Effect.mapError((cause) => new Wallet.WalletError({ message: `Failed to decode witness set: ${cause}`, cause }))
+            )
+          )
+        )
+      }),
     submitTx: (txOrHex: Transaction.Transaction | string) =>
       Effect.gen(function* () {
         const cbor = typeof txOrHex === "string" ? txOrHex : Transaction.toCBORHex(txOrHex)
@@ -236,6 +282,7 @@ export const cip30Wallet =
     address: () => runEffectPromise(effectInterface.address()),
     rewardAddress: () => runEffectPromise(effectInterface.rewardAddress()),
     signTx: (txOrHex, context) => runEffectPromise(effectInterface.signTx(txOrHex, context)),
+    signTxs: (txs, context) => runEffectPromise(effectInterface.signTxs(txs, context)),
     signMessage: (address, payload) => runEffectPromise(effectInterface.signMessage(address, payload)),
     submitTx: (txOrHex) => runEffectPromise(effectInterface.submitTx(txOrHex)),
     effect: effectInterface

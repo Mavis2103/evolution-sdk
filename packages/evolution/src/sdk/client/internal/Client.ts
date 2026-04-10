@@ -40,6 +40,7 @@ const createOfflineSignerEffect = (wallet: Signing.ResolvedSignerWallet): Offlin
   address: wallet.effect.address.bind(wallet.effect),
   rewardAddress: wallet.effect.rewardAddress.bind(wallet.effect),
   signTx: (txOrHex, context) => Signing.signWithWallet(wallet, txOrHex, context),
+  signTxs: (txs, context) => Signing.signTxsWithWallet(wallet, txs, context),
   signMessage: wallet.effect.signMessage.bind(wallet.effect)
 })
 
@@ -50,6 +51,7 @@ const createOfflineSignerClient = (chain: Chain, wallet: Signing.ResolvedSignerW
     address: () => runEffectPromise(effectInterface.address()),
     rewardAddress: () => runEffectPromise(effectInterface.rewardAddress()),
     signTx: (txOrHex, context) => runEffectPromise(effectInterface.signTx(txOrHex, context)),
+    signTxs: (txs, context) => runEffectPromise(effectInterface.signTxs(txs, context)),
     signMessage: (address, payload) => runEffectPromise(effectInterface.signMessage(address, payload)),
     chain,
     withBlockfrost: (config) => createSigningClient(chain, Providers.blockfrost(config), wallet),
@@ -104,6 +106,7 @@ const createSigningClient = (
     rewardAddress: wallet.effect.rewardAddress,
     signMessage: wallet.effect.signMessage,
     signTx: (txOrHex, context) => Signing.signWithAutoFetch(provider, wallet, txOrHex, context),
+    signTxs: (txs, context) => Signing.signTxsWithAutoFetch(provider, wallet, txs, context),
     getWalletUtxos: () => Effect.flatMap(wallet.effect.address(), (address) => provider.effect.getUtxos(address)),
     getWalletDelegation: () =>
       Effect.flatMap(wallet.effect.rewardAddress(), (rewardAddress) => {
@@ -121,6 +124,7 @@ const createSigningClient = (
     rewardAddress: () => runEffectPromise(effectInterface.rewardAddress()),
     signMessage: (address, payload) => runEffectPromise(effectInterface.signMessage(address, payload)),
     signTx: (txOrHex, context) => runEffectPromise(effectInterface.signTx(txOrHex, context)),
+    signTxs: (txs, context) => runEffectPromise(effectInterface.signTxs(txs, context)),
     getWalletUtxos: () => runEffectPromise(effectInterface.getWalletUtxos()),
     getWalletDelegation: () => runEffectPromise(effectInterface.getWalletDelegation()),
     chain,
