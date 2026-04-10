@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import * as Ed25519Signature from "../src/credential/Ed25519Signature.js"
-import * as VKey from "../src/credential/VKey.js"
-import * as Transaction from "../src/transaction/Transaction.js"
-import * as TransactionWitnessSet from "../src/transaction/TransactionWitnessSet.js"
+import * as Ed25519Signature from "../src/Ed25519Signature.js"
+import * as VKey from "../src/VKey.js"
+import * as Transaction from "../src/Transaction.js"
+import * as TransactionWitnessSet from "../src/TransactionWitnessSet.js"
 
 // Real-world transaction containing indefinite-length arrays (9f…ff) inside
 // redeemer PlutusData. Lossy decode normalises 0x9f → 0x81, breaking
