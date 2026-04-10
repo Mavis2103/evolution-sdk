@@ -14,8 +14,8 @@ import * as Bytes from "@evolution-sdk/evolution/Bytes"
 import * as Bytes32 from "@evolution-sdk/evolution/Bytes32"
 import * as Credential from "@evolution-sdk/evolution/Credential"
 import * as KeyHash from "@evolution-sdk/evolution/KeyHash"
-import * as Anchor from "@evolution-sdk/evolution/governance/Anchor"
-import * as Url from "@evolution-sdk/evolution/relay/Url"
+import * as Anchor from "@evolution-sdk/evolution/Anchor"
+import * as Url from "@evolution-sdk/evolution/Url"
 
 describe("TxBuilder Governance Operations", () => {
   let devnetCluster: Cluster.Cluster | undefined

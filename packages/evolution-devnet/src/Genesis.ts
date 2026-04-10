@@ -1,6 +1,6 @@
 import * as Address from "@evolution-sdk/evolution/Address"
 import * as AddressEras from "@evolution-sdk/evolution/AddressEras"
-import * as Assets from "@evolution-sdk/evolution/assets"
+import * as Assets from "@evolution-sdk/evolution/Assets"
 import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
 import * as UTxO from "@evolution-sdk/evolution/UTxO"
 import { blake2b } from "@noble/hashes/blake2"

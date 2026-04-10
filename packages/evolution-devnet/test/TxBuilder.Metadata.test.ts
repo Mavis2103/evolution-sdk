@@ -11,7 +11,7 @@ import * as Config from "@evolution-sdk/devnet/Config"
 import * as Genesis from "@evolution-sdk/devnet/Genesis"
 import { Cardano, Client, preprod } from "@evolution-sdk/evolution"
 import * as Address from "@evolution-sdk/evolution/Address"
-import { fromEntries } from "@evolution-sdk/evolution/metadata/TransactionMetadatum"
+import { fromEntries } from "@evolution-sdk/evolution/TransactionMetadatum"
 import * as TransactionHash from "@evolution-sdk/evolution/TransactionHash"
 
 describe("TxBuilder attachMetadata (Devnet Submit)", () => {
