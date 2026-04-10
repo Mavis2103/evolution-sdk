@@ -1,5 +1,11 @@
 # @evolution-sdk/evolution
 
+## 0.5.1
+
+### Patch Changes
+
+- [#243](https://github.com/IntersectMBO/evolution-sdk/pull/243) [`7fa8430`](https://github.com/IntersectMBO/evolution-sdk/commit/7fa843040e994b1c496260c101176cd0de679b97) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Restore Certificate.ts as a self-contained module and fix docgen compatibility. Remove convenience re-exports from Time.ts and update stale `@example` import paths for the flat module structure.
+
 ## 0.5.0
 
 ### Minor Changes
