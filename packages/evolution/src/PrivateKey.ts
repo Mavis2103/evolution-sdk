@@ -9,10 +9,10 @@ import * as BIP39 from "@scure/bip39"
 import { wordlist } from "@scure/bip39/wordlists/english"
 import { Either as E, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
+import * as Bip32PrivateKey from "./Bip32PrivateKey.js"
 import * as Bytes from "./Bytes.js"
 import * as Bytes32 from "./Bytes32.js"
 import * as Bytes64 from "./Bytes64.js"
-import * as Bip32PrivateKey from "./Bip32PrivateKey.js"
 import * as Ed25519Signature from "./Ed25519Signature.js"
 import * as VKey from "./VKey.js"
 

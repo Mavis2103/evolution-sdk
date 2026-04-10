@@ -1,9 +1,9 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Bytes32 from "./Bytes32.js"
+import * as CBOR from "./CBOR.js"
 import * as Ed25519Signature from "./Ed25519Signature.js"
 import * as VKey from "./VKey.js"
-import * as CBOR from "./CBOR.js"
 
 /**
  * Helper to compare two Uint8Arrays by content.

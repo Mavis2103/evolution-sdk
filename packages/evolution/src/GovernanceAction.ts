@@ -1,19 +1,19 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as RewardAccount from "./RewardAccount.js"
 import * as Bytes from "./Bytes.js"
-import * as CommitteeColdCredential from "./CommitteeColdCredential.js"
-import * as Credential from "./Credential.js"
 import * as CBOR from "./CBOR.js"
+import * as Coin from "./Coin.js"
+import * as CommitteeColdCredential from "./CommitteeColdCredential.js"
+import * as Constitution from "./Constitution.js"
+import * as Credential from "./Credential.js"
 import * as EpochNo from "./EpochNo.js"
 import * as ProtocolParamUpdate from "./ProtocolParamUpdate.js"
 import * as ProtocolVersion from "./ProtocolVersion.js"
-import * as UnitInterval from "./UnitInterval.js"
+import * as RewardAccount from "./RewardAccount.js"
 import * as ScriptHash from "./ScriptHash.js"
 import * as TransactionHash from "./TransactionHash.js"
 import * as TransactionIndex from "./TransactionIndex.js"
-import * as Coin from "./Coin.js"
-import * as Constitution from "./Constitution.js"
+import * as UnitInterval from "./UnitInterval.js"
 
 /**
  * Helper for array equality using element-by-element comparison.

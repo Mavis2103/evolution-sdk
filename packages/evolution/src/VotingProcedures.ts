@@ -1,15 +1,15 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Credential from "./Credential.js"
-import * as KeyHash from "./KeyHash.js"
-import * as CBOR from "./CBOR.js"
-import * as ScriptHash from "./ScriptHash.js"
-import * as PoolKeyHash from "./PoolKeyHash.js"
-import * as TransactionHash from "./TransactionHash.js"
-import * as TransactionIndex from "./TransactionIndex.js"
 import * as Anchor from "./Anchor.js"
+import * as CBOR from "./CBOR.js"
+import * as Credential from "./Credential.js"
 import * as DRep from "./DRep.js"
 import * as GovernanceAction from "./GovernanceAction.js"
+import * as KeyHash from "./KeyHash.js"
+import * as PoolKeyHash from "./PoolKeyHash.js"
+import * as ScriptHash from "./ScriptHash.js"
+import * as TransactionHash from "./TransactionHash.js"
+import * as TransactionIndex from "./TransactionIndex.js"
 
 /**
  * Helper function for content-based Map equality using Equal.equals.

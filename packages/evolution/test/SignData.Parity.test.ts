@@ -5,9 +5,9 @@ import * as M from "@emurgo/cardano-message-signing-nodejs"
 import { describe, expect, it } from "vitest"
 
 import { fromHex, toHex } from "../src/Bytes.js"
+import { SignData } from "../src/cose/index.js"
 import * as KeyHash from "../src/KeyHash.js"
 import * as PrivateKey from "../src/PrivateKey.js"
-import { SignData } from "../src/cose/index.js"
 
 function signData(addressHex: string, payload: string, privateKey: string): { signature: string; key: string } {
   const protectedHeaders = M.HeaderMap.new()

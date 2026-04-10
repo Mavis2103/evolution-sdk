@@ -11,8 +11,8 @@ import { blake2b } from "@noble/hashes/blake2"
 import { Equal, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Bytes from "../Bytes.js"
-import * as Ed25519Signature from "../Ed25519Signature.js"
 import * as CBOR from "../CBOR.js"
+import * as Ed25519Signature from "../Ed25519Signature.js"
 import { HeaderMapFromCBORBytes, Headers, headersNew } from "./Header.js"
 
 // ============================================================================

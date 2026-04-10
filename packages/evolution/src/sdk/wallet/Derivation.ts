@@ -6,11 +6,11 @@ import * as Schema from "effect/Schema"
 
 import * as CoreAddress from "../../Address.js"
 import * as AddressEras from "../../AddressEras.js"
-import * as RewardAccount from "../../RewardAccount.js"
-import * as CoreRewardAddress from "../../RewardAddress.js"
 import * as Bip32PrivateKey from "../../Bip32PrivateKey.js"
 import * as KeyHash from "../../KeyHash.js"
 import * as PrivateKey from "../../PrivateKey.js"
+import * as RewardAccount from "../../RewardAccount.js"
+import * as CoreRewardAddress from "../../RewardAddress.js"
 
 export class DerivationError extends Data.TaggedError("DerivationError")<{
   readonly message: string

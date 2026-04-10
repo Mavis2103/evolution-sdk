@@ -1,14 +1,14 @@
 import { BigDecimal, Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as RewardAccount from "./RewardAccount.js"
-import * as VrfKeyHash from "./VrfKeyHash.js"
-import * as KeyHash from "./KeyHash.js"
 import * as CBOR from "./CBOR.js"
-import * as UnitInterval from "./UnitInterval.js"
-import * as Relay from "./Relay.js"
 import * as Coin from "./Coin.js"
+import * as KeyHash from "./KeyHash.js"
 import * as PoolKeyHash from "./PoolKeyHash.js"
 import * as PoolMetadata from "./PoolMetadata.js"
+import * as Relay from "./Relay.js"
+import * as RewardAccount from "./RewardAccount.js"
+import * as UnitInterval from "./UnitInterval.js"
+import * as VrfKeyHash from "./VrfKeyHash.js"
 
 /**
  * Schema for PoolParams representing stake pool registration parameters.

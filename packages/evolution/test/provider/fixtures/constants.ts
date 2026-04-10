@@ -9,8 +9,8 @@
  */
 
 import * as Address from "../../../src/Address.js"
-import * as RewardAddress from "../../../src/RewardAddress.js"
 import * as DatumHash from "../../../src/DatumHash.js"
+import * as RewardAddress from "../../../src/RewardAddress.js"
 import * as TransactionHash from "../../../src/TransactionHash.js"
 import * as TransactionInput from "../../../src/TransactionInput.js"
 

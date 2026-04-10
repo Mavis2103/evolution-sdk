@@ -1,7 +1,7 @@
 import { Effect, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as PlutusData from "./Data.js"
 import * as CBOR from "./CBOR.js"
+import * as PlutusData from "./Data.js"
 import * as Numeric from "./Numeric.js"
 
 /**

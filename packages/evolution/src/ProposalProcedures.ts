@@ -1,11 +1,11 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as RewardAccount from "./RewardAccount.js"
+import * as Anchor from "./Anchor.js"
 import * as CBOR from "./CBOR.js"
 import * as Coin from "./Coin.js"
-import * as Anchor from "./Anchor.js"
 import * as GovernanceAction from "./GovernanceAction.js"
 import * as ProposalProcedure from "./ProposalProcedure.js"
+import * as RewardAccount from "./RewardAccount.js"
 
 /**
  * Helper for array equality using element-by-element comparison.

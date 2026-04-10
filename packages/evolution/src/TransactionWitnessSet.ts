@@ -1,16 +1,16 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Ed25519Signature from "./Ed25519Signature.js"
-import * as VKey from "./VKey.js"
-import * as PlutusData from "./Data.js"
+import * as Bootstrap from "./BootstrapWitness.js"
 import * as CBOR from "./CBOR.js"
+import * as PlutusData from "./Data.js"
+import * as Ed25519Signature from "./Ed25519Signature.js"
 import * as NativeScripts from "./NativeScripts.js"
 import * as PlutusV1 from "./PlutusV1.js"
 import * as PlutusV2 from "./PlutusV2.js"
 import * as PlutusV3 from "./PlutusV3.js"
 import * as Redeemer from "./Redeemer.js"
 import * as Redeemers from "./Redeemers.js"
-import * as Bootstrap from "./BootstrapWitness.js"
+import * as VKey from "./VKey.js"
 
 // Helper function for array comparison
 const arrayEquals = <A>(a: ReadonlyArray<A> | undefined, b: ReadonlyArray<A> | undefined): boolean => {

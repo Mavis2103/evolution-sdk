@@ -1,21 +1,28 @@
 import { Either as E, FastCheck, ParseResult, Schema } from "effect"
 
-import * as Credential from "./Credential.js"
-import * as CBOR from "./CBOR.js"
 import * as Anchor from "./Anchor.js"
+import * as CBOR from "./CBOR.js"
+import * as Coin from "./Coin.js"
+import * as Committee from "./CommitteeCertificates.js"
+import * as Credential from "./Credential.js"
+import * as Delegation from "./DelegationCertificates.js"
 import * as DRep from "./DRep.js"
+import * as DRepCerts from "./DRepCertificates.js"
 import * as EpochNo from "./EpochNo.js"
-import * as UnitInterval from "./UnitInterval.js"
-import * as Relay from "./Relay.js"
+import * as Pool from "./PoolCertificates.js"
 import * as PoolKeyHash from "./PoolKeyHash.js"
 import * as PoolMetadata from "./PoolMetadata.js"
 import * as PoolParams from "./PoolParams.js"
-import * as Coin from "./Coin.js"
-import * as Committee from "./CommitteeCertificates.js"
-import * as Delegation from "./DelegationCertificates.js"
-import * as DRepCerts from "./DRepCertificates.js"
-import * as Pool from "./PoolCertificates.js"
+import * as Relay from "./Relay.js"
 import * as Stake from "./StakeCertificates.js"
+import * as UnitInterval from "./UnitInterval.js"
+
+// Re-export individual certificate types for consumers using Certificate.XxxCert
+export { AuthCommitteeHotCert, ResignCommitteeColdCert } from "./CommitteeCertificates.js"
+export { StakeRegDelegCert, StakeVoteDelegCert, StakeVoteRegDelegCert, VoteDelegCert, VoteRegDelegCert } from "./DelegationCertificates.js"
+export { RegDrepCert, UnregDrepCert, UpdateDrepCert } from "./DRepCertificates.js"
+export { PoolRegistration, PoolRetirement } from "./PoolCertificates.js"
+export { RegCert, StakeDelegation, StakeDeregistration, StakeRegistration, UnregCert } from "./StakeCertificates.js"
 
 /**
  * Certificate union schema based on Conway CDDL specification

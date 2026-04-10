@@ -11,10 +11,10 @@
 import { Effect, Ref } from "effect"
 
 import * as Bytes from "../../../Bytes.js"
-import { INT64_MAX } from "../../../Numeric.js"
 import * as CostModel from "../../../CostModel.js"
-import * as CoreUTxO from "../../../UTxO.js"
+import { INT64_MAX } from "../../../Numeric.js"
 import * as PolicyId from "../../../PolicyId.js"
+import * as CoreUTxO from "../../../UTxO.js"
 import type * as Provider from "../../provider/Provider.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
 import { assembleTransaction } from "../internal/txBuilder.js"

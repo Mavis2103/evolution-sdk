@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import * as Ed25519Signature from "../src/Ed25519Signature.js"
-import * as VKey from "../src/VKey.js"
-import * as PlutusData from "../src/Data.js"
 import * as CBOR from "../src/CBOR.js"
+import * as PlutusData from "../src/Data.js"
+import * as Ed25519Signature from "../src/Ed25519Signature.js"
 import * as TransactionWitnessSet from "../src/TransactionWitnessSet.js"
+import * as VKey from "../src/VKey.js"
 
 const buildWitnessSetHex = (): string => {
   const data = PlutusData.constr(0n, [])

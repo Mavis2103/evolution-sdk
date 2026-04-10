@@ -8,9 +8,9 @@
 import { Equal, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as Bytes from "../Bytes.js"
+import * as CBOR from "../CBOR.js"
 import * as PrivateKey from "../PrivateKey.js"
 import * as VKey from "../VKey.js"
-import * as CBOR from "../CBOR.js"
 import { HeaderMap, headerMapNew } from "./Header.js"
 import type { Label } from "./Label.js"
 import { AlgorithmId, CurveType, KeyOperation, KeyType, labelFromInt, labelFromText } from "./Label.js"

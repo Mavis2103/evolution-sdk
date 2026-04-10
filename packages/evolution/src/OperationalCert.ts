@@ -1,9 +1,9 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Ed25519Signature from "./Ed25519Signature.js"
 import * as CBOR from "./CBOR.js"
-import * as Numeric from "./Numeric.js"
+import * as Ed25519Signature from "./Ed25519Signature.js"
 import * as KESVkey from "./KESVkey.js"
+import * as Numeric from "./Numeric.js"
 
 /**
  * OperationalCert class based on Conway CDDL specification

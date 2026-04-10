@@ -6,9 +6,9 @@ import { pbkdf2 } from "@noble/hashes/pbkdf2"
 import { sha512 } from "@noble/hashes/sha2"
 import { Data, Effect, Equal, FastCheck, Hash, Inspectable, Schema } from "effect"
 
+import * as Bip32PublicKey from "./Bip32PublicKey.js"
 import * as Bytes from "./Bytes.js"
 import * as Bytes96 from "./Bytes96.js"
-import * as Bip32PublicKey from "./Bip32PublicKey.js"
 import * as PrivateKey from "./PrivateKey.js"
 
 /**

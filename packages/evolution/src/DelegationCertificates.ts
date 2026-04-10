@@ -6,10 +6,10 @@
  */
 import { Equal, Hash, Inspectable, Schema } from "effect"
 
+import * as Coin from "./Coin.js"
 import * as Credential from "./Credential.js"
 import * as DRep from "./DRep.js"
 import * as PoolKeyHash from "./PoolKeyHash.js"
-import * as Coin from "./Coin.js"
 
 /**
  * Delegate voting rights to a DRep (CDDL: vote_deleg_cert = 9).

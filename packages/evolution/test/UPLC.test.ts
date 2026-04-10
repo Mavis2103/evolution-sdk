@@ -1,8 +1,8 @@
 import { FastCheck, Schema } from "effect"
 import { describe, expect, it } from "vitest"
 
-import * as Data from "../src/Data.js"
 import * as CBOR from "../src/CBOR.js"
+import * as Data from "../src/Data.js"
 import { PlutusV2 } from "../src/PlutusV2.js"
 import * as ScriptHash from "../src/ScriptHash.js"
 import * as UPLC from "../src/UPLC.js"

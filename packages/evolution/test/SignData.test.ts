@@ -2,10 +2,10 @@ import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
 import * as Bytes from "../src/Bytes.js"
+import { COSESign1, Header, SignData, Utils } from "../src/cose/index.js"
 import * as KeyHash from "../src/KeyHash.js"
 import * as PrivateKey from "../src/PrivateKey.js"
 import * as VKey from "../src/VKey.js"
-import { COSESign1, Header, SignData, Utils } from "../src/cose/index.js"
 
 describe("SignData", () => {
   describe("Payload", () => {

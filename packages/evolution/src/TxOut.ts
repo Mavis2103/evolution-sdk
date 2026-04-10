@@ -2,9 +2,9 @@ import { Either as E, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema }
 
 import * as Address from "./Address.js"
 import * as Assets from "./Assets.js"
+import * as CBOR from "./CBOR.js"
 import * as DatumHash from "./DatumHash.js"
 import * as DatumOption from "./DatumOption.js"
-import * as CBOR from "./CBOR.js"
 import * as ScriptRef from "./ScriptRef.js"
 
 // Pre-bind frequently used ParseResult helpers for hot paths

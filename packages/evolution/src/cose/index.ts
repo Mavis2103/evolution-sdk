@@ -8,10 +8,10 @@
  * @category namespace
  */
 
+export * as Header from "./Header.js"
 export * as COSEKey from "./Key.js"
+export * as Label from "./Label.js"
 export * as COSESign from "./Sign.js"
 export * as COSESign1 from "./Sign1.js"
-export * as Header from "./Header.js"
-export * as Label from "./Label.js"
 export * as SignData from "./SignData.js"
 export * as Utils from "./Utils.js"

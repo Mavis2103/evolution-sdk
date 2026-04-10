@@ -6,9 +6,9 @@
  */
 import { Equal, Hash, Inspectable, Schema } from "effect"
 
-import * as Credential from "./Credential.js"
 import * as Anchor from "./Anchor.js"
 import * as Coin from "./Coin.js"
+import * as Credential from "./Credential.js"
 
 /**
  * Register as a DRep (CDDL: reg_drep_cert = 16).

@@ -2,10 +2,10 @@ import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema
 
 import * as Credential from "./Credential.js"
 import * as KeyHash from "./KeyHash.js"
-import * as NetworkId from "./NetworkId.js"
 import * as Natural from "./Natural.js"
-import * as ScriptHash from "./ScriptHash.js"
+import * as NetworkId from "./NetworkId.js"
 import * as Pointer from "./Pointer.js"
+import * as ScriptHash from "./ScriptHash.js"
 
 /**
  * Pointer address with payment credential and pointer to stake registration

@@ -1,7 +1,7 @@
 import { Schema } from "effect"
 
-import * as Pointer from "./Pointer.js"
 import * as Credential from "./Credential.js"
+import * as Pointer from "./Pointer.js"
 
 /**
  * Schema for stake reference that can be either a credential or a pointer

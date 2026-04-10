@@ -2,8 +2,8 @@ import { FastCheck } from "effect"
 import { describe, expect, it } from "vitest"
 
 import * as Bytes from "../src/Bytes.js"
-import * as Data from "../src/Data.js"
 import * as CBOR from "../src/CBOR.js"
+import * as Data from "../src/Data.js"
 
 /**
  * Tests for CBOR bounded_bytes chunked encoding.

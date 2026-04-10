@@ -3,11 +3,11 @@ import { FastCheck, Schema } from "effect"
 
 import * as Address from "../src/Address.js"
 import * as CoreAssets from "../src/Assets.js"
+import * as FeeValidation from "../src/FeeValidation.js"
 import * as KeyHash from "../src/KeyHash.js"
 import type { TxBuilderConfig } from "../src/sdk/builders/TransactionBuilder.js"
 import { makeTxBuilder } from "../src/sdk/builders/TransactionBuilder.js"
 import { mainnet } from "../src/sdk/client/index.js"
-import * as FeeValidation from "../src/FeeValidation.js"
 import * as CoreUTxO from "../src/UTxO.js"
 import { createCoreTestUtxo } from "./utils/utxo-helpers.js"
 

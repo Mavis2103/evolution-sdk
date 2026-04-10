@@ -2,8 +2,8 @@ import { blake2b } from "@noble/hashes/blake2"
 import { Data as EffectData, Effect, Equal, FastCheck, Hash, ParseResult, Schema } from "effect"
 
 import * as CBOR from "./CBOR.js"
-import * as Numeric from "./Numeric.js"
 import * as DatumHash from "./DatumHash.js"
+import * as Numeric from "./Numeric.js"
 
 /**
  * Error class for Data related operations.

@@ -1,10 +1,10 @@
 import { Effect as Eff, Equal, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as RewardAccount from "./RewardAccount.js"
+import * as Anchor from "./Anchor.js"
 import * as CBOR from "./CBOR.js"
 import * as Coin from "./Coin.js"
-import * as Anchor from "./Anchor.js"
 import * as GovernanceAction from "./GovernanceAction.js"
+import * as RewardAccount from "./RewardAccount.js"
 
 /**
  * Schema for a single proposal procedure based on Conway CDDL specification.

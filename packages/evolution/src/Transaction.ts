@@ -1,7 +1,7 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as CBOR from "./CBOR.js"
 import * as AuxiliaryData from "./AuxiliaryData.js"
+import * as CBOR from "./CBOR.js"
 import * as TransactionBody from "./TransactionBody.js"
 import * as TransactionWitnessSet from "./TransactionWitnessSet.js"
 

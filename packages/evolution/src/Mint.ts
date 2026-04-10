@@ -1,10 +1,10 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
+import * as AssetName from "./AssetName.js"
 import * as Bytes from "./Bytes.js"
 import * as CBOR from "./CBOR.js"
 import * as _Codec from "./Codec.js"
 import * as NonZeroInt64 from "./NonZeroInt64.js"
-import * as AssetName from "./AssetName.js"
 import * as PolicyId from "./PolicyId.js"
 
 /**

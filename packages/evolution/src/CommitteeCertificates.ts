@@ -6,8 +6,8 @@
  */
 import { Equal, Hash, Inspectable, Schema } from "effect"
 
-import * as Credential from "./Credential.js"
 import * as Anchor from "./Anchor.js"
+import * as Credential from "./Credential.js"
 
 /**
  * Authorize a committee hot credential (CDDL: auth_committee_hot_cert = 14).

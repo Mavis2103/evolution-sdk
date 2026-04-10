@@ -1,11 +1,11 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
 import * as CBOR from "./CBOR.js"
+import * as Coin from "./Coin.js"
+import * as CostModel from "./CostModel.js"
+import * as NonnegativeInterval from "./NonnegativeInterval.js"
 import * as Numeric from "./Numeric.js"
 import * as UnitInterval from "./UnitInterval.js"
-import * as CostModel from "./CostModel.js"
-import * as Coin from "./Coin.js"
-import * as NonnegativeInterval from "./NonnegativeInterval.js"
 
 /**
  * ex_unit_prices (domain) = [mem_price : NonnegativeInterval, step_price : NonnegativeInterval]

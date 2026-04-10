@@ -10,14 +10,14 @@
 import { Equal, Schema } from "effect"
 
 import * as Bytes from "../Bytes.js"
+import type * as CBOR from "../CBOR.js"
 import * as KeyHash from "../KeyHash.js"
 import * as PrivateKey from "../PrivateKey.js"
 import * as VKey from "../VKey.js"
-import type * as CBOR from "../CBOR.js"
-import { COSEKeyFromCBORBytes, EdDSA25519Key } from "./Key.js"
-import { coseSign1BuilderNew, COSESign1FromCBORBytes } from "./Sign1.js"
 import { headerMapNew, headersNew } from "./Header.js"
+import { COSEKeyFromCBORBytes, EdDSA25519Key } from "./Key.js"
 import { AlgorithmId, labelFromInt, labelFromText } from "./Label.js"
+import { coseSign1BuilderNew, COSESign1FromCBORBytes } from "./Sign1.js"
 import type { Payload } from "./Utils.js"
 
 // ============================================================================

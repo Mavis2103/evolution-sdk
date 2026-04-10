@@ -1,10 +1,10 @@
 import { Schema } from "effect"
 
+import * as Header from "./Header.js"
 import * as TransactionBody from "./TransactionBody.js"
 // import * as TransactionWitnessSet from "./TransactionWitnessSet.js";
 // import * as AuxiliaryData from "./AuxiliaryData.js";
 import * as TransactionIndex from "./TransactionIndex.js"
-import * as Header from "./Header.js"
 
 /**
  * Block based on Conway CDDL specification

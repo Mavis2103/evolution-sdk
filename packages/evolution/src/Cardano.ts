@@ -17,6 +17,7 @@ export * as RewardAccount from "./RewardAccount.js"
 export * as RewardAddress from "./RewardAddress.js"
 
 // Bytes & Encoding
+export * as Bech32 from "./Bech32.js"
 export * as BoundedBytes from "./BoundedBytes.js"
 export * as Bytes from "./Bytes.js"
 export * as Bytes4 from "./Bytes4.js"
@@ -31,7 +32,6 @@ export * as Bytes128 from "./Bytes128.js"
 export * as Bytes448 from "./Bytes448.js"
 export * as CBOR from "./CBOR.js"
 export * as Codec from "./Codec.js"
-export * as Bech32 from "./Bech32.js"
 export * as Text from "./Text.js"
 export * as Text128 from "./Text128.js"
 
@@ -94,8 +94,8 @@ export * as DataJson from "./DataJson.js"
 export * as DatumHash from "./DatumHash.js"
 export * as DatumOption from "./DatumOption.js"
 export * as InlineDatum from "./InlineDatum.js"
-export * as TSchema from "./TSchema.js"
 export * as Plutus from "./plutus/index.js"
+export * as TSchema from "./TSchema.js"
 
 // Certificates & Governance
 export * as Anchor from "./Anchor.js"

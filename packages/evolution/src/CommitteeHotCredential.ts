@@ -14,9 +14,9 @@ import * as Effect from "effect/Effect"
 import * as ParseResult from "effect/ParseResult"
 import * as Schema from "effect/Schema"
 
-import * as ScriptHash from "./ScriptHash.js"
 import * as Credential from "./Credential.js"
 import * as KeyHash from "./KeyHash.js"
+import * as ScriptHash from "./ScriptHash.js"
 
 export const CommitteeHotCredential = Credential
 

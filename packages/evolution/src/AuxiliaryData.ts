@@ -1,13 +1,13 @@
 import { blake2b } from "@noble/hashes/blake2"
 import { Either as E, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
+import * as AuxiliaryDataHash from "./AuxiliaryDataHash.js"
 import * as CBOR from "./CBOR.js"
+import * as Metadata from "./Metadata.js"
 import * as NativeScripts from "./NativeScripts.js"
 import * as PlutusV1 from "./PlutusV1.js"
 import * as PlutusV2 from "./PlutusV2.js"
 import * as PlutusV3 from "./PlutusV3.js"
-import * as AuxiliaryDataHash from "./AuxiliaryDataHash.js"
-import * as Metadata from "./Metadata.js"
 import * as TransactionMetadatum from "./TransactionMetadatum.js"
 
 // ============================================================================

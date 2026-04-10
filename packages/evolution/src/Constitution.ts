@@ -1,8 +1,8 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
+import * as Anchor from "./Anchor.js"
 import * as CBOR from "./CBOR.js"
 import * as ScriptHash from "./ScriptHash.js"
-import * as Anchor from "./Anchor.js"
 
 /**
  * Constitution per CDDL:

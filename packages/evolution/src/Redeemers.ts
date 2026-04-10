@@ -1,9 +1,9 @@
 import { blake2b } from "@noble/hashes/blake2"
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as Data from "./Data.js"
 import * as CBOR from "./CBOR.js"
 import * as CostModel from "./CostModel.js"
+import * as Data from "./Data.js"
 import * as Redeemer from "./Redeemer.js"
 import * as ScriptDataHash from "./ScriptDataHash.js"
 

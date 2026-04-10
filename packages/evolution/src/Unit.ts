@@ -1,9 +1,9 @@
 import { Schema } from "effect"
 
-import * as Bytes from "./Bytes.js"
 import * as AssetName from "./AssetName.js"
-import * as PolicyId from "./PolicyId.js"
+import * as Bytes from "./Bytes.js"
 import * as Label from "./Label.js"
+import * as PolicyId from "./PolicyId.js"
 
 /**
  * Unit represents the concatenation of PolicyId and AssetName as a single hex string.

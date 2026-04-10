@@ -6,9 +6,9 @@
  */
 import { Equal, Hash, Inspectable, Schema } from "effect"
 
+import * as Coin from "./Coin.js"
 import * as Credential from "./Credential.js"
 import * as PoolKeyHash from "./PoolKeyHash.js"
-import * as Coin from "./Coin.js"
 
 /**
  * Register a stake credential (CDDL: stake_registration = 0).

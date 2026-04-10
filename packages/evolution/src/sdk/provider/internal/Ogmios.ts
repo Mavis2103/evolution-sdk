@@ -2,16 +2,16 @@ import type { Record } from "effect"
 import { Schema } from "effect"
 
 import * as CoreAddress from "../../../Address.js"
+import * as AssetName from "../../../AssetName.js"
 import type * as CoreAssets from "../../../Assets.js"
 import * as Bytes from "../../../Bytes.js"
 import * as PlutusData from "../../../Data.js"
 import type * as DatumOption from "../../../DatumOption.js"
 import * as NativeScripts from "../../../NativeScripts.js"
+import * as PolicyId from "../../../PolicyId.js"
 import type * as CoreScript from "../../../Script.js"
 import * as TransactionHash from "../../../TransactionHash.js"
 import type * as CoreUTxO from "../../../UTxO.js"
-import * as AssetName from "../../../AssetName.js"
-import * as PolicyId from "../../../PolicyId.js"
 
 export const JSONRPCSchema = <A, I, R>(schema: Schema.Schema<A, I, R>) =>
   Schema.Struct({

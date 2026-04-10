@@ -4,8 +4,8 @@ import * as Address from "../src/Address.js"
 import * as CoreAssets from "../src/Assets.js"
 import { makeTxBuilder } from "../src/sdk/builders/TransactionBuilder.js"
 import { mainnet, preprod, preview } from "../src/sdk/client/index.js"
-import * as Time from "../src/Time.js"
 import { SLOT_CONFIG_NETWORK } from "../src/SlotConfig.js"
+import * as Time from "../src/Time.js"
 import { createCoreTestUtxo } from "./utils/utxo-helpers.js"
 
 const PROTOCOL_PARAMS = {

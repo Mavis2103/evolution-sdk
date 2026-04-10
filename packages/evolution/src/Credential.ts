@@ -1,8 +1,8 @@
 import { Effect as Eff, FastCheck, ParseResult, Schema } from "effect"
 
 import * as CBOR from "./CBOR.js"
-import * as ScriptHash from "./ScriptHash.js"
 import * as KeyHash from "./KeyHash.js"
+import * as ScriptHash from "./ScriptHash.js"
 
 /**
  * Credential schema representing either a key hash or script hash

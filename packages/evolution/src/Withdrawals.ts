@@ -1,8 +1,8 @@
 import { Effect as Eff, Equal, FastCheck, Hash, Inspectable, ParseResult, Schema } from "effect"
 
-import * as RewardAccount from "./RewardAccount.js"
 import * as CBOR from "./CBOR.js"
 import * as Coin from "./Coin.js"
+import * as RewardAccount from "./RewardAccount.js"
 
 /**
  * Helper function for content-based Map equality using Equal.equals.
