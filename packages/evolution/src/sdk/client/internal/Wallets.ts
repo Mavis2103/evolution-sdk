@@ -107,14 +107,13 @@ export const readOnlyWallet =
 export const seedWallet =
   (config: SeedWalletConfig) =>
   (chain: Chain): Wallet.SigningWallet => {
-    const network: Wallet.Network = chain.id === 1 ? "Mainnet" : "Testnet"
     const derivationEffect = Derivation.walletFromSeed(config.mnemonic, {
       addressType: config.addressType ?? "Base",
       accountIndex: config.accountIndex ?? 0,
       paymentIndex: config.paymentIndex ?? 0,
       stakeIndex: config.stakeIndex ?? 0,
       password: config.password,
-      network
+      networkId: chain.id
     }).pipe(Effect.mapError((cause) => new Wallet.WalletError({ message: cause.message, cause })))
     return Signing.makeSigningWalletEffect(derivationEffect)
   }
@@ -129,11 +128,10 @@ export const seedWallet =
 export const privateKeyWallet =
   (config: PrivateKeyWalletConfig) =>
   (chain: Chain): Wallet.SigningWallet => {
-    const network: Wallet.Network = chain.id === 1 ? "Mainnet" : "Testnet"
     const derivationEffect = Derivation.walletFromPrivateKey(config.paymentKey, {
       stakeKeyBech32: config.stakeKey,
       addressType: config.addressType ?? (config.stakeKey ? "Base" : "Enterprise"),
-      network
+      networkId: chain.id
     }).pipe(Effect.mapError((cause) => new Wallet.WalletError({ message: cause.message, cause })))
     return Signing.makeSigningWalletEffect(derivationEffect)
   }
