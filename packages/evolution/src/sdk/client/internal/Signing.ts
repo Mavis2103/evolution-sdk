@@ -216,6 +216,7 @@ export const signTxsWithAutoFetch = (
     }
 
     // Collect all reference inputs across all transactions and fetch them once
+    const seen = new Set<string>()
     const allRefInputs: Array<TransactionBody.TransactionBody["inputs"][number]> = []
     for (const txOrHex of txs) {
       const tx =
@@ -227,7 +228,13 @@ export const signTxsWithAutoFetch = (
             )
           : txOrHex
       if (tx.body.referenceInputs) {
-        allRefInputs.push(...tx.body.referenceInputs)
+        for (const ref of tx.body.referenceInputs) {
+          const key = `${ref.transactionId}#${ref.index}`
+          if (!seen.has(key)) {
+            seen.add(key)
+            allRefInputs.push(ref)
+          }
+        }
       }
     }
 
