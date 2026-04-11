@@ -90,6 +90,16 @@ export interface SigningWalletEffect extends ReadOnlyWalletEffect {
     tx: Transaction.Transaction | string,
     context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ) => Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletError>
+  /**
+   * Sign multiple transactions in batch (CIP-103).
+   * Falls back to sequential signTx if the wallet doesn't support batch signing.
+   *
+   * @since 2.2.0
+   */
+  readonly signTxs: (
+    txs: ReadonlyArray<Transaction.Transaction | string>,
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }
+  ) => Effect.Effect<ReadonlyArray<TransactionWitnessSet.TransactionWitnessSet>, WalletError>
   readonly signMessage: (
     address: CoreAddress.Address | RewardAddress.RewardAddress,
     payload: Payload
@@ -103,7 +113,11 @@ export interface SigningWalletEffect extends ReadOnlyWalletEffect {
  * @since 2.0.0
  * @category model
  */
-export interface SigningWallet extends EffectToPromiseAPI<SigningWalletEffect> {
+export interface SigningWallet extends EffectToPromiseAPI<Omit<SigningWalletEffect, "signTxs">> {
+  readonly signTxs: (
+    txs: ReadonlyArray<Transaction.Transaction | string>,
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO>; referenceUtxos?: ReadonlyArray<CoreUTxO.UTxO> }
+  ) => Promise<ReadonlyArray<TransactionWitnessSet.TransactionWitnessSet>>
   readonly effect: SigningWalletEffect
   readonly type: "signing"
 }
@@ -115,6 +129,17 @@ export interface SigningWallet extends EffectToPromiseAPI<SigningWalletEffect> {
  * @since 2.0.0
  * @category model
  */
+/**
+ * CIP-103 transaction signature request for batch signing.
+ *
+ * @since 2.2.0
+ * @category model
+ */
+export interface TransactionSignatureRequest {
+  readonly cbor: string
+  readonly partialSign: boolean
+}
+
 export interface WalletApi {
   getUsedAddresses(): Promise<ReadonlyArray<string>>
   getUnusedAddresses(): Promise<ReadonlyArray<string>>
@@ -123,6 +148,16 @@ export interface WalletApi {
   signTx(txCborHex: string, partialSign: boolean): Promise<string>
   signData(addressHex: string, payload: Payload): Promise<SignedMessage>
   submitTx(txCborHex: string): Promise<string>
+  /** CIP-103 standard namespace */
+  cip103?: {
+    signTxs(requests: ReadonlyArray<TransactionSignatureRequest>): Promise<ReadonlyArray<string>>
+  }
+  /** Experimental namespace (e.g. Eternl) */
+  experimental?: {
+    signTxs?(requests: ReadonlyArray<TransactionSignatureRequest>): Promise<ReadonlyArray<string>>
+  }
+  /** Direct signTxs (some wallets) */
+  signTxs?(requests: ReadonlyArray<TransactionSignatureRequest>): Promise<ReadonlyArray<string>>
 }
 
 /**
@@ -138,6 +173,16 @@ export interface ApiWalletEffect extends ReadOnlyWalletEffect {
     tx: Transaction.Transaction | string,
     context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
   ) => Effect.Effect<TransactionWitnessSet.TransactionWitnessSet, WalletError>
+  /**
+   * Sign multiple transactions in batch (CIP-103).
+   * Falls back to sequential signTx if the wallet doesn't support batch signing.
+   *
+   * @since 2.2.0
+   */
+  readonly signTxs: (
+    txs: ReadonlyArray<Transaction.Transaction | string>,
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
+  ) => Effect.Effect<ReadonlyArray<TransactionWitnessSet.TransactionWitnessSet>, WalletError>
   readonly signMessage: (
     address: CoreAddress.Address | RewardAddress.RewardAddress,
     payload: Payload
@@ -159,7 +204,11 @@ export interface ApiWalletEffect extends ReadOnlyWalletEffect {
  * @since 2.0.0
  * @category model
  */
-export interface ApiWallet extends EffectToPromiseAPI<ApiWalletEffect> {
+export interface ApiWallet extends EffectToPromiseAPI<Omit<ApiWalletEffect, "signTxs">> {
+  readonly signTxs: (
+    txs: ReadonlyArray<Transaction.Transaction | string>,
+    context?: { utxos?: ReadonlyArray<CoreUTxO.UTxO> }
+  ) => Promise<ReadonlyArray<TransactionWitnessSet.TransactionWitnessSet>>
   readonly effect: ApiWalletEffect
   readonly api: WalletApi
   readonly type: "api"

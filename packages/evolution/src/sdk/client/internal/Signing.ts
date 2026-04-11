@@ -191,6 +191,69 @@ export const signWithWallet = (
     ? wallet.effect.signTx(txOrHex, context ? { utxos: context.utxos } : undefined)
     : wallet.effect.signTx(txOrHex, context)
 
+export const signTxsWithWallet = (
+  wallet: ResolvedSignerWallet,
+  txs: ReadonlyArray<Parameters<Wallet.SigningWalletEffect["signTx"]>[0]>,
+  context?: Parameters<Wallet.SigningWalletEffect["signTx"]>[1]
+): Effect.Effect<ReadonlyArray<TransactionWitnessSet.TransactionWitnessSet>, Wallet.WalletError> =>
+  wallet.type === "api"
+    ? wallet.effect.signTxs(txs, context ? { utxos: context.utxos } : undefined)
+    : wallet.effect.signTxs(txs, context)
+
+export const signTxsWithAutoFetch = (
+  provider: Provider.Provider,
+  wallet: ResolvedSignerWallet,
+  txs: ReadonlyArray<Parameters<Wallet.SigningWalletEffect["signTx"]>[0]>,
+  context?: Parameters<Wallet.SigningWalletEffect["signTx"]>[1]
+): Effect.Effect<ReadonlyArray<TransactionWitnessSet.TransactionWitnessSet>, Wallet.WalletError> =>
+  Effect.gen(function* () {
+    if (wallet.type === "api") {
+      return yield* signTxsWithWallet(wallet, txs, context)
+    }
+
+    if (context?.referenceUtxos && context.referenceUtxos.length > 0) {
+      return yield* wallet.effect.signTxs(txs, context)
+    }
+
+    // Collect all reference inputs across all transactions and fetch them once
+    const seen = new Set<string>()
+    const allRefInputs: Array<TransactionBody.TransactionBody["inputs"][number]> = []
+    for (const txOrHex of txs) {
+      const tx =
+        typeof txOrHex === "string"
+          ? yield* ParseResult.decodeUnknownEither(Transaction.FromCBORHex())(txOrHex).pipe(
+              Effect.mapError(
+                (cause) => new Wallet.WalletError({ message: `Failed to decode transaction: ${cause}`, cause })
+              )
+            )
+          : txOrHex
+      if (tx.body.referenceInputs) {
+        for (const ref of tx.body.referenceInputs) {
+          const key = `${ref.transactionId}#${ref.index}`
+          if (!seen.has(key)) {
+            seen.add(key)
+            allRefInputs.push(ref)
+          }
+        }
+      }
+    }
+
+    let referenceUtxos: ReadonlyArray<CoreUTxO.UTxO> = []
+    if (allRefInputs.length > 0) {
+      referenceUtxos = yield* provider.effect.getUtxosByOutRef(allRefInputs).pipe(
+        Effect.mapError(
+          (error) =>
+            new Wallet.WalletError({
+              message: `Failed to fetch reference UTxOs: ${error.message}`,
+              cause: error
+            })
+        )
+      )
+    }
+
+    return yield* wallet.effect.signTxs(txs, { ...context, referenceUtxos })
+  })
+
 export const signWithAutoFetch = (
   provider: Provider.Provider,
   wallet: ResolvedSignerWallet,
@@ -295,6 +358,7 @@ export const makeSigningWalletEffect = (
 
         return witnesses.length > 0 ? TransactionWitnessSet.fromVKeyWitnesses(witnesses) : TransactionWitnessSet.empty()
       }),
+    signTxs: (txs, context) => Effect.all(txs.map((tx) => effectInterface.signTx(tx, context))),
     signMessage: (address, payload) =>
       Effect.gen(function* () {
         const derivation = yield* derivationEffect
@@ -313,6 +377,7 @@ export const makeSigningWalletEffect = (
     address: () => runEffectPromise(effectInterface.address()),
     rewardAddress: () => runEffectPromise(effectInterface.rewardAddress()),
     signTx: (txOrHex, context) => runEffectPromise(effectInterface.signTx(txOrHex, context)),
+    signTxs: (txs, context) => runEffectPromise(effectInterface.signTxs(txs, context)),
     signMessage: (address, payload) => runEffectPromise(effectInterface.signMessage(address, payload)),
     effect: effectInterface
   }
