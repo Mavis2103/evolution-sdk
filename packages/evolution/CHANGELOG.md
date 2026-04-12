@@ -1,5 +1,20 @@
 # @evolution-sdk/evolution
 
+## 0.5.2
+
+### Patch Changes
+
+- [#246](https://github.com/IntersectMBO/evolution-sdk/pull/246) [`61ed73e`](https://github.com/IntersectMBO/evolution-sdk/commit/61ed73e60bc00951755d3d0a9ee09b12cdbeb149) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Add `Address.fromSeed()` for synchronous address derivation from a BIP-39 seed phrase. This enables deriving addresses without constructing a `Client` or `Chain` instance — useful for devnet genesis funding where the address must be known before the cluster starts.
+
+  The `Derivation` module now accepts a numeric `networkId` (0 = testnet, 1 = mainnet) instead of a `network` string (`"Mainnet" | "Testnet" | "Custom"`). The default changed from mainnet (1) to testnet (0). If you call `walletFromSeed`, `addressFromSeed`, `walletFromBip32`, or `walletFromPrivateKey` with the old `network` option, replace it with `networkId`:
+  - `network: "Mainnet"` → `networkId: 1`
+  - `network: "Testnet"` or `network: "Custom"` → `networkId: 0` (or omit, since 0 is the default)
+
+- [#242](https://github.com/IntersectMBO/evolution-sdk/pull/242) [`2b464f8`](https://github.com/IntersectMBO/evolution-sdk/commit/2b464f8b4a1c441ca9b1484b08593e867b040710) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Add `signTxs` method to `SigningClient`, `OfflineSignerClient`, and all wallet types for batch transaction signing per CIP-103. For CIP-30 browser wallets, the implementation detects `api.cip103.signTxs`, `api.experimental.signTxs`, or direct `api.signTxs` and falls back to sequential `api.signTx` calls when no batch method is available. Seed and private key wallets delegate to per-transaction signing internally.
+  - `WalletApi` now accepts optional `cip103`, `experimental`, and direct `signTxs` properties
+  - `TransactionSignatureRequest` type exported from `Wallet` module
+  - `signTxsWithAutoFetch` aggregates reference inputs across all transactions in a single provider call
+
 ## 0.5.1
 
 ### Patch Changes
