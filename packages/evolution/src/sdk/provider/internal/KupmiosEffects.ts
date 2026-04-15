@@ -216,7 +216,7 @@ export const getUtxosEffect = (kupoUrl: string, headers?: { kupoHeader?: Record<
       const addressStr = CoreAddress.toBech32(addressOrCredential)
       pattern = `${kupoUrl}/matches/${addressStr}?unspent`
     } else {
-      pattern = `${kupoUrl}/matches/${addressOrCredential.hash}/*?unspent`
+      pattern = `${kupoUrl}/matches/${Bytes.toHex(addressOrCredential.hash)}/*?unspent`
     }
     const toUtxos = kupmiosUtxosToUtxos(kupoUrl, headers?.kupoHeader)
 
@@ -348,7 +348,7 @@ export const getUtxosWithUnitEffect = (kupoUrl: string, headers?: { kupoHeader?:
     unit: string
   ) {
     const isAddress = addressOrCredential instanceof CoreAddress.Address
-    const queryPredicate = isAddress ? CoreAddress.toBech32(addressOrCredential) : addressOrCredential.hash
+    const queryPredicate = isAddress ? CoreAddress.toBech32(addressOrCredential) : Bytes.toHex(addressOrCredential.hash)
     const { assetName, policyId } = AssetsUnit.fromUnit(unit)
     const policyIdHex = PolicyId.toHex(policyId)
     const assetNameHex = assetName ? Bytes.toHex(assetName.bytes) : undefined
