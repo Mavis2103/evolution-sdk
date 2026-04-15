@@ -1,5 +1,11 @@
 # @evolution-sdk/evolution
 
+## 0.5.3
+
+### Patch Changes
+
+- [#250](https://github.com/IntersectMBO/evolution-sdk/pull/250) [`10e5b44`](https://github.com/IntersectMBO/evolution-sdk/commit/10e5b44bb62055137278b9acc75660db3e3ef645) Thanks [@solidsnakedev](https://github.com/solidsnakedev)! - Fixed `getUtxos` and `getUtxosWithUnit` in the Kupmios provider producing invalid Kupo URLs when called with a `Credential` instead of an `Address`. The credential hash (a `Uint8Array`) was being interpolated directly into the URL pattern, resulting in a comma-separated list of byte values instead of the expected hex string. Both call sites now convert the hash to hex with `Bytes.toHex` before building the URL.
+
 ## 0.5.2
 
 ### Patch Changes
