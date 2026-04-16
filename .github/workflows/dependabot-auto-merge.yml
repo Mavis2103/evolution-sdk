@@ -33,7 +33,7 @@ jobs:
     steps:
       - name: Fetch Dependabot metadata
         id: meta
-        uses: dependabot/fetch-metadata@v3
+        uses: dependabot/fetch-metadata@v3.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -89,14 +89,24 @@ jobs:
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh pr review --approve "$PR_URL" --body "Auto-approved: ${{ steps.decide.outputs.reason }}"
+        run: |
+          if gh pr view "$PR_URL" --json reviews --jq '.reviews | any(.author.login == "github-actions[bot]" and .state == "APPROVED")' | grep -qx 'true'; then
+            echo "PR already approved; skipping."
+          else
+            gh pr review --approve "$PR_URL" --body "Auto-approved: ${{ steps.decide.outputs.reason }}"
+          fi
 
       - name: Enable auto-merge
         if: steps.decide.outputs.mergeable == 'true'
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh pr merge --auto --squash "$PR_URL"
+        run: |
+          if gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null' | grep -qx 'true'; then
+            echo "Auto-merge already enabled; skipping."
+          else
+            gh pr merge --auto --squash "$PR_URL"
+          fi
 
       - name: Skip auto-merge
         if: steps.decide.outputs.mergeable != 'true'
