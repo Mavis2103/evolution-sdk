@@ -341,8 +341,8 @@ importers:
         specifier: ^3.19.3
         version: 3.19.3
       scalus:
-        specifier: ^0.14.2
-        version: 0.14.2
+        specifier: ^0.15.0
+        version: 0.15.0
     devDependencies:
       typescript:
         specifier: ^5.9.2
@@ -6261,8 +6261,8 @@ packages:
     resolution: {integrity: sha512-1n3r/tGXO6b6VXMdFT54SHzT9ytu9yr7TaELowdYpMqY/Ao7EnlQGmAQ1+RatX7Tkkdm6hONI2owqNx2aZj5Sw==}
     engines: {node: '>=11.0.0'}
 
-  scalus@0.14.2:
-    resolution: {integrity: sha512-dobDMIUDUVhtxoX3ceGlaykKQGkph4HOE9hjkLsmwVgYf24fIik6YrZzVFrZSNCTvI2WN7hjEknehIrEJo1CMQ==}
+  scalus@0.15.0:
+    resolution: {integrity: sha512-4yWMpHkGj89/VUUn18kXZHjUHdJDSw2Se9E1Aa3xmNWSe5YdWyGclpRlqfih5mTFuQik9/vt0fgrh3HaEUVqUw==}
 
   scheduler@0.23.2:
     resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
@@ -14101,7 +14101,7 @@ snapshots:
 
   sax@1.4.4: {}
 
-  scalus@0.14.2: {}
+  scalus@0.15.0: {}
 
   scheduler@0.23.2:
     dependencies:
