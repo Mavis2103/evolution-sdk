@@ -27,7 +27,7 @@ updates:
       default-days: 5
       semver-major-days: 14
       semver-minor-days: 3
-      semver-patch-days: 0
+      semver-patch-days: 1
 
     # Groups — ORDER MATTERS (first match wins)
     # Narrow/risky patterns first, broad/tooling catch-alls last
