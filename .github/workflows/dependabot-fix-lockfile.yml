@@ -2,25 +2,29 @@ name: Dependabot Fix Lockfile
 
 # Workaround for dependabot-core#13920: Dependabot can generate a malformed
 # pnpm-lock.yaml ("expected a single document in the stream, but found more").
-# This workflow regenerates the lockfile and pushes it back to the PR branch.
+# This workflow regenerates the lockfile and pushes it back to the branch.
 
 on:
-  pull_request_target:
-    types: [opened, synchronize]
+  push:
+    branches:
+      - 'dependabot/**'
+
+concurrency:
+  group: dependabot-fix-lockfile-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
 
 jobs:
   fix-lockfile:
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR branch
+      - name: Checkout Dependabot branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -31,7 +35,7 @@ jobs:
           node-version: 20
 
       - name: Regenerate lockfile
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts
 
       - name: Check for changes
         id: diff
@@ -49,4 +53,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pnpm-lock.yaml
           git commit -m "fix: regenerate pnpm-lock.yaml"
-          git push
+          git push origin HEAD:${{ github.ref }}
