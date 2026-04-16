@@ -3,7 +3,6 @@
   "extends": [
     "config:recommended",
     ":semanticCommits",
-    ":automergeMinor",
     "schedule:earlyMondays"
   ],
   "labels": ["dependencies"],
@@ -94,8 +93,7 @@
       "description": "Auto-merge all patch updates for devDependencies",
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["patch"],
-      "automerge": true,
-      "automergeType": "branch"
+      "automerge": true
     },
     {
       "description": "Never auto-merge major updates",
