@@ -4,7 +4,7 @@ import { Array as _Array, Effect, pipe, Schedule, Schema } from "effect"
 import * as CoreAddress from "../../../Address.js"
 import * as CoreAssets from "../../../Assets.js"
 import * as Bytes from "../../../Bytes.js"
-import type * as Credential from "../../../Credential.js"
+import * as Credential from "../../../Credential.js"
 import * as PlutusData from "../../../Data.js"
 import * as DatumHash from "../../../DatumHash.js"
 import type * as DatumOption from "../../../DatumOption.js"
@@ -216,7 +216,7 @@ export const getUtxosEffect = (kupoUrl: string, headers?: { kupoHeader?: Record<
       const addressStr = CoreAddress.toBech32(addressOrCredential)
       pattern = `${kupoUrl}/matches/${addressStr}?unspent`
     } else {
-      pattern = `${kupoUrl}/matches/${Bytes.toHex(addressOrCredential.hash)}/*?unspent`
+      pattern = `${kupoUrl}/matches/${Credential.toBech32(addressOrCredential)}/*?unspent`
     }
     const toUtxos = kupmiosUtxosToUtxos(kupoUrl, headers?.kupoHeader)
 
@@ -347,8 +347,10 @@ export const getUtxosWithUnitEffect = (kupoUrl: string, headers?: { kupoHeader?:
     addressOrCredential: CoreAddress.Address | Credential.Credential,
     unit: string
   ) {
-    const isAddress = addressOrCredential instanceof CoreAddress.Address
-    const queryPredicate = isAddress ? CoreAddress.toBech32(addressOrCredential) : Bytes.toHex(addressOrCredential.hash)
+    const isAddress = !("hash" in addressOrCredential)
+    const queryPredicate = isAddress
+      ? CoreAddress.toBech32(addressOrCredential)
+      : Credential.toBech32(addressOrCredential)
     const { assetName, policyId } = AssetsUnit.fromUnit(unit)
     const policyIdHex = PolicyId.toHex(policyId)
     const assetNameHex = assetName ? Bytes.toHex(assetName.bytes) : undefined
@@ -428,8 +430,8 @@ export const awaitTxEffect = (kupoUrl: string, headers?: { kupoHeader?: Record<s
         until: (result) => result.length > 0
       }),
       Effect.timeout(timeout),
-      Effect.catchAllCause(
-        (cause) => Effect.fail(new Provider.ProviderError({ cause, message: "Kupmios awaitTx failed" }))
+      Effect.catchAllCause((cause) =>
+        Effect.fail(new Provider.ProviderError({ cause, message: "Kupmios awaitTx failed" }))
       ),
       Effect.as(true)
     )
