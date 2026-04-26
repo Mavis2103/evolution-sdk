@@ -23,6 +23,19 @@ export const resolveProtocolParameters = (
     return Effect.succeed(options.protocolParameters)
   }
 
+  if (options?.fullProtocolParameters !== undefined) {
+    const p = options.fullProtocolParameters
+    return Effect.succeed({
+      minFeeCoefficient: BigInt(p.minFeeA),
+      minFeeConstant: BigInt(p.minFeeB),
+      coinsPerUtxoByte: p.coinsPerUtxoByte,
+      maxTxSize: p.maxTxSize,
+      priceMem: p.priceMem,
+      priceStep: p.priceStep,
+      minFeeRefScriptCostPerByte: p.minFeeRefScriptCostPerByte
+    })
+  }
+
   const provider = config.provider
   if (provider !== undefined) {
     return Effect.map(

@@ -9,7 +9,7 @@ import { Effect, Ref } from "effect"
 
 import * as Certificate from "../../../Certificate.js"
 import * as PoolKeyHash from "../../../PoolKeyHash.js"
-import { TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
+import { TransactionBuilderError, BuildOptionsTag, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type { RegisterPoolParams, RetirePoolParams } from "./Operations.js"
 
 // ============================================================================
@@ -26,30 +26,28 @@ import type { RegisterPoolParams, RetirePoolParams } from "./Operations.js"
  */
 export const createRegisterPoolProgram = (
   params: RegisterPoolParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
   Effect.gen(function* () {
     const ctx = yield* TxContext
     const config = yield* TxBuilderConfigTag
+    const buildOptions = yield* BuildOptionsTag
 
-    // TODO: protocol param should be resolved earlier in builder phases, not here
-    // protocol param can come from the provider or the build options directly
-    // Get poolDeposit from protocol parameters via provider
-    if (!config.provider) {
-      return yield* Effect.fail(
-        new TransactionBuilderError({
-          message: "Provider required to fetch poolDeposit for pool registration"
-        })
-      )
-    }
-
-    const protocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
-      Effect.mapError(
-        (err) =>
-          new TransactionBuilderError({
-            message: `Failed to fetch protocol parameters: ${err.message}`
-          })
-      )
-    )
+    const protocolParams = yield* buildOptions.fullProtocolParameters
+      ? Effect.succeed(buildOptions.fullProtocolParameters)
+      : !config.provider
+        ? Effect.fail(
+            new TransactionBuilderError({
+              message: "Provider required to fetch poolDeposit for pool registration"
+            })
+          )
+        : config.provider.effect.getProtocolParameters().pipe(
+            Effect.mapError(
+              (err) =>
+                new TransactionBuilderError({
+                  message: `Failed to fetch protocol parameters: ${err.message}`
+                })
+            )
+          )
     const poolDeposit = protocolParams.poolDeposit
 
     // Create PoolRegistration certificate

@@ -35,7 +35,13 @@ import * as CoreUTxO from "../../../UTxO.js"
 import * as VKey from "../../../VKey.js"
 import * as Withdrawals from "../../../Withdrawals.js"
 import type { UnfrackOptions } from "../TransactionBuilder.js"
-import { BuildOptionsTag, TransactionBuilderError, TxBuilderConfigTag, TxContext, voterToKey } from "../TransactionBuilder.js"
+import {
+  BuildOptionsTag,
+  TransactionBuilderError,
+  TxBuilderConfigTag,
+  TxContext,
+  voterToKey
+} from "../TransactionBuilder.js"
 import * as Unfrack from "../Unfrack.js"
 
 // ============================================================================
@@ -526,29 +532,28 @@ export const assembleTransaction = (
     let scriptDataHash: ReturnType<typeof Redeemers.toScriptDataHash> | undefined
     let redeemersConcrete: Redeemers.RedeemerMap | undefined
     if (redeemers.length > 0) {
-      // Get config to access provider for full protocol parameters
       const config = yield* TxBuilderConfigTag
+      const buildOptions = yield* BuildOptionsTag
 
-      if (!config.provider) {
-        return yield* Effect.fail(
-          new TransactionBuilderError({
-            message:
-              "Script transactions require a provider to fetch full protocol parameters for scriptDataHash calculation",
-            cause: { redeemerCount: redeemers.length }
-          })
-        )
-      }
-
-      // Fetch full protocol params from provider (includes cost models)
-      const fullProtocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
-        Effect.mapError(
-          (providerError) =>
-            new TransactionBuilderError({
-              message: `Failed to fetch full protocol parameters for scriptDataHash calculation: ${providerError.message}`,
-              cause: providerError
-            })
-        )
-      )
+      const fullProtocolParams = yield* buildOptions.fullProtocolParameters
+        ? Effect.succeed(buildOptions.fullProtocolParameters)
+        : !config.provider
+          ? Effect.fail(
+              new TransactionBuilderError({
+                message:
+                  "Script transactions require a provider to fetch full protocol parameters for scriptDataHash calculation",
+                cause: { redeemerCount: redeemers.length }
+              })
+            )
+          : config.provider.effect.getProtocolParameters().pipe(
+              Effect.mapError(
+                (providerError) =>
+                  new TransactionBuilderError({
+                    message: `Failed to fetch full protocol parameters for scriptDataHash calculation: ${providerError.message}`,
+                    cause: providerError
+                  })
+              )
+            )
 
       // Only include cost models for Plutus versions actually used in the transaction
       // The scriptDataHash must use the same languages as the node will compute
@@ -739,9 +744,8 @@ export const assembleTransaction = (
  * @since 2.0.0
  * @category fee-calculation
  */
-export const calculateTransactionSize = (
-  transaction: Transaction.Transaction
-): number => Transaction.toCBORBytes(transaction).length
+export const calculateTransactionSize = (transaction: Transaction.Transaction): number =>
+  Transaction.toCBORBytes(transaction).length
 
 /**
  * Calculate minimum transaction fee based on protocol parameters.

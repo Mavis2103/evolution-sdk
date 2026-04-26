@@ -19,8 +19,22 @@ import type * as Provider from "../../provider/Provider.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
 import { assembleTransaction } from "../internal/txBuilder.js"
 import type { IndexedInput } from "../RedeemerBuilder.js"
-import type { DeferredRedeemerData, EvaluationContext, PhaseResult, RedeemerData, ScriptFailure } from "../TransactionBuilder.js"
-import { BuildOptionsTag, EvaluationError, PhaseContextTag, TransactionBuilderError, TxBuilderConfigTag, TxContext, voterToKey } from "../TransactionBuilder.js"
+import type {
+  DeferredRedeemerData,
+  EvaluationContext,
+  PhaseResult,
+  RedeemerData,
+  ScriptFailure
+} from "../TransactionBuilder.js"
+import {
+  BuildOptionsTag,
+  EvaluationError,
+  PhaseContextTag,
+  TransactionBuilderError,
+  TxBuilderConfigTag,
+  TxContext,
+  voterToKey
+} from "../TransactionBuilder.js"
 
 /**
  * Convert ProtocolParameters cost models to CostModels core type for evaluation.
@@ -277,26 +291,25 @@ export const executeEvaluation = (): Effect.Effect<
       )
     }
 
-    // Step 2.5: Fetch full protocol parameters (needed for cost models and execution limits)
-    if (!config.provider) {
-      return yield* Effect.fail(
-        new TransactionBuilderError({
-          message:
-            "Script evaluation requires a provider to fetch full protocol parameters (cost models, execution limits)",
-          cause: { redeemerCount: state.redeemers.size }
-        })
-      )
-    }
-
-    const fullProtocolParams = yield* config.provider.effect.getProtocolParameters().pipe(
-      Effect.mapError(
-        (providerError) =>
-          new TransactionBuilderError({
-            message: `Failed to fetch full protocol parameters for evaluation: ${providerError.message}`,
-            cause: providerError
-          })
-      )
-    )
+    const fullProtocolParams = yield* buildOptions.fullProtocolParameters
+      ? Effect.succeed(buildOptions.fullProtocolParameters)
+      : !config.provider
+        ? Effect.fail(
+            new TransactionBuilderError({
+              message:
+                "Script evaluation requires a provider to fetch full protocol parameters (cost models, execution limits)",
+              cause: { redeemerCount: state.redeemers.size }
+            })
+          )
+        : config.provider.effect.getProtocolParameters().pipe(
+            Effect.mapError(
+              (providerError) =>
+                new TransactionBuilderError({
+                  message: `Failed to fetch full protocol parameters for evaluation: ${providerError.message}`,
+                  cause: providerError
+                })
+            )
+          )
 
     // Step 3: Check if there are redeemers to evaluate (resolved or deferred)
     const hasResolvedRedeemers = state.redeemers.size > 0
