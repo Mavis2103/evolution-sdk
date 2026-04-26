@@ -9,7 +9,7 @@ import { Effect, Ref } from "effect"
 
 import * as Certificate from "../../../Certificate.js"
 import * as PoolKeyHash from "../../../PoolKeyHash.js"
-import { TransactionBuilderError, BuildOptionsTag, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
+import { BuildOptionsTag, TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type { RegisterPoolParams, RetirePoolParams } from "./Operations.js"
 
 // ============================================================================

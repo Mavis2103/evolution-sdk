@@ -9,7 +9,7 @@ import { Effect, Ref } from "effect"
 
 import * as ProposalProcedure from "../../../ProposalProcedure.js"
 import * as ProposalProcedures from "../../../ProposalProcedures.js"
-import { TransactionBuilderError, BuildOptionsTag, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
+import { BuildOptionsTag, TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type { ProposeParams } from "./Operations.js"
 
 /**

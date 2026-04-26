@@ -3,10 +3,10 @@ import { Effect } from "effect"
 
 import * as Address from "../src/Address.js"
 import * as Credential from "../src/Credential.js"
-import type { Provider as ProviderType } from "../src/sdk/provider/Provider.js"
 import { makeTxBuilder } from "../src/sdk/builders/TransactionBuilder.js"
 import { mainnet } from "../src/sdk/client/index.js"
-import * as CoreUTxO from "../src/UTxO.js"
+import type { Provider as ProviderType } from "../src/sdk/provider/Provider.js"
+import type * as CoreUTxO from "../src/UTxO.js"
 import { createCoreTestUtxo } from "./utils/utxo-helpers.js"
 
 const CHANGE_ADDRESS =
