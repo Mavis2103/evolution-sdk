@@ -77,7 +77,7 @@ const getUtxosForAddressOrCredential = (
   token?: string
 ) => {
   const headers = token ? { Authorization: `Bearer ${token}` } : undefined
-  if (addressOrCredential instanceof CoreAddress.Address) {
+  if (!("hash" in addressOrCredential)) {
     return _Koios.getUtxosEffect(baseUrl, CoreAddress.toBech32(addressOrCredential), headers)
   }
   return _Koios.getCredentialUtxosEffect(baseUrl, Credential.toHex(addressOrCredential), headers)
@@ -282,9 +282,8 @@ export const awaitTx =
           until: (result) => result.length > 0
         }),
         Effect.timeout(timeout),
-        Effect.catchAllCause(
-          (cause) =>
-            Effect.fail(new Provider.ProviderError({ cause, message: "Koios awaitTx failed" }))
+        Effect.catchAllCause((cause) =>
+          Effect.fail(new Provider.ProviderError({ cause, message: "Koios awaitTx failed" }))
         ),
         Effect.as(true)
       )

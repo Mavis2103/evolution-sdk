@@ -78,15 +78,13 @@ const is404Error = (error: unknown): boolean => {
  * in bech32 format (CIP-0005: addr_vkh for key hashes, script for script hashes).
  */
 const getAddressPath = (addressOrCredential: CoreAddress.Address | Credential.Credential): string => {
-  if (addressOrCredential instanceof CoreAddress.Address) {
+  if (!("hash" in addressOrCredential)) {
     return CoreAddress.toBech32(addressOrCredential)
   }
   return Credential.toBech32(addressOrCredential)
 }
 
-const toBlockfrostValue = (
-  assets: CoreUTxO.UTxO["assets"]
-): Record<string, unknown> => {
+const toBlockfrostValue = (assets: CoreUTxO.UTxO["assets"]): Record<string, unknown> => {
   const value: Record<string, unknown> = {
     coins: Number(assets.lovelace)
   }
@@ -638,11 +636,7 @@ export const getDelegation = (baseUrl: string, projectId?: string) => (rewardAdd
 export const getDatum = (baseUrl: string, projectId?: string) => (datumHash: DatumHash.DatumHash) => {
   const datumHashHex = Bytes.toHex(datumHash.hash)
   return withRateLimit(
-    HttpUtils.get(
-      `${baseUrl}/scripts/datum/${datumHashHex}/cbor`,
-      BlockfrostDatumCbor,
-      createHeaders(projectId)
-    ).pipe(
+    HttpUtils.get(`${baseUrl}/scripts/datum/${datumHashHex}/cbor`, BlockfrostDatumCbor, createHeaders(projectId)).pipe(
       Effect.flatMap((datum) => {
         // Parse CBOR hex to PlutusData
         return Effect.try({
@@ -676,9 +670,7 @@ export const awaitTx =
 
     return Effect.retry(checkTx, Schedule.fixed(`${checkInterval} millis`)).pipe(
       Effect.timeout(timeout),
-      Effect.catchAllCause(
-        (cause) => Effect.fail(new ProviderError({ cause, message: "Blockfrost awaitTx failed" }))
-      )
+      Effect.catchAllCause((cause) => Effect.fail(new ProviderError({ cause, message: "Blockfrost awaitTx failed" })))
     )
   }
 
@@ -725,9 +717,7 @@ export const evaluateTx =
 
     // Build additional UTxO set if provided
     const additionalUtxoSet =
-      additionalUTxOs && additionalUTxOs.length > 0
-        ? toBlockfrostAdditionalUtxoSet(additionalUTxOs)
-        : []
+      additionalUTxOs && additionalUTxOs.length > 0 ? toBlockfrostAdditionalUtxoSet(additionalUTxOs) : []
 
     const payload = {
       cbor: txCborHex,
@@ -740,6 +730,9 @@ export const evaluateTx =
         payload,
         Blockfrost.JsonwspOgmiosEvaluationResponse,
         headers
-      ).pipe(Effect.flatMap(Blockfrost.transformJsonwspOgmiosEvaluationResult), Effect.catchAll(wrapError("evaluateTx")))
+      ).pipe(
+        Effect.flatMap(Blockfrost.transformJsonwspOgmiosEvaluationResult),
+        Effect.catchAll(wrapError("evaluateTx"))
+      )
     )
   }

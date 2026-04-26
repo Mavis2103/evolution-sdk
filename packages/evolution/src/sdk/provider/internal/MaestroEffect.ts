@@ -88,7 +88,7 @@ export const getProtocolParameters = (baseUrl: string, apiKey: string) =>
 export const getUtxos =
   (baseUrl: string, apiKey: string) => (addressOrCredential: CoreAddress.Address | Credential.Credential) =>
     Effect.gen(function* () {
-      if (!(addressOrCredential instanceof CoreAddress.Address)) {
+      if ("hash" in addressOrCredential) {
         return yield* Effect.fail(
           new ProviderError({
             message: "Maestro provider does not support credential-based UTxO queries. Pass a full Address instead.",
@@ -113,7 +113,7 @@ export const getUtxosWithUnit =
     Effect.gen(function* () {
       // Use address endpoint and filter by unit client-side,
       // because /assets/{unit}/utxos returns a simplified response without full UTxO details
-      if (!(addressOrCredential instanceof CoreAddress.Address)) {
+      if ("hash" in addressOrCredential) {
         return yield* Effect.fail(
           new ProviderError({
             message: "Maestro provider does not support credential-based UTxO queries. Pass a full Address instead.",
@@ -341,9 +341,10 @@ export const awaitTx =
         // Wait before checking again
         yield* Effect.sleep(`${interval} millis`)
       }
-    }).pipe(Effect.timeout(timeout), Effect.catchAllCause(
-      (cause) => Effect.fail(new ProviderError({ cause, message: "Maestro awaitTx failed" }))
-    ))
+    }).pipe(
+      Effect.timeout(timeout),
+      Effect.catchAllCause((cause) => Effect.fail(new ProviderError({ cause, message: "Maestro awaitTx failed" })))
+    )
   }
 
 // ============================================================================
