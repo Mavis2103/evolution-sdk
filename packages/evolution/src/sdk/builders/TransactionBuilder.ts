@@ -470,11 +470,31 @@ export interface TxBuilderState {
  */
 export interface BuildOptions {
   /**
-   * Override protocol parameters for this specific transaction build.
+   * Override protocol parameters for fee calculation.
+   *
+   * @deprecated Use `fullProtocolParameters` instead — it covers all fee-calc fields
+   * (`minFeeA`/`minFeeB` → `minFeeCoefficient`/`minFeeConstant`, `coinsPerUtxoByte`,
+   * `maxTxSize`, `priceMem`, `priceStep`, `minFeeRefScriptCostPerByte`) and is derived
+   * automatically when `fullProtocolParameters` is present.
    *
    * @since 2.0.0
    */
   readonly protocolParameters?: ProtocolParameters
+
+  /**
+   * Full protocol parameters override for all transaction build operations.
+   *
+   * When provided, ALL internal phases and operations will use these parameters
+   * instead of calling the provider's `getProtocolParameters` API. This prevents
+   * any network round-trips for protocol parameter fetching during the build.
+   *
+   * Includes all fields required for: script evaluation (cost models), stake/pool/DRep/
+   * governance action deposits, and script data hash computation. Fee-calc fields
+   * (`protocolParameters`) are also derived from this automatically.
+   *
+   * @since 2.0.0
+   */
+  readonly fullProtocolParameters?: Provider.ProtocolParameters
 
   /**
    * Coin selection strategy for automatic input selection.
@@ -635,6 +655,20 @@ export class ProtocolParametersTag extends Context.Tag("ProtocolParameters")<
 >() {}
 
 /**
+ * Context tag providing full protocol parameters (deposits, cost models, execution limits).
+ *
+ * Resolved once per build. Holds `undefined` when neither `fullProtocolParameters`
+ * nor a provider is available — operations that need it fail with a descriptive error.
+ *
+ * @since 2.0.0
+ * @category context
+ */
+export class FullProtocolParametersTag extends Context.Tag("FullProtocolParameters")<
+  FullProtocolParametersTag,
+  Provider.ProtocolParameters | undefined
+>() {}
+
+/**
  * Context tag providing the builder configuration.
  *
  * @since 2.0.0
@@ -671,7 +705,11 @@ export class BuildOptionsTag extends Context.Tag("BuildOptions")<BuildOptionsTag
  * @since 2.0.0
  * @category model
  */
-export type ProgramStep = Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag>
+export type ProgramStep = Effect.Effect<
+  void,
+  TransactionBuilderError,
+  TxContext | TxBuilderConfigTag | BuildOptionsTag | FullProtocolParametersTag
+>
 
 // ============================================================================
 // Voter Key
