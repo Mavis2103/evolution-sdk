@@ -19,10 +19,6 @@ export const resolveProtocolParameters = (
   config: TxBuilderConfig,
   options?: BuildOptions
 ): Effect.Effect<ProtocolParameters, TransactionBuilderError | Provider.ProviderError> => {
-  if (options?.protocolParameters !== undefined) {
-    return Effect.succeed(options.protocolParameters)
-  }
-
   if (options?.fullProtocolParameters !== undefined) {
     const p = options.fullProtocolParameters
     return Effect.succeed({
@@ -34,6 +30,10 @@ export const resolveProtocolParameters = (
       priceStep: p.priceStep,
       minFeeRefScriptCostPerByte: p.minFeeRefScriptCostPerByte
     })
+  }
+
+  if (options?.protocolParameters !== undefined) {
+    return Effect.succeed(options.protocolParameters)
   }
 
   const provider = config.provider
@@ -58,6 +58,37 @@ export const resolveProtocolParameters = (
         "No protocol parameters provided. Either provide protocolParameters in BuildOptions or provider in config."
     })
   )
+}
+
+/**
+ * Resolve full protocol parameters once for the build layer.
+ *
+ * Returns `undefined` when neither `fullProtocolParameters` nor a provider is available.
+ * Operations that need it check for `undefined` and fail with a descriptive error.
+ *
+ * @since 2.0.0
+ * @category builders
+ */
+export const resolveFullProtocolParameters = (
+  config: TxBuilderConfig,
+  options?: BuildOptions
+): Effect.Effect<Provider.ProtocolParameters | undefined, TransactionBuilderError> => {
+  if (options?.fullProtocolParameters) {
+    return Effect.succeed(options.fullProtocolParameters)
+  }
+
+  if (config.provider) {
+    return config.provider.effect.getProtocolParameters().pipe(
+      Effect.mapError(
+        (err) =>
+          new TransactionBuilderError({
+            message: `Failed to fetch protocol parameters: ${err.message}`
+          })
+      )
+    )
+  }
+
+  return Effect.succeed(undefined)
 }
 
 /**

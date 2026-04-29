@@ -19,22 +19,20 @@ import type * as Provider from "../../provider/Provider.js"
 import * as EvaluationStateManager from "../EvaluationStateManager.js"
 import { assembleTransaction } from "../internal/txBuilder.js"
 import type { IndexedInput } from "../RedeemerBuilder.js"
-import type {
-  DeferredRedeemerData,
-  EvaluationContext,
-  PhaseResult,
-  RedeemerData,
-  ScriptFailure
-} from "../TransactionBuilder.js"
 import {
   BuildOptionsTag,
+  type DeferredRedeemerData,
+  type EvaluationContext,
   EvaluationError,
+  FullProtocolParametersTag,
   PhaseContextTag,
+  type PhaseResult,
+  type RedeemerData,
+  type ScriptFailure,
   TransactionBuilderError,
-  TxBuilderConfigTag,
+  type TxBuilderConfigTag,
   TxContext,
-  voterToKey
-} from "../TransactionBuilder.js"
+  voterToKey} from "../TransactionBuilder.js"
 
 /**
  * Convert ProtocolParameters cost models to CostModels core type for evaluation.
@@ -262,7 +260,7 @@ const resolveDeferredRedeemers = (
 export const executeEvaluation = (): Effect.Effect<
   PhaseResult,
   TransactionBuilderError,
-  BuildOptionsTag | TxContext | PhaseContextTag | TxBuilderConfigTag
+  BuildOptionsTag | FullProtocolParametersTag | TxContext | PhaseContextTag | TxBuilderConfigTag
 > =>
   Effect.gen(function* () {
     yield* Effect.logDebug("[Evaluation] Starting UPLC evaluation")
@@ -270,9 +268,9 @@ export const executeEvaluation = (): Effect.Effect<
     // Step 1: Get contexts
     const ctx = yield* TxContext
     const buildOptions = yield* BuildOptionsTag
+    const fullParamsOrUndefined = yield* FullProtocolParametersTag
     const buildCtxRef = yield* PhaseContextTag
     const buildCtx = yield* Ref.get(buildCtxRef)
-    const config = yield* TxBuilderConfigTag
     const state = yield* Ref.get(ctx)
 
     // Step 2: Get evaluator from BuildOptions or fail
@@ -291,25 +289,15 @@ export const executeEvaluation = (): Effect.Effect<
       )
     }
 
-    const fullProtocolParams = yield* buildOptions.fullProtocolParameters
-      ? Effect.succeed(buildOptions.fullProtocolParameters)
-      : !config.provider
-        ? Effect.fail(
-            new TransactionBuilderError({
-              message:
-                "Script evaluation requires a provider to fetch full protocol parameters (cost models, execution limits)",
-              cause: { redeemerCount: state.redeemers.size }
-            })
-          )
-        : config.provider.effect.getProtocolParameters().pipe(
-            Effect.mapError(
-              (providerError) =>
-                new TransactionBuilderError({
-                  message: `Failed to fetch full protocol parameters for evaluation: ${providerError.message}`,
-                  cause: providerError
-                })
-            )
-          )
+    if (!fullParamsOrUndefined) {
+      return yield* Effect.fail(
+        new TransactionBuilderError({
+          message: "Provider required to fetch protocol parameters for script evaluation",
+          cause: { redeemerCount: state.redeemers.size }
+        })
+      )
+    }
+    const fullProtocolParams = fullParamsOrUndefined
 
     // Step 3: Check if there are redeemers to evaluate (resolved or deferred)
     const hasResolvedRedeemers = state.redeemers.size > 0

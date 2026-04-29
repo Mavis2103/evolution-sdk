@@ -10,7 +10,7 @@ import { Effect, Ref } from "effect"
 import * as Bytes from "../../../Bytes.js"
 import * as Certificate from "../../../Certificate.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
-import { BuildOptionsTag, TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
+import { FullProtocolParametersTag, TransactionBuilderError, type TxBuilderConfigTag,TxContext } from "../TransactionBuilder.js"
 import type {
   AuthCommitteeHotParams,
   DeregisterDRepParams,
@@ -33,11 +33,10 @@ import type {
  */
 export const createRegisterDRepProgram = (
   params: RegisterDRepParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | FullProtocolParametersTag> =>
   Effect.gen(function* () {
     const ctx = yield* TxContext
-    const config = yield* TxBuilderConfigTag
-    const buildOptions = yield* BuildOptionsTag
+    const fullParams = yield* FullProtocolParametersTag
 
     const isScriptControlled = params.drepCredential._tag === "ScriptHash"
 
@@ -49,23 +48,12 @@ export const createRegisterDRepProgram = (
       )
     }
 
-    const protocolParams = yield* buildOptions.fullProtocolParameters
-      ? Effect.succeed(buildOptions.fullProtocolParameters)
-      : !config.provider
-        ? Effect.fail(
-            new TransactionBuilderError({
-              message: "Provider required to fetch drepDeposit for DRep registration"
-            })
-          )
-        : config.provider.effect.getProtocolParameters().pipe(
-            Effect.mapError(
-              (err) =>
-                new TransactionBuilderError({
-                  message: `Failed to fetch protocol parameters: ${err.message}`
-                })
-            )
-          )
-    const drepDeposit = protocolParams.drepDeposit
+    if (!fullParams) {
+      return yield* Effect.fail(
+        new TransactionBuilderError({ message: "Provider required to fetch protocol parameters for DRep registration" })
+      )
+    }
+    const drepDeposit = fullParams.drepDeposit
 
     // Create RegDrepCert certificate with deposit
     const certificate = new Certificate.RegDrepCert({
@@ -193,11 +181,10 @@ export const createUpdateDRepProgram = (
  */
 export const createDeregisterDRepProgram = (
   params: DeregisterDRepParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | FullProtocolParametersTag> =>
   Effect.gen(function* () {
     const ctx = yield* TxContext
-    const config = yield* TxBuilderConfigTag
-    const buildOptions = yield* BuildOptionsTag
+    const fullParams = yield* FullProtocolParametersTag
 
     const isScriptControlled = params.drepCredential._tag === "ScriptHash"
 
@@ -209,23 +196,12 @@ export const createDeregisterDRepProgram = (
       )
     }
 
-    const protocolParams = yield* buildOptions.fullProtocolParameters
-      ? Effect.succeed(buildOptions.fullProtocolParameters)
-      : !config.provider
-        ? Effect.fail(
-            new TransactionBuilderError({
-              message: "Provider required to fetch drepDeposit for DRep deregistration"
-            })
-          )
-        : config.provider.effect.getProtocolParameters().pipe(
-            Effect.mapError(
-              (err) =>
-                new TransactionBuilderError({
-                  message: `Failed to fetch protocol parameters: ${err.message}`
-                })
-            )
-          )
-    const drepDeposit = protocolParams.drepDeposit
+    if (!fullParams) {
+      return yield* Effect.fail(
+        new TransactionBuilderError({ message: "Provider required to fetch protocol parameters for DRep deregistration" })
+      )
+    }
+    const drepDeposit = fullParams.drepDeposit
 
     // Create UnregDrepCert certificate with deposit refund
     const certificate = new Certificate.UnregDrepCert({

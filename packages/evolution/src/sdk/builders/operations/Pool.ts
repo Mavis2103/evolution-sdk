@@ -9,7 +9,7 @@ import { Effect, Ref } from "effect"
 
 import * as Certificate from "../../../Certificate.js"
 import * as PoolKeyHash from "../../../PoolKeyHash.js"
-import { BuildOptionsTag, TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
+import { FullProtocolParametersTag, TransactionBuilderError, type TxBuilderConfigTag,TxContext } from "../TransactionBuilder.js"
 import type { RegisterPoolParams, RetirePoolParams } from "./Operations.js"
 
 // ============================================================================
@@ -26,29 +26,17 @@ import type { RegisterPoolParams, RetirePoolParams } from "./Operations.js"
  */
 export const createRegisterPoolProgram = (
   params: RegisterPoolParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | FullProtocolParametersTag> =>
   Effect.gen(function* () {
     const ctx = yield* TxContext
-    const config = yield* TxBuilderConfigTag
-    const buildOptions = yield* BuildOptionsTag
+    const fullParams = yield* FullProtocolParametersTag
 
-    const protocolParams = yield* buildOptions.fullProtocolParameters
-      ? Effect.succeed(buildOptions.fullProtocolParameters)
-      : !config.provider
-        ? Effect.fail(
-            new TransactionBuilderError({
-              message: "Provider required to fetch poolDeposit for pool registration"
-            })
-          )
-        : config.provider.effect.getProtocolParameters().pipe(
-            Effect.mapError(
-              (err) =>
-                new TransactionBuilderError({
-                  message: `Failed to fetch protocol parameters: ${err.message}`
-                })
-            )
-          )
-    const poolDeposit = protocolParams.poolDeposit
+    if (!fullParams) {
+      return yield* Effect.fail(
+        new TransactionBuilderError({ message: "Provider required to fetch protocol parameters for pool registration" })
+      )
+    }
+    const poolDeposit = fullParams.poolDeposit
 
     // Create PoolRegistration certificate
     const certificate = new Certificate.PoolRegistration({

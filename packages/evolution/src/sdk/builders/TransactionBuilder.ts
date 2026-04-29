@@ -653,6 +653,20 @@ export class ProtocolParametersTag extends Context.Tag("ProtocolParameters")<
 >() {}
 
 /**
+ * Context tag providing full protocol parameters (deposits, cost models, execution limits).
+ *
+ * Resolved once per build. Holds `undefined` when neither `fullProtocolParameters`
+ * nor a provider is available — operations that need it fail with a descriptive error.
+ *
+ * @since 2.0.0
+ * @category context
+ */
+export class FullProtocolParametersTag extends Context.Tag("FullProtocolParameters")<
+  FullProtocolParametersTag,
+  Provider.ProtocolParameters | undefined
+>() {}
+
+/**
  * Context tag providing the builder configuration.
  *
  * @since 2.0.0
@@ -689,7 +703,11 @@ export class BuildOptionsTag extends Context.Tag("BuildOptions")<BuildOptionsTag
  * @since 2.0.0
  * @category model
  */
-export type ProgramStep = Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag>
+export type ProgramStep = Effect.Effect<
+  void,
+  TransactionBuilderError,
+  TxContext | TxBuilderConfigTag | BuildOptionsTag | FullProtocolParametersTag
+>
 
 // ============================================================================
 // Voter Key
@@ -1671,7 +1689,9 @@ export type TransactionBuilder = SigningTransactionBuilder | ReadOnlyTransaction
 export function makeTxBuilder(
   config: TxBuilderConfig & { wallet: Wallet.SigningWallet | Wallet.ApiWallet }
 ): SigningTransactionBuilder
-export function makeTxBuilder(config: TxBuilderConfig & { wallet: Wallet.ReadOnlyWallet }): ReadOnlyTransactionBuilder
+export function makeTxBuilder(
+  config: TxBuilderConfig & { wallet: Wallet.ReadOnlyWallet }
+): ReadOnlyTransactionBuilder
 export function makeTxBuilder(config: TxBuilderConfig & { wallet?: undefined }): ReadOnlyTransactionBuilder
 export function makeTxBuilder(config: TxBuilderConfig): SigningTransactionBuilder | ReadOnlyTransactionBuilder {
   return BuilderFactory.makeTxBuilder(config)

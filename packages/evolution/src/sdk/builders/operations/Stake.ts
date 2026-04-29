@@ -11,7 +11,7 @@ import * as Bytes from "../../../Bytes.js"
 import * as Certificate from "../../../Certificate.js"
 import * as RewardAccount from "../../../RewardAccount.js"
 import * as RedeemerBuilder from "../RedeemerBuilder.js"
-import { BuildOptionsTag, TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
+import { FullProtocolParametersTag, TransactionBuilderError, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import type {
   DelegateToDRepParams,
   DelegateToParams,
@@ -33,11 +33,10 @@ import type {
  */
 export const createRegisterStakeProgram = (
   params: RegisterStakeParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | FullProtocolParametersTag> =>
   Effect.gen(function* () {
     const ctx = yield* TxContext
-    const config = yield* TxBuilderConfigTag
-    const buildOptions = yield* BuildOptionsTag
+    const fullParams = yield* FullProtocolParametersTag
 
     const isScriptControlled = params.stakeCredential._tag === "ScriptHash"
 
@@ -49,23 +48,12 @@ export const createRegisterStakeProgram = (
       )
     }
 
-    const protocolParams = yield* buildOptions.fullProtocolParameters
-      ? Effect.succeed(buildOptions.fullProtocolParameters)
-      : !config.provider
-        ? Effect.fail(
-            new TransactionBuilderError({
-              message: "Provider required to fetch keyDeposit for stake registration"
-            })
-          )
-        : config.provider.effect.getProtocolParameters().pipe(
-            Effect.mapError(
-              (err) =>
-                new TransactionBuilderError({
-                  message: `Failed to fetch protocol parameters: ${err.message}`
-                })
-            )
-          )
-    const keyDeposit = protocolParams.keyDeposit
+    if (!fullParams) {
+      return yield* Effect.fail(
+        new TransactionBuilderError({ message: "Provider required to fetch protocol parameters for stake registration" })
+      )
+    }
+    const keyDeposit = fullParams.keyDeposit
 
     // Create RegCert (Conway-era) certificate with deposit
     const certificate = new Certificate.RegCert({
@@ -386,11 +374,10 @@ export const createDelegateToPoolAndDRepProgram = (
  */
 export const createRegisterAndDelegateToProgram = (
   params: RegisterAndDelegateToParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | FullProtocolParametersTag> =>
   Effect.gen(function* () {
     const ctx = yield* TxContext
-    const config = yield* TxBuilderConfigTag
-    const buildOptions = yield* BuildOptionsTag
+    const fullParams = yield* FullProtocolParametersTag
 
     if (!params.poolKeyHash && !params.drep) {
       return yield* Effect.fail(
@@ -400,23 +387,12 @@ export const createRegisterAndDelegateToProgram = (
       )
     }
 
-    const protocolParams = yield* buildOptions.fullProtocolParameters
-      ? Effect.succeed(buildOptions.fullProtocolParameters)
-      : !config.provider
-        ? Effect.fail(
-            new TransactionBuilderError({
-              message: "Provider required to fetch keyDeposit for stake registration"
-            })
-          )
-        : config.provider.effect.getProtocolParameters().pipe(
-            Effect.mapError(
-              (err) =>
-                new TransactionBuilderError({
-                  message: `Failed to fetch protocol parameters: ${err.message}`
-                })
-            )
-          )
-    const keyDeposit = protocolParams.keyDeposit
+    if (!fullParams) {
+      return yield* Effect.fail(
+        new TransactionBuilderError({ message: "Provider required to fetch protocol parameters for stake registration and delegation" })
+      )
+    }
+    const keyDeposit = fullParams.keyDeposit
 
     // Check if script-controlled
     const isScriptControlled = params.stakeCredential._tag === "ScriptHash"
@@ -514,11 +490,10 @@ export const createRegisterAndDelegateToProgram = (
  */
 export const createDeregisterStakeProgram = (
   params: DeregisterStakeParams
-): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | BuildOptionsTag> =>
+): Effect.Effect<void, TransactionBuilderError, TxContext | TxBuilderConfigTag | FullProtocolParametersTag> =>
   Effect.gen(function* () {
     const ctx = yield* TxContext
-    const config = yield* TxBuilderConfigTag
-    const buildOptions = yield* BuildOptionsTag
+    const fullParams = yield* FullProtocolParametersTag
 
     const isScriptControlled = params.stakeCredential._tag === "ScriptHash"
 
@@ -530,23 +505,12 @@ export const createDeregisterStakeProgram = (
       )
     }
 
-    const protocolParams = yield* buildOptions.fullProtocolParameters
-      ? Effect.succeed(buildOptions.fullProtocolParameters)
-      : !config.provider
-        ? Effect.fail(
-            new TransactionBuilderError({
-              message: "Provider required to fetch keyDeposit for stake deregistration"
-            })
-          )
-        : config.provider.effect.getProtocolParameters().pipe(
-            Effect.mapError(
-              (err) =>
-                new TransactionBuilderError({
-                  message: `Failed to fetch protocol parameters: ${err.message}`
-                })
-            )
-          )
-    const keyDeposit = protocolParams.keyDeposit
+    if (!fullParams) {
+      return yield* Effect.fail(
+        new TransactionBuilderError({ message: "Provider required to fetch protocol parameters for stake deregistration" })
+      )
+    }
+    const keyDeposit = fullParams.keyDeposit
 
     // Create UnregCert (Conway-era) certificate with deposit refund
     const certificate = new Certificate.UnregCert({

@@ -5,7 +5,7 @@ import * as Address from "../src/Address.js"
 import * as Credential from "../src/Credential.js"
 import { makeTxBuilder } from "../src/sdk/builders/TransactionBuilder.js"
 import { mainnet } from "../src/sdk/client/index.js"
-import type { Provider as ProviderType } from "../src/sdk/provider/Provider.js"
+import type { ProtocolParameters, Provider } from "../src/sdk/provider/Provider.js"
 import type * as CoreUTxO from "../src/UTxO.js"
 import { createCoreTestUtxo } from "./utils/utxo-helpers.js"
 
@@ -34,7 +34,7 @@ const FULL_PROTOCOL_PARAMS = {
     PlutusV2: {} as Record<string, number>,
     PlutusV3: {} as Record<string, number>
   }
-} satisfies ProviderType["effect"] extends { getProtocolParameters: () => Effect.Effect<infer P, unknown> } ? P : never
+} satisfies ProtocolParameters
 
 const PROTOCOL_PARAMS_FOR_FEE = {
   minFeeCoefficient: 44n,
@@ -78,7 +78,7 @@ const makeSpyProvider = () => {
     evaluateTx: notImpl("evaluateTx")
   }
 
-  const provider = { effect } as unknown as ProviderType
+  const provider = { effect } as unknown as Provider
 
   return { provider, getCallCount: () => callCount }
 }
@@ -141,7 +141,7 @@ describe("fullProtocolParameters override — registerStake", () => {
           availableUtxos: utxos,
           protocolParameters: PROTOCOL_PARAMS_FOR_FEE
         })
-    ).rejects.toThrow(/Provider required to fetch keyDeposit for stake registration/)
+    ).rejects.toThrow(/Provider required to fetch protocol parameters for stake registration/)
   })
 })
 
@@ -186,7 +186,7 @@ describe("fullProtocolParameters override — deregisterStake", () => {
           availableUtxos: utxos,
           protocolParameters: PROTOCOL_PARAMS_FOR_FEE
         })
-    ).rejects.toThrow(/Provider required to fetch keyDeposit for stake deregistration/)
+    ).rejects.toThrow(/Provider required to fetch protocol parameters for stake deregistration/)
   })
 })
 
@@ -246,7 +246,7 @@ describe("fullProtocolParameters override — registerDRep", () => {
           availableUtxos: utxos,
           protocolParameters: PROTOCOL_PARAMS_FOR_FEE
         })
-    ).rejects.toThrow(/Provider required to fetch drepDeposit for DRep registration/)
+    ).rejects.toThrow(/Provider required to fetch protocol parameters for DRep registration/)
   })
 })
 
@@ -291,6 +291,6 @@ describe("fullProtocolParameters override — deregisterDRep", () => {
           availableUtxos: utxos,
           protocolParameters: PROTOCOL_PARAMS_FOR_FEE
         })
-    ).rejects.toThrow(/Provider required to fetch drepDeposit for DRep deregistration/)
+    ).rejects.toThrow(/Provider required to fetch protocol parameters for DRep deregistration/)
   })
 })

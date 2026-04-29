@@ -1,7 +1,7 @@
 import { Layer, Ref } from "effect"
 
 import type { BuildOptions, PhaseContext, TxBuilderConfig } from "../TransactionBuilder.js"
-import { AvailableUtxosTag, BuildOptionsTag, ChangeAddressTag, PhaseContextTag, ProtocolParametersTag, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
+import { AvailableUtxosTag, BuildOptionsTag, ChangeAddressTag, FullProtocolParametersTag, PhaseContextTag, ProtocolParametersTag, TxBuilderConfigTag, TxContext } from "../TransactionBuilder.js"
 import * as BuilderResolve from "./resolve.js"
 import * as BuilderState from "./state.js"
 
@@ -30,6 +30,7 @@ export const makeBuildRuntimeLayer = (
     Layer.succeed(TxBuilderConfigTag, config),
     Layer.succeed(BuildOptionsTag, buildOptions),
     Layer.effect(ProtocolParametersTag, BuilderResolve.resolveProtocolParameters(config, buildOptions)),
+    Layer.effect(FullProtocolParametersTag, BuilderResolve.resolveFullProtocolParameters(config, buildOptions)),
     Layer.effect(ChangeAddressTag, BuilderResolve.resolveChangeAddress(config, buildOptions)),
     Layer.effect(AvailableUtxosTag, BuilderResolve.resolveAvailableUtxos(config, buildOptions))
   )
